@@ -28,9 +28,9 @@ class _CustomNavBarState extends State<CustomNavBar> {
           tabs: [
             GButton(
               icon: Icons.photo_library_outlined,
-              text: "Gallery",
+              text: "Albums",
               onPressed: () {
-                context.go("/gallery");
+                context.go("/albums");
               },
             ),
             GButton(

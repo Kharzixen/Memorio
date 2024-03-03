@@ -1,4 +1,9 @@
 {
     "dart.flutterHotReloadOnSave": "all",
-    "dart.hotReloadOnSave": "all"
+    "dart.hotReloadOnSave": "all",
+    "cSpell.words": [
+        "granularities",
+        "lato",
+        "Napoca"
+    ]
 }
