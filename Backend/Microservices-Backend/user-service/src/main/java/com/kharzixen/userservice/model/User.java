@@ -1,18 +1,12 @@
 package com.kharzixen.userservice.model;
 
+import jakarta.persistence.*;
 import lombok.*;
-import org.bson.codecs.pojo.annotations.BsonProperty;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.DBRef;
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.List;
 
-@Document
+
+@Entity
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -21,22 +15,35 @@ import java.util.Set;
 public class User {
 
     @Id
-    @BsonProperty("id")
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Indexed(unique = true)
-    @BsonProperty("username")
+    @Column(unique=true)
     private String username;
 
-    @Indexed(unique = true)
+    @Column(unique=true)
     private String email;
 
     private Date birthday;
 
     private String name;
     private String bio;
-    @BsonProperty("pfpLink")
-    private String pfpLink;
+
+    private String pfpId;
 
     private Date accountCreationDate;
+
+
+    @ManyToMany
+    @JoinTable(
+            name = "user_followers",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "follower_id")
+    )
+    private List<User> followers;
+    private int followersCount;
+
+    @ManyToMany(mappedBy = "followers")
+    private List<User> following;
+    private int followingCount;
 }

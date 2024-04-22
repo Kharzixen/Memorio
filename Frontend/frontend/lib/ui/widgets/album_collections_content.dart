@@ -1,182 +1,167 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/bloc/collection_preview_bloc/collections_preview_bloc.dart';
 import 'package:frontend/model/album_model.dart';
+import 'package:frontend/ui/widgets/collection_preview_card.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
-class CollectionContent extends StatelessWidget {
-  final List<CollectionPreview> collections;
-  const CollectionContent({Key? key, required this.collections})
-      : super(key: key);
+class CollectionsContent extends StatefulWidget {
+  final SimpleAlbum album;
+  const CollectionsContent({Key? key, required this.album}) : super(key: key);
 
-  final double _collectionCardSize = 200;
+  @override
+  State<CollectionsContent> createState() => _CollectionsContentState();
+}
+
+class _CollectionsContentState extends State<CollectionsContent>
+    with AutomaticKeepAliveClientMixin {
+  List<CollectionPreview> collections = [];
+
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    print("collections built");
+    context
+        .read<CollectionsPreviewBloc>()
+        .add(NextDatasetFetched(albumId: widget.album.albumId));
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints(minHeight: 600),
-      child: Column(
-        children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(10, 15, 10, 25),
-              child: Text("Collections:",
-                  softWrap: true,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.alegreya(
-                      color: Colors.white,
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold)),
-            ),
-          ),
-          ListView.builder(
+    super.build(context);
+    return BlocBuilder<CollectionsPreviewBloc, CollectionsPreviewState>(
+      builder: (context, state) {
+        if (state is CollectionsPreviewLoadedState) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            isLoading = false;
+          });
+
+          return RefreshIndicator.adaptive(
+            onRefresh: () async {
+              Future block =
+                  context.read<CollectionsPreviewBloc>().stream.first;
+              context
+                  .read<CollectionsPreviewBloc>()
+                  .add(CollectionRefreshRequested());
+              await block;
+            },
+            child: CustomScrollView(
+              controller: ScrollController(),
               shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: collections.length,
-              itemBuilder: (context, index) {
-                return Column(
-                  children: [
-                    Container(
-                        height: _collectionCardSize,
-                        width: double.infinity,
-                        decoration: const BoxDecoration(
-                            border: Border(
-                                bottom: BorderSide(
-                          color: Colors.white,
-                          width: 1,
-                        ))),
-                        child: Column(children: [
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(5, 0, 5, 0),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: List.generate(
-                                4,
-                                (previewIndex) {
-                                  return Expanded(
-                                    flex: 1,
-                                    child: Container(
-                                      height: 140, // Conditional height
-                                      margin: EdgeInsets.only(
-                                          right: index < 4 - 1
-                                              ? 2
-                                              : 0), // Apply margin only if it's not the last item,
-                                      child: previewIndex <
-                                              collections[index]
-                                                  .previewEntries
-                                                  .length
-                                          ? previewIndex < 3
-                                              ? Image.network(
-                                                  collections[index]
-                                                      .previewEntries[
-                                                          previewIndex]
-                                                      .photo,
-                                                  fit: BoxFit.cover,
-                                                  loadingBuilder:
-                                                      (BuildContext context,
-                                                          Widget child,
-                                                          ImageChunkEvent?
-                                                              loadingProgress) {
-                                                    if (loadingProgress ==
-                                                        null) {
-                                                      return child;
-                                                    }
-                                                    return const Center(
-                                                      child:
-                                                          CircularProgressIndicator(
-                                                        color: Colors.white,
-                                                      ),
-                                                    );
-                                                  },
-                                                )
-                                              : Stack(
-                                                  children: [
-                                                    Image.network(
-                                                      height: 140,
-                                                      collections[index]
-                                                          .previewEntries[
-                                                              previewIndex]
-                                                          .photo,
-                                                      fit: BoxFit.cover,
-                                                      loadingBuilder: (BuildContext
-                                                              context,
-                                                          Widget child,
-                                                          ImageChunkEvent?
-                                                              loadingProgress) {
-                                                        if (loadingProgress ==
-                                                            null) {
-                                                          return child;
-                                                        }
-                                                        return const Center(
-                                                          child:
-                                                              CircularProgressIndicator(
-                                                            color: Colors.white,
-                                                          ),
-                                                        );
-                                                      },
-                                                    ),
-                                                    Container(
-                                                      height: 140,
-                                                      color: Colors.white
-                                                          .withOpacity(0.3),
-                                                    ),
-                                                    const Center(
-                                                        child: Icon(
-                                                      Icons.more_horiz,
-                                                      size: 50,
-                                                    )),
-                                                  ],
-                                                )
-                                          : Container(),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.all(8.0),
+                  sliver: SliverToBoxAdapter(
+                    child: ListView(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      children: [
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(10, 15, 10, 25),
                             child: Row(
                               children: [
-                                const SizedBox(
-                                  width: 10,
+                                Text(
+                                  "Collections:",
+                                  softWrap: true,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.lato(
+                                      color: Colors.white,
+                                      fontSize: 23,
+                                      fontWeight: FontWeight.bold),
                                 ),
-                                Expanded(
-                                  child: Text(collections[index].collectionName,
-                                      maxLines: 2,
-                                      softWrap: true,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: GoogleFonts.alegreya(
-                                          color: Colors.white,
-                                          fontSize: 17,
-                                          fontWeight: FontWeight.bold)),
-                                ),
+                                Spacer(),
                                 IconButton(
                                     onPressed: () {
-                                      print("button");
+                                      context.push(
+                                          "/albums/${widget.album.albumId}/create-collection");
                                     },
                                     icon: const Icon(
-                                      Icons.navigate_next_sharp,
-                                      size: 28,
+                                      Icons.add_box_outlined,
                                       color: Colors.white,
-                                    )),
+                                    ))
                               ],
                             ),
                           ),
-                        ])),
-                    const SizedBox(
-                      height: 35,
+                        ),
+                        state.collections.isNotEmpty
+                            ? ListView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: state.collections.length,
+                                itemBuilder: (context, collectionIndex) {
+                                  return GestureDetector(
+                                    onTap: () {
+                                      context.push(
+                                          "/albums/${widget.album.albumId}/collections/${state.collections[collectionIndex].collectionId}");
+                                    },
+                                    child: CollectionPreviewCard(
+                                      collection:
+                                          state.collections[collectionIndex],
+                                      album: widget.album,
+                                    ),
+                                  );
+                                })
+                            : Column(
+                                children: [
+                                  Text("This album has no collections",
+                                      style: GoogleFonts.lato(
+                                          color: Colors.white,
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.bold)),
+                                  TextButton(
+                                    onPressed: () {
+                                      context.push(
+                                          "/albums/${widget.album.albumId}/create-collection");
+                                    },
+                                    child: Text("Create a collection",
+                                        style: GoogleFonts.lato(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold)),
+                                  )
+                                ],
+                              ),
+                        VisibilityDetector(
+                          key: ObjectKey("${state.albumId}collections"),
+                          onVisibilityChanged: (info) {
+                            if (!isLoading &&
+                                info.visibleFraction == 1.0 &&
+                                state.hasMoreData) {
+                              isLoading = true;
+                              context.read<CollectionsPreviewBloc>().add(
+                                  NextDatasetFetched(
+                                      albumId: widget.album.albumId));
+                            }
+                          },
+                          child: state.hasMoreData
+                              ? const LinearProgressIndicator(
+                                  minHeight: 3,
+                                  color: Colors.blue,
+                                  backgroundColor: Colors.black,
+                                )
+                              : Container(),
+                        ),
+                      ],
                     ),
-                  ],
-                );
-              }),
-          const Padding(
-            padding: EdgeInsets.fromLTRB(0, 20, 0, 20),
-            child: Center(
-                child: CircularProgressIndicator(
-              color: Colors.blue,
-            )),
-          ),
-        ],
-      ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return const SizedBox();
+      },
     );
   }
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
 }

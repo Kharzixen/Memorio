@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -13,7 +14,8 @@ import java.util.List;
 @Builder
 public class AlbumDtoIn {
     private Long ownerId;
+    private String albumName;
     private String caption;
-    private String albumImageLink;
+    private MultipartFile image;
     private List<Long> invitedUserIds;
 }

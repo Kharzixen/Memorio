@@ -8,17 +8,11 @@ final class AlbumFetched extends AlbumEvent {
 }
 
 final class AlbumDisplayChangedToCollection extends AlbumEvent {
-  String contentBefore;
-  double position;
-  AlbumDisplayChangedToCollection(
-      {required this.contentBefore, required this.position});
+  AlbumDisplayChangedToCollection();
 }
 
 final class AlbumDisplayChangedToTimeline extends AlbumEvent {
-  String contentBefore;
-  double position;
-  AlbumDisplayChangedToTimeline(
-      {required this.contentBefore, required this.position});
+  AlbumDisplayChangedToTimeline();
 }
 
 final class AlbumTimelineNewChunkFetched extends AlbumEvent {

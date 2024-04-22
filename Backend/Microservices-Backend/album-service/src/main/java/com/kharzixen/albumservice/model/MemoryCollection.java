@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -13,23 +14,27 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table(name = "collection")
+@Table(name = "collection", uniqueConstraints = @UniqueConstraint(columnNames = {"collection_name", "album_id"}))
 public class MemoryCollection {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "collection_name")
     private String collectionName;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    private String collectionDescription;
+
+    @ManyToOne(cascade = CascadeType.MERGE)
     private User creator;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "album_id")
     private Album album;
 
-    @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "collection_memory", joinColumns  =  @JoinColumn(name = "collection_id") , inverseJoinColumns =  @JoinColumn(name = "memory_id"))
+    @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY, mappedBy = "collections")
     private List<Memory> memories;
+
+    private Date creationDate;
 
 }

@@ -1,42 +1,41 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/data/repository/moment_repository.dart';
+import 'package:frontend/data/repository/memory_repository.dart';
 import 'package:frontend/model/album_model.dart';
 
 part 'moment_event.dart';
 part 'moment_state.dart';
 
-class MomentBloc extends Bloc<MomentEvent, MomentState> {
-  final MomentRepository momentRepository;
-  late DetailedMoment moment;
-  late String contentToShow;
+class MomentBloc extends Bloc<MemoryEvent, MomentState> {
+  final MemoryRepository momentRepository;
+  late DetailedMemory moment;
 
   MomentBloc(this.momentRepository) : super(MomentInitialState()) {
-    on<MomentFetched>(_loadMomentById);
-    on<ContentChangedToComments>(_changeContentToComments);
-    on<ContentChangedToLikes>(_changeContentToLikes);
+    on<MemoryFetched>(_loadMomentById);
+    on<MemoryRemoved>(_deleteMomentById);
+    on<MemoryCollectionsChanged>(_changeMemoryCollections);
   }
 
-  void _loadMomentById(MomentFetched event, Emitter<MomentState> emit) async {
+  void _loadMomentById(MemoryFetched event, Emitter<MomentState> emit) async {
     emit(MomentLoadingState());
     moment =
         await momentRepository.getMomentById(event.albumId, event.momentId);
-    contentToShow = "comments";
-    emit(MomentLoadedState(moment, contentToShow));
+    emit(MomentLoadedState(moment, false));
   }
 
-  FutureOr<void> _changeContentToComments(
-      ContentChangedToComments event, Emitter<MomentState> emit) {
-    contentToShow = "comments";
-    emit(
-        MomentLoadedState(moment, contentToShow));
+  void _deleteMomentById(MemoryRemoved event, Emitter<MomentState> emit) async {
+    emit(MomentLoadedState(moment, true));
+    await momentRepository.deleteMemory(moment.album.albumId, moment.memoryId);
+    emit(MomentDeletedState());
   }
 
-  FutureOr<void> _changeContentToLikes(
-      ContentChangedToLikes event, Emitter<MomentState> emit) {
-    contentToShow = "likes";
-    emit(
-        MomentLoadedState(moment, contentToShow));
+  FutureOr<void> _changeMemoryCollections(
+      MemoryCollectionsChanged event, Emitter<MomentState> emit) async {
+    emit(MomentLoadedState(moment, true));
+    await momentRepository.changeCollectionsOfMemory(
+        moment.album.albumId, moment.memoryId, event.newCollections);
+    moment.collections = event.newCollections;
+    emit(MomentLoadedState(moment, false));
   }
 }

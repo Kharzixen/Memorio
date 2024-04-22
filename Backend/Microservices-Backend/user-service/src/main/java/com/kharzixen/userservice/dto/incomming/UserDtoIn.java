@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.multipart.MultipartFile;
 
 
 import java.util.Date;
@@ -34,6 +35,8 @@ public class UserDtoIn {
     @NotBlank(message = "Name is mandatory")
     @Size(max = 50, message = "Name cannot exceed 50 characters")
     private String name;
+
+    private MultipartFile profileImage;
 
     @Size(max = 200, message = "Bio cannot exceed 200 characters")
     private String bio;

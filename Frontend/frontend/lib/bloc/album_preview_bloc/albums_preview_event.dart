@@ -6,3 +6,5 @@ final class AlbumsPreviewFetched extends AlbumPreviewEvent {
   String userId;
   AlbumsPreviewFetched({required this.userId});
 }
+
+final class AlbumsRefreshRequested extends AlbumPreviewEvent {}

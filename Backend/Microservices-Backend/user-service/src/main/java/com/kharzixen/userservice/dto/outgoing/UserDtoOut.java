@@ -24,7 +24,10 @@ public class UserDtoOut {
 
     private String name;
     private String bio;
-    private String pfpLink;
+    private String pfpId;
+
+    private int followersCount;
+    private int followingCount;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "EET")
     private Date accountCreationDate;

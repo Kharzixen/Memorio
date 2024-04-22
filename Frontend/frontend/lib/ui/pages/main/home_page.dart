@@ -18,11 +18,20 @@ class _HomePageState extends State<HomePage> {
       child: Scaffold(body: Consumer<StorageService>(
         builder: (context, value, child) {
           return Container(
-            color: Colors.red,
+            color: Colors.black,
             child: Center(
-                child: Text(
-              value.userId,
-              style: const TextStyle(fontSize: 35, color: Colors.black),
+                child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "Demo User id: ${value.userId}",
+                  style: const TextStyle(fontSize: 18, color: Colors.white),
+                ),
+                Text(
+                  "Demo username: ${value.username}",
+                  style: const TextStyle(fontSize: 18, color: Colors.white),
+                ),
+              ],
             )),
           );
         },

@@ -19,18 +19,21 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
     String profileId = context.read<StorageService>().userId;
-    username = context.read<StorageService>().username;
     context.read<ProfileBloc>().add(ProfileFetched(profileId));
   }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-        child: Scaffold(
+    return BlocBuilder<ProfileBloc, ProfileState>(
+      builder: (context, state) {
+        if (state is ProfileLoadedState) {
+          return SafeArea(
+              child: Scaffold(
             backgroundColor: Colors.black,
             appBar: AppBar(
+              automaticallyImplyLeading: false,
               title: Text(
-                username,
+                state.user.username,
                 style: TextStyle(color: Colors.white),
               ),
               backgroundColor: Colors.black,
@@ -52,31 +55,31 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ],
             ),
-            body: BlocBuilder<ProfileBloc, ProfileState>(
-              builder: (context, state) {
-                if (state is ProfileLoadedState) {
-                  return ListView(
-                    scrollDirection: Axis.vertical,
-                    children: [
-                      ProfileHeader(user: state.user),
-                      Divider(
-                        height: 30,
-                        thickness: 0.5,
-                      ),
-                      ProfileContent(),
-                    ],
-                  );
-                }
-                if (state is ProfileLoadingState) {
-                  return const Center(
-                    child: CircularProgressIndicator(
-                      color: Colors.blue,
-                    ),
-                  );
-                }
+            body: ListView(
+              scrollDirection: Axis.vertical,
+              children: [
+                BlocProvider.value(
+                    value: BlocProvider.of<ProfileBloc>(context),
+                    child: ProfileHeader(user: state.user)),
+                const Divider(
+                  height: 30,
+                  thickness: 0.5,
+                ),
+                ProfileContent(),
+              ],
+            ),
+          ));
+        }
+        if (state is ProfileLoadingState) {
+          return const Center(
+            child: CircularProgressIndicator(
+              color: Colors.blue,
+            ),
+          );
+        }
 
-                return Text("elbaszva");
-              },
-            )));
+        return Text("elbaszva");
+      },
+    );
   }
 }

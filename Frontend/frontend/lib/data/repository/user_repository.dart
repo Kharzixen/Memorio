@@ -1,15 +1,13 @@
 import 'dart:convert';
 
 import 'package:frontend/data/data_provider/user_data_provider.dart';
+import 'package:frontend/model/utils/paginated_response_generic.dart';
 import 'package:frontend/model/user_model.dart';
 
 class UserRepository {
-  final UserDataProvider userDataProvider;
-  UserRepository(this.userDataProvider);
-
   Future<User> getUser(String userId) async {
     try {
-      final rawData = await userDataProvider.getProfileUser(userId);
+      final rawData = await UserDataProvider.getProfileUser(userId);
 
       //print(data);
       if (rawData.statusCode == 200) {
@@ -22,12 +20,35 @@ class UserRepository {
       throw e.toString();
     }
   }
-  //       userId: userId,
-  //       username: "mark.mellau",
-  //       bio: "nemtimiedzizunk",
-  //       name: "Mellau Mark-Mate",
-  //       pfpLink:
-  //           "https://www.everypixel.com/preview_collections/20221003/cyberpunk_man_in_sunglasses_17",
-  //       followersCount: "32",
-  //       followingCount: "52");
+
+  Future<PaginatedResponse<SimpleUser>> getFollowers(
+      String userId, int followersPage, int followersPageSize) async {
+    try {
+      final response = await UserDataProvider.getFollowers(
+          userId, followersPage, followersPageSize);
+      if (response.statusCode == 200) {
+        Map<String, dynamic> responseJson = json.decode(response.body);
+        return PaginatedResponse.fromJson(responseJson, SimpleUser.fromMap);
+      } else {
+        throw Exception(response.body);
+      }
+    } catch (e) {
+      throw e.toString();
+    }
+  }
+
+  getFollowing(String userId, int followingPage, int followingPageSize) async {
+    try {
+      final response = await UserDataProvider.getFollowing(
+          userId, followingPage, followingPageSize);
+      if (response.statusCode == 200) {
+        Map<String, dynamic> responseJson = json.decode(response.body);
+        return PaginatedResponse.fromJson(responseJson, SimpleUser.fromMap);
+      } else {
+        throw Exception(response.body);
+      }
+    } catch (e) {
+      throw e.toString();
+    }
+  }
 }

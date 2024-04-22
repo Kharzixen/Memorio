@@ -38,9 +38,7 @@ class AlbumSubmenu extends StatelessWidget {
                 splashFactory: NoSplash.splashFactory,
               ),
               onPressed: () {
-                context.read<AlbumBloc>().add(AlbumDisplayChangedToTimeline(
-                    contentBefore: currentPage,
-                    position: scrollController.position.pixels));
+                context.read<AlbumBloc>().add(AlbumDisplayChangedToTimeline());
               },
               child: Text(
                 "Timeline",
@@ -78,9 +76,7 @@ class AlbumSubmenu extends StatelessWidget {
                 splashFactory: NoSplash.splashFactory,
               ),
               onPressed: () {
-                context.read<AlbumBloc>().add(AlbumDisplayChangedToCollection(
-                    contentBefore: currentPage,
-                    position: scrollController.position.pixels));
+                context.read<AlbumBloc>().add(AlbumDisplayChangedToCollection());
               },
               child: Text(
                 "Collections",

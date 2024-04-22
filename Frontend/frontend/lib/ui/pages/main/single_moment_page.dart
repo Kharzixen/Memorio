@@ -1,39 +1,40 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:frontend/bloc/moment_bloc/moment_bloc.dart';
+import 'package:frontend/model/album_model.dart';
 import 'package:frontend/ui/widgets/comment_list.dart';
 import 'package:frontend/ui/widgets/like_list.dart';
 import 'package:frontend/ui/widgets/moment_header.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:sticky_headers/sticky_headers.dart';
+import 'package:go_router/go_router.dart';
 
-class MomentPage extends StatefulWidget {
-  final String momentId;
+class MemoryPage extends StatefulWidget {
+  final String memoryId;
   final String albumId;
-  const MomentPage({Key? key, required this.momentId, required this.albumId})
+  const MemoryPage({Key? key, required this.memoryId, required this.albumId})
       : super(key: key);
 
   @override
-  State<MomentPage> createState() => _MomentPageState();
+  State<MemoryPage> createState() => _MemoryPageState();
 }
 
-class _MomentPageState extends State<MomentPage> {
-  bool isStickyHeaderAtTop = false;
-  double _commentsPositionPixels = 0.0;
-  double _likesPositionPixels = 0.0;
-  GlobalKey momentHeaderKey = GlobalKey();
-
+class _MemoryPageState extends State<MemoryPage> {
   final ScrollController _scrollController = ScrollController();
-  final double _stickyHeaderHeight = 60.0;
-
-  double momentHeaderSize = 0.0;
+  CacheManager cacheManager = CacheManager(
+    Config(
+      'images_cache_key',
+      stalePeriod: const Duration(minutes: 3),
+      maxNrOfCacheObjects: 50,
+    ),
+  );
 
   @override
   void initState() {
     super.initState();
     context
         .read<MomentBloc>()
-        .add(MomentFetched(albumId: widget.albumId, momentId: widget.momentId));
+        .add(MemoryFetched(albumId: widget.albumId, momentId: widget.memoryId));
   }
 
   @override
@@ -61,247 +62,52 @@ class _MomentPageState extends State<MomentPage> {
         iconTheme: const IconThemeData(color: Colors.white),
         backgroundColor: Colors.black,
       ),
-      body: NotificationListener<ScrollNotification>(
-        onNotification: (notification) {
-          if (_scrollController.position.pixels >= momentHeaderSize + 5) {
-            isStickyHeaderAtTop = true;
-          } else {
-            isStickyHeaderAtTop = false;
+      body: BlocBuilder<MomentBloc, MomentState>(
+        builder: (context, state) {
+          //circular progress indicator
+          if (state is MomentLoadingState) {
+            return const Center(
+              child: CircularProgressIndicator(
+                color: Colors.blue,
+              ),
+            );
           }
-          return true;
-        },
-        child: SingleChildScrollView(
-          scrollDirection: Axis.vertical,
-          controller: _scrollController,
-          child: BlocBuilder<MomentBloc, MomentState>(
-            builder: (context, state) {
-              //circular progress indicator
-              if (state is MomentLoadingState) {
-                return SizedBox(
-                  height: MediaQuery.of(context).size.height * 2 / 3,
-                  child: const Center(
-                    child: CircularProgressIndicator(
-                      color: Colors.blue,
-                    ),
-                  ),
-                );
-              }
 
-              if (state is MomentLoadedState) {
-                if (momentHeaderSize == 0.0) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    RenderBox? momentHeaderRenderBox =
-                        momentHeaderKey.currentContext?.findRenderObject()
-                            as RenderBox?;
-                    momentHeaderSize = momentHeaderRenderBox!.size.height;
-                  });
-                }
-                if (isStickyHeaderAtTop) {
-                  if (state.contentToShow == "comments") {
-                    if (_commentsPositionPixels < momentHeaderSize) {
-                      _scrollController.jumpTo(momentHeaderSize + 5);
-                    } else {
-                      _scrollController.jumpTo(
-                        _commentsPositionPixels - 1,
-                      );
-                    }
-                  } else if (state.contentToShow == "likes") {
-                    if (_likesPositionPixels < momentHeaderSize) {
-                      _scrollController.jumpTo(momentHeaderSize + 5);
-                    } else {
-                      _scrollController.jumpTo(_likesPositionPixels);
-                    }
-                  }
-                }
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(10, 5, 10, 0),
-                      child: Column(
-                        key: momentHeaderKey,
-                        children: [
-                          Container(
-                            color: Colors.white.withOpacity(0.08),
-                            child: Align(
-                              alignment: Alignment.topCenter,
-                              child: Image.network(
-                                //"https://i.ibb.co/b55D6nS/20230604-223149.jpg",
-                                //"https://www.apogeephoto.com/wp-content/uploads/2017/04/portait6.jpg",
-                                //"https://i.ibb.co/m4TzF9x/20230604-223149.jpg",
-                                state.moment.photo,
-                                fit: BoxFit.contain,
-                                loadingBuilder: (BuildContext context,
-                                    Widget child,
-                                    ImageChunkEvent? loadingProgress) {
-                                  if (loadingProgress == null) {
-                                    WidgetsBinding.instance
-                                        .addPostFrameCallback((_) {
-                                      RenderBox? momentHeaderRenderBox =
-                                          momentHeaderKey.currentContext
-                                                  ?.findRenderObject()
-                                              as RenderBox?;
-                                      momentHeaderSize =
-                                          momentHeaderRenderBox!.size.height;
-                                    });
-                                    return child;
-                                  }
-                                  return Container(
-                                    color: Colors.grey,
-                                    child: const Center(
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-                          MomentHeader(
-                            moment: state.moment,
-                          ),
-                          const SizedBox(
-                            height: 10,
-                          ),
-                        ],
+          if (state is MomentLoadedState) {
+            if (state.asyncMethodInProgress) {
+              return Stack(
+                children: [
+                  Content(moment: state.moment),
+                  Container(
+                    color: Colors.black.withOpacity(0.4),
+                    child: const Align(
+                      alignment: Alignment.center,
+                      child: CircularProgressIndicator(
+                        color: Colors.blue,
                       ),
                     ),
-                    StickyHeader(
-                        header: Container(
-                          color: Colors.black,
-                          height: _stickyHeaderHeight,
-                          width: double.infinity,
-                          child: Column(
-                            children: [
-                              Row(
-                                children: [
-                                  const SizedBox(
-                                    width: 10,
-                                  ),
-                                  Expanded(
-                                    flex: 1,
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                          border: Border(
-                                              bottom: BorderSide(
-                                        color: state.contentToShow == "comments"
-                                            ? const Color.fromRGBO(
-                                                24, 119, 242, 1)
-                                            : Colors.white,
-                                        width: 1,
-                                      ))),
-                                      height: 35,
-                                      child: TextButton(
-                                        style: ButtonStyle(
-                                          overlayColor: MaterialStateProperty
-                                              .resolveWith<Color>(
-                                            (Set<MaterialState> states) {
-                                              return Colors.transparent;
-                                            },
-                                          ),
-                                          splashFactory: NoSplash.splashFactory,
-                                        ),
-                                        onPressed: () {
-                                          print("comment");
-                                          _likesPositionPixels =
-                                              _scrollController.position.pixels;
-                                          context
-                                              .read<MomentBloc>()
-                                              .add(ContentChangedToComments());
-                                        },
-                                        child: Text(
-                                          "Comments",
-                                          style: GoogleFonts.lato(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold,
-                                            color: state.contentToShow ==
-                                                    "comments"
-                                                ? const Color.fromRGBO(
-                                                    24, 119, 242, 1)
-                                                : Colors.white,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    width: 5,
-                                  ),
-                                  Expanded(
-                                    flex: 1,
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                          border: Border(
-                                              bottom: BorderSide(
-                                        color: state.contentToShow == "likes"
-                                            ? const Color.fromRGBO(
-                                                24, 119, 242, 1)
-                                            : Colors.white,
-                                        width: 1,
-                                      ))),
-                                      height: 35,
-                                      child: TextButton(
-                                        style: ButtonStyle(
-                                          overlayColor: MaterialStateProperty
-                                              .resolveWith<Color>(
-                                            (Set<MaterialState> states) {
-                                              return Colors.transparent;
-                                            },
-                                          ),
-                                          splashFactory: NoSplash.splashFactory,
-                                        ),
-                                        onPressed: () {
-                                          _commentsPositionPixels =
-                                              _scrollController.position.pixels;
-                                          print("likes");
-                                          context
-                                              .read<MomentBloc>()
-                                              .add(ContentChangedToLikes());
-                                        },
-                                        child: Text(
-                                          "Likes",
-                                          style: GoogleFonts.lato(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold,
-                                            color:
-                                                state.contentToShow == "likes"
-                                                    ? const Color.fromRGBO(
-                                                        24, 119, 242, 1)
-                                                    : Colors.white,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    width: 10,
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(
-                                height: 5,
-                              ),
-                            ],
-                          ),
-                        ),
-                        content: state.contentToShow == "comments"
-                            ? CommentList(comments: state.moment.comments)
-                            : LikeList(likes: state.moment.likes)),
-                    const SizedBox(
-                      height: 10,
-                    )
-                  ],
-                );
-              }
-
-              return const Text(
-                "An unexpected error occurred",
-                style: TextStyle(color: Colors.white),
+                  ),
+                ],
               );
-            },
-          ),
-        ),
+            } else {
+              return Content(moment: state.moment);
+            }
+          }
+
+          if (state is MomentDeletedState) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (context.canPop()) {
+                context.pop("removed");
+              }
+            });
+
+            return const SizedBox();
+          }
+          return const Text(
+            "An unexpected error occurred",
+            style: TextStyle(color: Colors.white),
+          );
+        },
       ),
     );
   }
@@ -311,5 +117,87 @@ class _MomentPageState extends State<MomentPage> {
     // _scrollController.removeListener(_scrollListener);
     _scrollController.dispose();
     super.dispose();
+  }
+}
+
+class Content extends StatelessWidget {
+  final DetailedMemory moment;
+  const Content({super.key, required this.moment});
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 2,
+      child: NestedScrollView(
+        headerSliverBuilder: (context, _) {
+          return [
+            SliverList(
+              delegate: SliverChildListDelegate([
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 5, 10, 0),
+                  child: ListView(
+                    physics: const NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    children: [
+                      Container(
+                        color: Colors.white.withOpacity(0.08),
+                        child: Align(
+                          alignment: Alignment.topCenter,
+                          child: CachedNetworkImage(
+                            imageUrl: moment.photo,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                      BlocProvider.value(
+                        value: BlocProvider.of<MomentBloc>(context),
+                        child: MemoryHeader(
+                          moment: moment,
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                    ],
+                  ),
+                ),
+              ]),
+            ),
+            const SliverAppBar(
+              pinned: true,
+              automaticallyImplyLeading: false,
+              floating: true, // Set floating to true
+              backgroundColor: Colors.black,
+              flexibleSpace: PreferredSize(
+                preferredSize: Size.fromHeight(kToolbarHeight),
+                child: TabBar(
+                  padding: EdgeInsets.fromLTRB(5, 0, 5, 0),
+                  dividerColor: Colors.white,
+                  dividerHeight: 2,
+                  indicatorColor: Colors.blue,
+                  unselectedLabelColor: Colors.white,
+                  labelColor: Colors.blue,
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  tabs: [
+                    Tab(
+                      text: "Comments",
+                    ),
+                    Tab(
+                      text: "Likes",
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ];
+        },
+        body: TabBarView(
+          children: [
+            CommentList(comments: []),
+            LikeList(likes: []),
+          ],
+        ),
+      ),
+    );
   }
 }

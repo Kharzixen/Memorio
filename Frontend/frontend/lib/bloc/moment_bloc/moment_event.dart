@@ -1,14 +1,19 @@
 part of 'moment_bloc.dart';
 
-sealed class MomentEvent {}
+sealed class MemoryEvent {}
 
-final class MomentFetched extends MomentEvent {
+final class MemoryFetched extends MemoryEvent {
   String momentId;
   String albumId;
-  MomentFetched({required this.momentId, required this.albumId});
+  MemoryFetched({required this.momentId, required this.albumId});
 }
 
-final class ContentChangedToLikes extends MomentEvent {}
+final class MemoryRemoved extends MemoryEvent {
+  String memoryId;
+  MemoryRemoved({required this.memoryId});
+}
 
-final class ContentChangedToComments extends MomentEvent {}
-
+final class MemoryCollectionsChanged extends MemoryEvent {
+  List<SimpleCollection> newCollections;
+  MemoryCollectionsChanged({required this.newCollections});
+}

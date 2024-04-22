@@ -29,5 +29,5 @@ public class UserPatchDtoIn {
     private String name;
     @Size(max = 200, message = "Bio cannot exceed 200 characters")
     private String bio;
-    private String pfpLink;
+    private String pfpId;
 }

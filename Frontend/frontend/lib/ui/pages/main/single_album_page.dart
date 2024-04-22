@@ -1,174 +1,152 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/bloc/album_bloc/album_bloc.dart';
+import 'package:frontend/bloc/collection_preview_bloc/collections_preview_bloc.dart';
+import 'package:frontend/bloc/timeline_bloc/timeline_bloc.dart';
+import 'package:frontend/model/album_model.dart';
 import 'package:frontend/ui/widgets/album_collections_content.dart';
-import 'package:frontend/ui/widgets/album_header.dart';
-import 'package:frontend/ui/widgets/album_submenu.dart';
 import 'package:frontend/ui/widgets/album_timeline_content.dart';
-import 'package:sticky_headers/sticky_headers.dart';
+import 'package:frontend/ui/widgets/bottom_sheet.dart';
+import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-class AlbumPage extends StatefulWidget {
+class AlbumPage extends StatelessWidget {
   final String albumId;
-  const AlbumPage({Key? key, required this.albumId}) : super(key: key);
-
-  @override
-  State<AlbumPage> createState() => _AlbumPageState();
-}
-
-class _AlbumPageState extends State<AlbumPage> {
-  GlobalKey albumHeaderKey = GlobalKey();
-  double albumHeaderSize = 0.0;
-
-  final double _stickyHeaderSize = 60;
-
-  @override
-  void initState() {
-    super.initState();
-    context.read<AlbumBloc>().add(AlbumFetched(albumId: widget.albumId));
-  }
+  final SimpleAlbum simpleAlbum;
+  const AlbumPage({Key? key, required this.albumId, required this.simpleAlbum})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    bool _isTimelineLoading = false;
-    bool _isStickyHeaderAtTop = false;
-
-    final ScrollController _scrollController = ScrollController();
-
-    return Scaffold(
-        backgroundColor: Colors.black,
-        appBar: AppBar(
-          actions: [
-            IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.search),
-            ),
-            IconButton(
-                onPressed: () {},
-                icon: const Icon(
-                  Icons.chat_rounded,
-                  size: 23,
-                )),
-            IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.more_vert),
-            ),
-          ],
-          iconTheme: const IconThemeData(color: Colors.white),
-          backgroundColor: Colors.black,
-        ),
-        body: BlocBuilder<AlbumBloc, AlbumState>(
-          builder: (context, state) {
-            if (state is AlbumLoadingState) {
-              return const Center(
-                child: CircularProgressIndicator(
-                  color: Colors.blue,
-                ),
-              );
-            }
-
-            if (state is AlbumLoadedState) {
-              if (albumHeaderSize == 0.0) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  RenderBox? momentHeaderRenderBox =
-                      albumHeaderKey.currentContext?.findRenderObject()
-                          as RenderBox?;
-                  albumHeaderSize = momentHeaderRenderBox!.size.height;
-                });
-              }
-              if (_isStickyHeaderAtTop && !_isTimelineLoading) {
-                if (state.content == "timeline" &&
-                    albumHeaderSize + 5 <
-                        _scrollController.position.maxScrollExtent) {
-                  if (state.timelinePosition < albumHeaderSize) {
-                    _scrollController.jumpTo(albumHeaderSize + 5);
-                  } else {
-                    _scrollController.jumpTo(
-                      state.timelinePosition - 1,
-                    );
-                  }
-                } else if (state.content == "collection") {
-                  if (state.collectionsPosition < albumHeaderSize) {
-                    _scrollController.jumpTo(albumHeaderSize + 5);
-                  } else {
-                    _scrollController.jumpTo(state.collectionsPosition);
-                  }
-                }
-              }
-              if (state.content == "timeline") {
-                _isTimelineLoading = false;
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  state.animationEnabled = false;
-                });
-              }
-              return NotificationListener<ScrollNotification>(
-                onNotification: (scrollInfo) {
-                  if (_scrollController.position.pixels >=
-                      albumHeaderSize + 5) {
-                    _isStickyHeaderAtTop = true;
-                  } else {
-                    _isStickyHeaderAtTop = false;
-                  }
-
-                  if (state.content == "timeline" &&
-                      state.timelineHasMoreData &&
-                      _isTimelineLoading == false &&
-                      scrollInfo.metrics.pixels >
-                          scrollInfo.metrics.maxScrollExtent - 65) {
-                    _isTimelineLoading = true;
-                    context.read<AlbumBloc>().add(
-                        AlbumTimelineNewChunkFetched(albumId: widget.albumId));
-                  }
-                  return true;
-                },
-                child: ListView(
-                  controller: _scrollController,
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  children: [
-                    AlbumHeaderCard(
-                        key: albumHeaderKey, albumInfo: state.albumInfo),
-                    StickyHeader(
-                      header: Container(
-                        height: _stickyHeaderSize,
-                        color: Colors.black,
-                        child: AlbumSubmenu(
-                          currentPage: state.content,
-                          scrollController: _scrollController,
-                        ),
-                      ),
-                      content: state.content == "timeline"
-                          ? TimelineContentGrid(
-                              hasMoreData: state.timelineHasMoreData,
-                              animationEnabled: state.animationEnabled,
-                              photosByDate: state.photosByDate,
-                              albumId: state.albumInfo.albumId,
-                            )
-                          : state.content == "collection"
-                              ? CollectionContent(
-                                  collections: state.collections)
-                              : const Padding(
-                                  padding: EdgeInsets.fromLTRB(0, 20, 0, 20),
-                                  child: Center(
-                                      child: CircularProgressIndicator(
-                                    color: Colors.blue,
-                                  )),
-                                ),
+    return SafeArea(
+      child: Scaffold(
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: Colors.grey.shade900.withOpacity(0.6),
+          onPressed: () {
+            showModalBottomSheet<void>(
+              context: context,
+              builder: (BuildContext context1) {
+                return BlocProvider.value(
+                  value: context.read<TimelineBloc>(),
+                  child: BlocProvider.value(
+                    value: context.read<CollectionsPreviewBloc>(),
+                    child: CustomBottomSheet(
+                      album: simpleAlbum,
                     ),
-
-                    // sized box to fix the sticky header position bug at
-                    // full scroll after clamping physics
-                    const SizedBox(
-                      height: 5,
-                    )
-                  ],
-                ),
-              );
-            }
-
-            return const Text(
-              "shit",
-              style: TextStyle(color: Colors.white),
+                  ),
+                );
+              },
             );
           },
-        ));
+          child: const Icon(
+            Icons.add_a_photo,
+            color: Colors.white,
+            size: 30,
+          ),
+        ),
+        backgroundColor: Colors.black,
+        body: DefaultTabController(
+          length: 3,
+          child: NestedScrollView(
+            physics: const NeverScrollableScrollPhysics(),
+            headerSliverBuilder: (context, _) {
+              return [
+                SliverAppBar(
+                  iconTheme: const IconThemeData(color: Colors.white),
+                  backgroundColor: Colors.black,
+                  pinned: true,
+                  floating: true,
+                  title: GestureDetector(
+                    onTap: () {
+                      context.push("/albums/${simpleAlbum.albumId}/details");
+                    },
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 45,
+                          height: 45,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade600,
+                            image: DecorationImage(
+                                fit: BoxFit.cover,
+                                image: CachedNetworkImageProvider(
+                                    simpleAlbum.albumPicture)),
+                            borderRadius: BorderRadius.circular(100),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 25,
+                        ),
+                        Text(
+                          simpleAlbum.albumName,
+                          maxLines: 2,
+                          softWrap: true,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.alegreya(
+                              fontSize: 20,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                  bottom: const TabBar(
+                    padding: EdgeInsets.fromLTRB(5, 0, 5, 0),
+                    dividerColor: Colors.white,
+                    dividerHeight: 2,
+                    indicatorColor: Colors.blue,
+                    unselectedLabelColor: Colors.white,
+                    labelColor: Colors.blue,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    tabs: [
+                      Tab(
+                        text: "Timeline",
+                      ),
+                      Tab(
+                        text: "Collection",
+                      ),
+                      Tab(
+                        text: "Notes",
+                      )
+                    ],
+                  ),
+                ),
+                // SliverToBoxAdapter(
+                //   child: AlbumHeaderCard(
+                //     albumInfo: state.albumInfo,
+                //   ),
+                // ),
+              ];
+            },
+            body: Column(
+              children: [
+                Expanded(
+                  child: TabBarView(
+                    children: [
+                      BlocProvider.value(
+                        value: context.read<TimelineBloc>(),
+                        child: TimelineContentGrid(
+                          album: simpleAlbum,
+                        ),
+                      ),
+                      //second tab
+
+                      BlocProvider.value(
+                        value: context.read<CollectionsPreviewBloc>(),
+                        child: CollectionsContent(
+                          album: simpleAlbum,
+                        ),
+                      ),
+                      //third tab
+                      Container(),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

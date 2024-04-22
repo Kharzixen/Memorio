@@ -12,8 +12,9 @@ class CommentList extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(10, 5, 10, 10),
       child: Container(
         width: double.infinity,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: ListView(
+          physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(0, 15, 10, 25),
@@ -25,7 +26,9 @@ class CommentList extends StatelessWidget {
                       fontSize: 25,
                       fontWeight: FontWeight.bold)),
             ),
-            Column(
+            ListView(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
               children: List.generate(
                 comments.length,
                 (index) => Column(

@@ -10,13 +10,17 @@ public class GatewayConfig {
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder){
         return builder.routes()
-                .route("user-service-route", r-> r
-                        .path("/api/users/**")
+                .route("user-service-route", r-> r.path("/api/users/**")
                         .uri("lb://user-service"))
                 .route("relationship-service-route", r-> r
                         .path("/api/relationships/**")
                         .uri("lb://relationship-service"))
 
+                .route("image-service-route", r -> r.path("/images/**")
+                        .uri("lb://media-service"))
+
+                .route("album-service-route", r -> r.path("/api/albums/**")
+                        .uri("lb://album-service"))
                 .build();
     }
 }

@@ -22,22 +22,6 @@ class _AlbumsPreviewPageState extends State<AlbumsPreviewPage> {
     super.initState();
     String userId = context.read<StorageService>().userId;
     context.read<AlbumsPreviewBloc>().add(AlbumsPreviewFetched(userId: userId));
-
-    // image = Image.network(
-    //     "https://image.everypixel.com/blockchain/52/83/5283c626-63a3-43ff-82fa-2d5d3987e6c0.jpg");
-
-    // image.image.resolve(ImageConfiguration()).addListener(
-    //   ImageStreamListener(
-    //     (info, synchronousCall) {
-    //       int imageWidth = info.image.width;
-    //       int imageHeight = info.image.height;
-
-    //       // Do something with the image width and height
-    //       this.imageHeight = imageHeight;
-    //       this.imageWidth = imageWidth;
-    //     },
-    //   ),
-    // );
   }
 
   @override
@@ -83,28 +67,121 @@ class _AlbumsPreviewPageState extends State<AlbumsPreviewPage> {
           }
 
           if (state is AlbumsPreviewLoadedState) {
+            print("rebuilt");
             return Padding(
                 padding: const EdgeInsets.fromLTRB(15, 30, 15, 30),
-                child: ListView.separated(
-                    itemCount: state.albums.length,
-                    separatorBuilder: (context, index) {
-                      return const SizedBox(
-                        height: 25,
-                      );
-                    },
-                    itemBuilder: (context, index) {
-                      return GestureDetector(
-                        onTap: () {
+                child: state.albums.isEmpty
+                    ? Center(
+                        child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "There are currently no albums to display.",
+                                style: GoogleFonts.lato(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              Column(
+                                children: [
+                                  SizedBox(
+                                    height: 25,
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      context.push("/createAlbum");
+                                    },
+                                    child: Text(
+                                      "Create a new album",
+                                      style: GoogleFonts.lato(
+                                          color: Colors.blue,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Expanded(child: Divider()),
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                            5, 0, 5, 0),
+                                        child: Text(
+                                          "or",
+                                          style: GoogleFonts.lato(
+                                              color: Colors.grey,
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                      Expanded(child: Divider()),
+                                    ],
+                                  ),
+                                  TextButton(
+                                    onPressed: () {},
+                                    child: Text(
+                                      "Join an existing one",
+                                      style: GoogleFonts.lato(
+                                          color: Colors.blue,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ]),
+                      )
+                    : RefreshIndicator.adaptive(
+                        onRefresh: () async {
+                          Future block =
+                              context.read<AlbumsPreviewBloc>().stream.first;
                           context
-                              .push("/albums/${state.albums[index].albumId}");
+                              .read<AlbumsPreviewBloc>()
+                              .add(AlbumsRefreshRequested());
+                          await block;
                         },
-                        child: AlbumPreviewCard(
-                          albumPreview: state.albums[index],
-                        ),
-                      );
-                    }));
+                        child: ListView.separated(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            itemCount: state.albums.length + 1,
+                            separatorBuilder: (context, index) {
+                              return const SizedBox(
+                                height: 25,
+                              );
+                            },
+                            itemBuilder: (context, index) {
+                              if (index == 0) {
+                                return Row(
+                                  children: [
+                                    Text(
+                                      "Your albums:",
+                                      style: GoogleFonts.lato(
+                                          color: Colors.white,
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    Spacer(),
+                                    IconButton(
+                                        onPressed: () {
+                                          context.push("/createAlbum");
+                                        },
+                                        icon: Icon(
+                                          Icons.add_box_outlined,
+                                          color: Colors.white,
+                                        )),
+                                  ],
+                                );
+                              }
+
+                              return AlbumPreviewCard(
+                                albumPreview: state.albums[index - 1],
+                              );
+                            }),
+                      ));
           }
-          return Text("elbaszva");
+          if (state is AlbumsPreviewErrorState) {
+            return Text(state.errorMessage);
+          }
+          return Text("Something went wrong");
         },
       ),
     );

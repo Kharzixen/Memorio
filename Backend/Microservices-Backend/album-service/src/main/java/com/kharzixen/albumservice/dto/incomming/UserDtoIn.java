@@ -12,4 +12,6 @@ import lombok.NoArgsConstructor;
 public class UserDtoIn {
     private Long id;
     private String username;
+
+    private String pfpId;
 }

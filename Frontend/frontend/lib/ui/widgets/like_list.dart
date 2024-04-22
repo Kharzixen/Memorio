@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/model/album_model.dart';
+import 'package:frontend/model/like_model.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class LikeList extends StatelessWidget {
@@ -12,8 +12,9 @@ class LikeList extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(10, 5, 10, 10),
       child: Container(
         width: double.infinity,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: ListView(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(0, 15, 10, 25),
@@ -25,7 +26,9 @@ class LikeList extends StatelessWidget {
                       fontSize: 25,
                       fontWeight: FontWeight.bold)),
             ),
-            Column(
+            ListView(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
               children: List.generate(
                 likes.length,
                 (index) => Padding(

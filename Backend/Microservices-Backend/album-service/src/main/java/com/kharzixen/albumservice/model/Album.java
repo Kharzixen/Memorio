@@ -20,7 +20,9 @@ public class Album {
     @Column(name = "albumId")
     private Long id;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    private String albumName;
+
+    @ManyToOne
     @JoinColumn(name = "owner_id")
     private User owner;
 
@@ -28,14 +30,15 @@ public class Album {
 
     private String albumImageLink;
 
+    private int contributorCount;
+
     @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "user_album",  joinColumns  =  @JoinColumn(name = "user_id") , inverseJoinColumns =  @JoinColumn(name = "album_id"))
+    @JoinTable(name = "album_contributor",  joinColumns  = @JoinColumn(name = "album_id")  , inverseJoinColumns = @JoinColumn(name = "user_id"))
     private List<User> contributors;
 
-    @OneToOne
-    @JoinColumn(name = "base_collection_id")
-    private MemoryCollection baseCollection;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "album", orphanRemoval = true)
+    private List<Memory> memories;
 
-    @OneToMany(cascade =  CascadeType.ALL, mappedBy = "album", orphanRemoval = true)
+    @OneToMany(cascade =  CascadeType.MERGE, mappedBy = "album", orphanRemoval = true)
     private List<MemoryCollection> collections;
 }

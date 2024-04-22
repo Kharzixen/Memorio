@@ -19,17 +19,17 @@ public class User {
     @Id
     private Long id;
     private String username;
+    private String pfpId;
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = false)
     private List<Album> ownedAlbums;
 
-    @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "user_album",  joinColumns  = @JoinColumn(name = "album_id")  , inverseJoinColumns = @JoinColumn(name = "user_id"))
+    @ManyToMany( mappedBy = "contributors" )
     private List<Album> albums;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "uploader",  orphanRemoval = false)
+    @OneToMany( mappedBy = "uploader",  orphanRemoval = false)
     private List<Memory> memories;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "creator", orphanRemoval = false)
+    @OneToMany(cascade = CascadeType.MERGE, mappedBy = "creator", orphanRemoval = false)
     private List<MemoryCollection> createdCollections;
 }

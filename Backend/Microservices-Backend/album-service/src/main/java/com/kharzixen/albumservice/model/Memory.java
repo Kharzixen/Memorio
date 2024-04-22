@@ -17,20 +17,24 @@ import java.util.List;
 public class Memory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int Long;
-
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "uploader_id")
-    private User uploader;
+    private Long id;
 
     private String caption;
     private String imageLink;
 
     private Date creationDate;
 
-    @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "collection_memory", joinColumns  = @JoinColumn(name = "memory_id")  , inverseJoinColumns = @JoinColumn(name = "collection_id"))
-    private List<MemoryCollection> collectionList;
+    @ManyToOne(cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "uploader_id")
+    private User uploader;
+
+    @ManyToOne(cascade = CascadeType.MERGE)
+    @JoinColumn(name = "album_id")
+    private Album album;
+
+    @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
+    @JoinTable(name = "memory_collection", joinColumns  =  @JoinColumn(name = "memory_id") , inverseJoinColumns =  @JoinColumn(name = "collection_id"))
+    private List<MemoryCollection> collections;
 
 
     //TODO: likes + comments
