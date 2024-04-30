@@ -15,7 +15,9 @@ import com.kharzixen.userservice.exception.NoBodyException;
 import com.kharzixen.userservice.service.UserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.Path;
 import lombok.AllArgsConstructor;
+import org.apache.coyote.Response;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -97,6 +99,13 @@ public class UserController {
             @RequestParam(defaultValue = "10") int pageSize){
         Page<SimpleUserDtoOut> outPage = userService.getFollowingOfUser(userId, page,pageSize);
         return ResponseEntity.ok(outPage);
+    }
+
+    @GetMapping("/api/users/{userId}/friends")
+    ResponseEntity<Page<SimpleUserDtoOut>> getFriendsOfUser(@PathVariable("userId") Long userId, @RequestParam(defaultValue = "0") int page,
+                                                      @RequestParam(defaultValue = "10") int pageSize){
+        Page<SimpleUserDtoOut> friendsPage = userService.getFriendsOfUser(userId, page, pageSize);
+        return ResponseEntity.ok(friendsPage);
     }
 
     @ExceptionHandler(EntityNotFoundException.class)

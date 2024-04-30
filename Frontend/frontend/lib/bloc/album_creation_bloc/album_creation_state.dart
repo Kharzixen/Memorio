@@ -4,9 +4,15 @@ sealed class AlbumCreationState {}
 
 class AlbumCreationInProgressState extends AlbumCreationState {
   Uint8List image;
-  AlbumCreationInProgressState({required this.image});
+  List<SimpleUser> friends;
+  List<bool> isSelectedFriend;
+  AlbumCreationInProgressState(
+      {required this.image,
+      required this.friends,
+      required this.isSelectedFriend});
 }
 
 class AlbumCreationFinishedState extends AlbumCreationState {
-  AlbumCreationFinishedState();
+  SimpleAlbum album;
+  AlbumCreationFinishedState(this.album);
 }

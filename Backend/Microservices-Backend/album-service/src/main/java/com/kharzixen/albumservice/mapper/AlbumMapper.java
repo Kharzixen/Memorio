@@ -19,7 +19,6 @@ import java.util.List;
 public interface AlbumMapper {
     AlbumMapper INSTANCE = Mappers.getMapper(AlbumMapper.class);
 
-    @Mapping(target = "contributorsPreview", ignore = true)
     AlbumDtoOut modelToDto(Album album);
 
     AlbumSimplifiedDtoOut modelToSimplifiedDto(Album album);

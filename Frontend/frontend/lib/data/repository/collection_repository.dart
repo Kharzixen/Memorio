@@ -36,7 +36,7 @@ class CollectionRepository {
     }
   }
 
-  Future<SimpleCollection> createCollection(String albumId, String userId,
+  Future<CollectionPreview> createCollection(String albumId, String userId,
       String collectionName, String collectionDescription) async {
     try {
       var response = await CollectionDataProvider.createCollection(
@@ -44,7 +44,7 @@ class CollectionRepository {
       print(response.statusCode);
       if (response.statusCode == 201) {
         Map<String, dynamic> responseJson = json.decode(response.body);
-        return SimpleCollection.fromJson(responseJson);
+        return CollectionPreview.fromJson(responseJson);
       } else {
         throw Exception(response.body);
       }
@@ -63,6 +63,38 @@ class CollectionRepository {
         PaginatedResponse<SimpleCollection> paginatedResponse =
             PaginatedResponse.fromJson(responseJson, SimpleCollection.fromJson);
         return paginatedResponse;
+      } else {
+        throw Exception(response.body);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<int> addMemoriesToCollection(
+    String albumId,
+    String collectionId,
+    List<Memory> selectedMemories,
+  ) async {
+    try {
+      var response = await CollectionDataProvider.patchCollectionAddImages(
+          albumId, collectionId, selectedMemories);
+      if (response.statusCode == 200) {
+        return 200;
+      } else {
+        throw Exception(response.body);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  void deleteCollection(String albumId, String collectionId) async {
+    try {
+      var response =
+          await CollectionDataProvider.deleteCollection(albumId, collectionId);
+      if (response.statusCode == 204) {
+        return;
       } else {
         throw Exception(response.body);
       }

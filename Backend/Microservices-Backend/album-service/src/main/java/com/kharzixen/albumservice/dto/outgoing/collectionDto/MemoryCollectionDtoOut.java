@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -22,4 +24,6 @@ public class MemoryCollectionDtoOut {
     private UserDtoOut creator;
 
     private AlbumDtoOut album;
+
+    private Date creationDate;
 }

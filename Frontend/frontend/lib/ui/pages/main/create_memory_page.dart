@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/bloc/memory_creation_bloc/memory_creation_bloc.dart';
+import 'package:frontend/model/album_model.dart';
 
 import 'package:frontend/model/memory_creation_details.dart';
-import 'package:frontend/model/utils/memory_creation_pop_response.dart';
+import 'package:frontend/model/utils/action_types_for_pop_payload.dart';
+import 'package:frontend/model/utils/pop_payload.dart';
 import 'package:frontend/service/storage_service.dart';
 import 'package:frontend/ui/widgets/memory_creation_albums_collections.dart';
 import 'package:frontend/ui/widgets/memory_creation_hashtags.dart';
@@ -36,7 +38,7 @@ class _CreateMemoryPageState extends State<CreateMemoryPage>
   void initState() {
     super.initState();
     print("init state");
-    tabController = new TabController(vsync: this, length: 4);
+    tabController = TabController(vsync: this, length: 4);
 
     context.read<MemoryCreationBloc>().add(MemoryCreationStarted(
         memoryCreationDetails: widget.memoryCreationDetails));
@@ -242,21 +244,21 @@ class _CreateMemoryPageState extends State<CreateMemoryPage>
           }
           if (state is MemoryCreationNoImageSelectedState) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              context.pop(MemoryCreationPopResponse("returned", null));
+              context.pop(PopPayload<Memory>(ActionType.noChanges, null));
             });
             return Container();
           }
 
           if (state is MemoryCreationFinishedState) {
             WidgetsBinding.instance.addPostFrameCallback((_) async {
-              context.pop(MemoryCreationPopResponse("success", state.memory));
+              context.pop(PopPayload<Memory>(ActionType.created, state.memory));
             });
             return Container();
           }
 
           if (state is MemoryCreationErrorState) {
             WidgetsBinding.instance.addPostFrameCallback((_) async {
-              context.pop(MemoryCreationPopResponse("error", null));
+              context.pop(PopPayload<Memory>(ActionType.deleted, null));
             });
             return Center(
                 child: Text(

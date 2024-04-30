@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/bloc/album_bloc/album_bloc.dart';
 import 'package:frontend/model/album_model.dart';
+import 'package:frontend/model/utils/action_types_for_pop_payload.dart';
+import 'package:frontend/model/utils/pop_payload.dart';
+import 'package:frontend/service/storage_service.dart';
 import 'package:frontend/ui/widgets/bottom_sheet.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AlbumInfoPage extends StatefulWidget {
@@ -38,248 +41,621 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
             }
 
             if (state is AlbumLoadedState) {
-              return NestedScrollView(
-                body: Padding(
-                    padding: const EdgeInsets.fromLTRB(15, 0, 15, 0),
-                    child:
-                        NotificationListener<OverscrollIndicatorNotification>(
-                      onNotification: (overscroll) {
-                        overscroll.disallowIndicator();
-                        return false;
-                      },
-                      child: CustomScrollView(
-                        physics: ClampingScrollPhysics(),
-                        slivers: [
-                          SliverToBoxAdapter(
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(0, 15, 0, 5),
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: ConstrainedBox(
-                                  constraints:
-                                      const BoxConstraints(minHeight: 60),
-                                  child: Container(
-                                    width: double.infinity,
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.shade900,
-                                      border: Border.all(
-                                          color: Colors.grey.shade800),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.fromLTRB(
-                                              15, 25, 0, 15),
-                                          child: Text(
-                                            "Description:",
-                                            style: GoogleFonts.lato(
-                                              fontSize: 18,
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                            ),
+              return Stack(
+                children: [
+                  RefreshIndicator.adaptive(
+                    color: Colors.blue,
+                    notificationPredicate: (notification) {
+                      // with NestedScrollView local(depth == 2) OverscrollNotification are not sent
+                      return notification.depth == 1;
+                    },
+                    onRefresh: () async {
+                      var bloc = context.read<AlbumBloc>().stream.first;
+                      context.read<AlbumBloc>().add(Refresh());
+                      await bloc;
+                    },
+                    child: NestedScrollView(
+                      body: Padding(
+                          padding: const EdgeInsets.fromLTRB(15, 0, 15, 0),
+                          child: NotificationListener<
+                              OverscrollIndicatorNotification>(
+                            onNotification: (overscroll) {
+                              overscroll.disallowIndicator();
+                              return false;
+                            },
+                            child: CustomScrollView(
+                              physics: const ClampingScrollPhysics(),
+                              slivers: [
+                                SliverToBoxAdapter(
+                                  child: Padding(
+                                    padding:
+                                        const EdgeInsets.fromLTRB(0, 15, 0, 5),
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: ConstrainedBox(
+                                        constraints:
+                                            const BoxConstraints(minHeight: 60),
+                                        child: Container(
+                                          width: double.infinity,
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey.shade900,
+                                            border: Border.all(
+                                                color: Colors.grey.shade800),
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.fromLTRB(
+                                                        15, 25, 0, 15),
+                                                child: Text(
+                                                  "Description:",
+                                                  style: GoogleFonts.lato(
+                                                    fontSize: 18,
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.fromLTRB(
+                                                        15, 5, 0, 15),
+                                                child: Text(
+                                                  state.albumInfo
+                                                      .albumDescription,
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 15),
+                                            ],
                                           ),
                                         ),
-                                        Padding(
-                                          padding: const EdgeInsets.fromLTRB(
-                                              15, 5, 0, 15),
-                                          child: Text(
-                                            state.albumInfo.albumDescription,
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 15),
-                                      ],
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            ),
-                          ),
-                          SliverToBoxAdapter(
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(0, 25, 0, 20),
-                              child: Text(
-                                "Contributors:",
-                                style: GoogleFonts.lato(
-                                  fontSize: 18,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                          SliverToBoxAdapter(
-                            child: NotificationListener<
-                                OverscrollIndicatorNotification>(
-                              onNotification: (overscroll) {
-                                overscroll.disallowIndicator();
-                                return false;
-                              },
-                              child: ListView.builder(
-                                shrinkWrap: true,
-                                physics: NeverScrollableScrollPhysics(),
-                                itemCount: (state.albumInfo.contributors.length)
-                                        .toInt() +
-                                    1,
-                                itemBuilder: (context, index) {
-                                  if (index ==
-                                      state.albumInfo.contributors.length) {
-                                    //return LinearProgressIndicator();
-                                    return Container();
-                                  }
-                                  return Padding(
-                                    padding: const EdgeInsets.fromLTRB(
-                                        10, 10, 10, 10),
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          width: 60,
-                                          height: 60,
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey.shade600,
-                                            image: DecorationImage(
-                                              fit: BoxFit.cover,
-                                              image: NetworkImage(state
-                                                  .albumInfo
-                                                  .contributors[index]
-                                                  .pfpLink),
-                                            ),
-                                            borderRadius:
-                                                BorderRadius.circular(100),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          width: 15,
-                                        ),
-                                        Text(
-                                          state.albumInfo.contributors[index]
-                                              .username,
-                                          style: GoogleFonts.lato(
-                                            fontSize: 16,
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
+                                SliverToBoxAdapter(
+                                  child: Padding(
+                                    padding:
+                                        const EdgeInsets.fromLTRB(0, 25, 0, 20),
+                                    child: Text(
+                                      "Contributors:",
+                                      style: GoogleFonts.lato(
+                                        fontSize: 18,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
-                                  );
-                                },
-                              ),
+                                  ),
+                                ),
+                                SliverToBoxAdapter(
+                                  child: NotificationListener<
+                                      OverscrollIndicatorNotification>(
+                                    onNotification: (overscroll) {
+                                      overscroll.disallowIndicator();
+                                      return false;
+                                    },
+                                    child: ListView.builder(
+                                      shrinkWrap: true,
+                                      physics: NeverScrollableScrollPhysics(),
+                                      itemCount:
+                                          (state.contributors.length).toInt() +
+                                              1,
+                                      itemBuilder: (context, index) {
+                                        if (index ==
+                                            state.contributors.length) {
+                                          //return LinearProgressIndicator();
+                                          return Container();
+                                        }
+                                        return TextButton(
+                                          onPressed: () {},
+                                          style: TextButton.styleFrom(
+                                              padding: EdgeInsets.zero,
+                                              splashFactory:
+                                                  NoSplash.splashFactory,
+                                              backgroundColor:
+                                                  Colors.transparent),
+                                          child: Padding(
+                                            padding: const EdgeInsets.fromLTRB(
+                                                10, 15, 10, 10),
+                                            child: Row(
+                                              children: [
+                                                Container(
+                                                  width: 60,
+                                                  height: 60,
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.grey.shade600,
+                                                    image: DecorationImage(
+                                                      fit: BoxFit.cover,
+                                                      image: NetworkImage(state
+                                                          .contributors[index]
+                                                          .pfpLink),
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            100),
+                                                  ),
+                                                ),
+                                                SizedBox(
+                                                  width: 15,
+                                                ),
+                                                Text(
+                                                  state.contributors[index]
+                                                      .username,
+                                                  style: GoogleFonts.lato(
+                                                    fontSize: 16,
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                const SizedBox(
+                                                  width: 5,
+                                                ),
+                                                state.contributors[index]
+                                                            .userId ==
+                                                        StorageService().userId
+                                                    ? Text(
+                                                        "(owner)",
+                                                        style: GoogleFonts.lato(
+                                                            color: Colors.blue),
+                                                      )
+                                                    : Container(),
+                                                const Spacer(),
+                                                state.contributors[index]
+                                                            .userId !=
+                                                        StorageService().userId
+                                                    ? PopupMenuButton<String>(
+                                                        color: Colors
+                                                            .grey.shade900,
+                                                        icon: const Icon(
+                                                          Icons.more_vert,
+                                                          color: Colors.white,
+                                                        ),
+                                                        onSelected:
+                                                            (value) async {
+                                                          if (StorageService()
+                                                                  .userId ==
+                                                              state
+                                                                  .albumInfo
+                                                                  .owner
+                                                                  .userId) {
+                                                            switch (value) {
+                                                              case 'Remove from album':
+                                                                showDialog<
+                                                                    void>(
+                                                                  context:
+                                                                      context,
+                                                                  builder:
+                                                                      (BuildContext
+                                                                          dialogContext) {
+                                                                    return AlertDialog(
+                                                                      backgroundColor: Colors
+                                                                          .grey
+                                                                          .shade800,
+                                                                      titleTextStyle: GoogleFonts.lato(
+                                                                          color: Colors
+                                                                              .white,
+                                                                          fontSize:
+                                                                              20,
+                                                                          fontWeight:
+                                                                              FontWeight.bold),
+                                                                      title: Text(
+                                                                          'Are you sure you want to remove ${state.contributors[index].username} from this album ?'),
+                                                                      actions: [
+                                                                        TextButton(
+                                                                          child:
+                                                                              Text(
+                                                                            'Remove',
+                                                                            style: GoogleFonts.lato(
+                                                                                color: Colors.red.shade800,
+                                                                                fontSize: 18,
+                                                                                fontWeight: FontWeight.bold),
+                                                                          ),
+                                                                          onPressed:
+                                                                              () async {
+                                                                            if (Navigator.of(context).canPop()) {
+                                                                              Navigator.of(dialogContext, rootNavigator: true).pop();
+                                                                            }
+
+                                                                            context.read<AlbumBloc>().add(RemoveUserFromAlbumInitiated(state.contributors[index].userId));
+                                                                          },
+                                                                        ),
+                                                                        TextButton(
+                                                                          child: Text(
+                                                                              'Cancel',
+                                                                              style: GoogleFonts.lato(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold)),
+                                                                          onPressed:
+                                                                              () {
+                                                                            if (Navigator.of(context).canPop()) {
+                                                                              Navigator.of(context, rootNavigator: true).pop();
+                                                                            }
+                                                                          },
+                                                                        ),
+                                                                      ],
+                                                                    );
+                                                                  },
+                                                                );
+                                                                break;
+                                                              case 'Report':
+                                                                break;
+                                                              case 'Block':
+                                                                break;
+                                                            }
+                                                          } else {
+                                                            switch (value) {
+                                                              case 'Block':
+                                                                break;
+                                                              case 'Report':
+                                                                break;
+                                                            }
+                                                          }
+                                                        },
+                                                        itemBuilder:
+                                                            (BuildContext
+                                                                context) {
+                                                          Set<String> options =
+                                                              {};
+                                                          if (StorageService()
+                                                                  .userId ==
+                                                              state
+                                                                  .albumInfo
+                                                                  .owner
+                                                                  .userId) {
+                                                            options = {
+                                                              "Block",
+                                                              "Report",
+                                                              "Remove from album",
+                                                            };
+                                                          } else {
+                                                            options = {
+                                                              "Block",
+                                                              "Report"
+                                                            };
+                                                          }
+                                                          return options.map(
+                                                              (String choice) {
+                                                            return PopupMenuItem<
+                                                                String>(
+                                                              value: choice,
+                                                              child: Text(
+                                                                choice,
+                                                                style: GoogleFonts.lato(
+                                                                    color: Colors
+                                                                        .white,
+                                                                    fontSize:
+                                                                        13,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold),
+                                                              ),
+                                                            );
+                                                          }).toList();
+                                                        },
+                                                      )
+                                                    : Container()
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
+                          )),
+                      headerSliverBuilder:
+                          (BuildContext context, bool innerBoxIsScrolled) {
+                        return [
+                          SliverList(
+                            delegate: SliverChildListDelegate([
+                              Column(
+                                children: [
+                                  Container(
+                                    width: 120,
+                                    height: 120,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade600,
+                                      image: DecorationImage(
+                                          fit: BoxFit.cover,
+                                          image: NetworkImage(
+                                              state.albumInfo.albumPicture)),
+                                      borderRadius: BorderRadius.circular(100),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  Text(
+                                    state.albumInfo
+                                        .name, // Assuming albumInfo is accessible in this scope
+                                    maxLines: 2,
+                                    softWrap: true,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                ],
+                              ),
+                            ]),
                           ),
-                        ],
-                      ),
-                    )),
-                headerSliverBuilder:
-                    (BuildContext context, bool innerBoxIsScrolled) {
-                  return [
-                    SliverList(
-                      delegate: SliverChildListDelegate([
-                        Column(
-                          children: [
-                            Container(
-                              width: 120,
-                              height: 120,
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade600,
-                                image: DecorationImage(
-                                    fit: BoxFit.cover,
-                                    image: NetworkImage(
-                                        state.albumInfo.albumPicture)),
-                                borderRadius: BorderRadius.circular(100),
-                              ),
+                          SliverAppBar(
+                            pinned: true,
+                            floating: true,
+                            backgroundColor: Colors.black,
+                            automaticallyImplyLeading: false,
+                            title: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                IconButton(
+                                  onPressed: () {},
+                                  icon: const Icon(
+                                    Icons.search,
+                                    size: 30,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: () async {
+                                    var response = await context.push(
+                                        "/albums/${state.albumInfo.albumId}/invitations-page");
+                                    if (response != null) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(SnackBar(
+                                        content: Text(response as String),
+                                        backgroundColor: Colors.grey.shade900,
+                                      ));
+                                    }
+                                  },
+                                  icon: const Icon(
+                                    Icons.person_add_alt_1_outlined,
+                                    size: 31,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: () {
+                                    showModalBottomSheet<void>(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return CustomBottomSheet(
+                                          album: SimpleAlbum(
+                                              albumId: state.albumInfo.albumId,
+                                              albumName: state.albumInfo.name,
+                                              albumPicture:
+                                                  state.albumInfo.albumPicture),
+                                        );
+                                      },
+                                    );
+                                  },
+                                  icon: const Icon(
+                                    Icons.add_a_photo_outlined,
+                                    size: 28,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                PopupMenuButton<String>(
+                                  color: Colors.grey.shade900,
+                                  icon: const Icon(
+                                    Icons.more_vert,
+                                    color: Colors.white,
+                                  ),
+                                  onSelected: (value) async {
+                                    if (StorageService().userId ==
+                                        state.albumInfo.owner.userId) {
+                                      switch (value) {
+                                        case 'Hide':
+                                          break;
+                                        case 'Delete this album':
+                                          break;
+                                        case 'Leave this album':
+                                          showDialog<void>(
+                                            context: context,
+                                            builder:
+                                                (BuildContext dialogContext) {
+                                              return AlertDialog(
+                                                backgroundColor:
+                                                    Colors.grey.shade800,
+                                                titleTextStyle:
+                                                    GoogleFonts.lato(
+                                                        color: Colors.white,
+                                                        fontSize: 20,
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                                title: Text(
+                                                    'Are you sure you want to leave this ${state.albumInfo.name} album ?'),
+                                                actions: [
+                                                  TextButton(
+                                                    child: Text(
+                                                      'Leave',
+                                                      style: GoogleFonts.lato(
+                                                          color: Colors
+                                                              .red.shade800,
+                                                          fontSize: 18,
+                                                          fontWeight:
+                                                              FontWeight.bold),
+                                                    ),
+                                                    onPressed: () async {
+                                                      if (Navigator.of(context)
+                                                          .canPop()) {
+                                                        Navigator.of(
+                                                                dialogContext,
+                                                                rootNavigator:
+                                                                    true)
+                                                            .pop();
+                                                      }
+
+                                                      context.read<AlbumBloc>().add(
+                                                          RemoveUserFromAlbumInitiated(
+                                                              StorageService()
+                                                                  .userId));
+                                                    },
+                                                  ),
+                                                  TextButton(
+                                                    child: Text('Cancel',
+                                                        style: GoogleFonts.lato(
+                                                            color: Colors.white,
+                                                            fontSize: 17,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold)),
+                                                    onPressed: () {
+                                                      if (Navigator.of(context)
+                                                          .canPop()) {
+                                                        Navigator.of(context,
+                                                                rootNavigator:
+                                                                    true)
+                                                            .pop();
+                                                      }
+                                                    },
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          );
+                                          break;
+                                      }
+                                    } else {
+                                      switch (value) {
+                                        case 'Report':
+                                          break;
+                                        case 'Hide':
+                                          break;
+                                        case 'Leave this album':
+                                          return showDialog<void>(
+                                            context: context,
+                                            builder:
+                                                (BuildContext dialogContext) {
+                                              return AlertDialog(
+                                                backgroundColor:
+                                                    Colors.grey.shade800,
+                                                titleTextStyle:
+                                                    GoogleFonts.lato(
+                                                        color: Colors.white,
+                                                        fontSize: 20,
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                                title: Text(
+                                                    'Are you sure you want to leave this ${state.albumInfo.name} album ?'),
+                                                actions: [
+                                                  TextButton(
+                                                    child: Text(
+                                                      'Leave',
+                                                      style: GoogleFonts.lato(
+                                                          color: Colors
+                                                              .red.shade800,
+                                                          fontSize: 18,
+                                                          fontWeight:
+                                                              FontWeight.bold),
+                                                    ),
+                                                    onPressed: () async {
+                                                      if (Navigator.of(context)
+                                                          .canPop()) {
+                                                        Navigator.of(
+                                                                dialogContext,
+                                                                rootNavigator:
+                                                                    true)
+                                                            .pop();
+                                                      }
+                                                      //need to await the run of this event, to perform the other deletion
+
+                                                      context.read<AlbumBloc>().add(
+                                                          RemoveUserFromAlbumInitiated(
+                                                              StorageService()
+                                                                  .userId));
+                                                    },
+                                                  ),
+                                                  TextButton(
+                                                    child: Text('Cancel',
+                                                        style: GoogleFonts.lato(
+                                                            color: Colors.white,
+                                                            fontSize: 17,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold)),
+                                                    onPressed: () {
+                                                      if (Navigator.of(context)
+                                                          .canPop()) {
+                                                        Navigator.of(context,
+                                                                rootNavigator:
+                                                                    true)
+                                                            .pop();
+                                                      }
+                                                    },
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          );
+                                      }
+                                    }
+                                  },
+                                  itemBuilder: (BuildContext context) {
+                                    Set<String> options = {};
+                                    if (StorageService().userId ==
+                                        state.albumInfo.owner.userId) {
+                                      options = {
+                                        "Delete this album",
+                                        "Leave this album",
+                                      };
+                                    } else {
+                                      options = {"Leave this album", "Report"};
+                                    }
+                                    return options.map((String choice) {
+                                      return PopupMenuItem<String>(
+                                        value: choice,
+                                        child: Text(
+                                          choice,
+                                          style: GoogleFonts.lato(
+                                              color: Colors.white,
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      );
+                                    }).toList();
+                                  },
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 20),
-                            Text(
-                              state.albumInfo
-                                  .name, // Assuming albumInfo is accessible in this scope
-                              maxLines: 2,
-                              softWrap: true,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                          ],
-                        ),
-                      ]),
+                          )
+                        ];
+                      },
                     ),
-                    SliverAppBar(
-                      pinned: true,
-                      floating: true,
-                      backgroundColor: Colors.black,
-                      automaticallyImplyLeading: false,
-                      title: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          IconButton(
-                            onPressed: () {},
-                            icon: const Icon(
-                              Icons.search,
-                              size: 30,
-                              color: Colors.white,
+                  ),
+                  state.isAsyncActionRunning
+                      ? Container(
+                          color: Colors.black.withOpacity(0.4),
+                          child: const Align(
+                            alignment: Alignment.center,
+                            child: CircularProgressIndicator(
+                              color: Colors.blue,
                             ),
                           ),
-                          IconButton(
-                            onPressed: () {},
-                            icon: const Icon(
-                              Icons.person_add_alt_1_outlined,
-                              size: 31,
-                              color: Colors.white,
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () {
-                              showModalBottomSheet<void>(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return Container();
-                                },
-                              );
-                            },
-                            icon: const Icon(
-                              Icons.add_a_photo_outlined,
-                              size: 28,
-                              color: Colors.white,
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () {
-                              showModalBottomSheet<void>(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return CustomBottomSheet(
-                                    album: SimpleAlbum(
-                                        albumId: state.albumInfo.albumId,
-                                        albumName: state.albumInfo.name,
-                                        albumPicture:
-                                            state.albumInfo.albumPicture),
-                                  );
-                                },
-                              );
-                            },
-                            icon: const Icon(
-                              Icons.more_horiz,
-                              size: 28,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  ];
+                        )
+                      : Container(),
+                ],
+              );
+            }
+
+            if (state is LeavedAlbumState) {
+              WidgetsBinding.instance.addPostFrameCallback(
+                (_) {
+                  context.pop(
+                      PopPayload<String>(ActionType.leaved, widget.albumId));
                 },
               );
+              return Container();
             }
 
             return const Center(
@@ -294,163 +670,3 @@ class _AlbumInfoPageState extends State<AlbumInfoPage> {
     );
   }
 }
-
-
-
-
-/*Padding(
-                          padding: const EdgeInsets.fromLTRB(15, 5, 15, 10),
-                          child: Row(children: [
-                            Text(
-                              "Contributors:",
-                              softWrap: true,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.lato(
-                                  fontSize: 15,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(
-                              width: 15,
-                            ),
-                            Expanded(
-                              child: Stack(
-                                children: List.generate(
-                                  state.albumInfo.contributors.length + 1,
-                                  (index) {
-                                    if (index <
-                                        state.albumInfo.contributors.length) {
-                                      if (index == 0) {
-                                        return CircleAvatar(
-                                          foregroundImage: NetworkImage(state
-                                              .albumInfo
-                                              .contributors[index]
-                                              .pfpLink),
-                                        );
-                                      }
-                                      return Positioned(
-                                        left: index * 28,
-                                        child: CircleAvatar(
-                                          foregroundImage: NetworkImage(state
-                                              .albumInfo
-                                              .contributors[index]
-                                              .pfpLink),
-                                        ),
-                                      );
-                                    } else {
-                                      if (state.albumInfo.nrOfContributors -
-                                              state.albumInfo.contributors
-                                                  .length >
-                                          0) {
-                                        return Positioned(
-                                          left: index * 28,
-                                          child: Container(
-                                            width: 40,
-                                            height: 40,
-                                            decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(100),
-                                                color: Colors.white),
-                                            child: Center(
-                                                child: Text(
-                                              '+${state.albumInfo.nrOfContributors - state.albumInfo.contributors.length}',
-                                              style: GoogleFonts.lato(
-                                                  fontWeight: FontWeight.bold),
-                                            )),
-                                          ),
-                                        );
-                                      } else {
-                                        return Container();
-                                      }
-                                    }
-                                  },
-                                ),
-                              ),
-                            ),
-                          ]),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(10, 15, 10, 0),
-                          child: Row(
-                            children: [
-                              ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10)),
-                                      backgroundColor: Colors.white),
-                                  onPressed: () {},
-                                  child: const Row(
-                                    children: [
-                                      Icon(
-                                        Icons.edit,
-                                        size: 20,
-                                        color: Colors.black,
-                                      ),
-                                      SizedBox(
-                                        width: 5,
-                                      ),
-                                      Text(
-                                        "Edit Album",
-                                        style: TextStyle(color: Colors.black),
-                                      ),
-                                    ],
-                                  )),
-                              const Spacer(),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    Column(
-                      children: [
-                        Text(
-                          maxLines: 2,
-                          softWrap: true,
-                          overflow: TextOverflow.ellipsis,
-                          state.albumInfo.name,
-                          style: GoogleFonts.lato(
-                              fontSize: 20,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          maxLines: 2,
-                          softWrap: true,
-                          overflow: TextOverflow.ellipsis,
-                          state.albumInfo.name,
-                          style: GoogleFonts.lato(
-                              fontSize: 20,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          maxLines: 2,
-                          softWrap: true,
-                          overflow: TextOverflow.ellipsis,
-                          state.albumInfo.name,
-                          style: GoogleFonts.lato(
-                              fontSize: 20,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          maxLines: 2,
-                          softWrap: true,
-                          overflow: TextOverflow.ellipsis,
-                          state.albumInfo.name,
-                          style: GoogleFonts.lato(
-                              fontSize: 20,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          maxLines: 2,
-                          softWrap: true,
-                          overflow: TextOverflow.ellipsis,
-                          state.albumInfo.name,
-                          style: GoogleFonts.lato(
-                              fontSize: 20,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold),
-                        ), */

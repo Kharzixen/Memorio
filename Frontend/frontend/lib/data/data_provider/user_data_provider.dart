@@ -31,10 +31,23 @@ class UserDataProvider {
     });
   }
 
-  static getFollowing(String userId, int followingPage, int followingPageSize) {
+  static Future<http.Response> getFollowing(
+      String userId, int followingPage, int followingPageSize) {
     return http
         .get(Uri.parse(
             "${StorageService.connectionString}/api/users/$userId/following?page=$followingPage&pageSize=$followingPageSize"))
+        .then((value) {
+      return value;
+    }).catchError((error) {
+      throw Exception(error);
+    });
+  }
+
+  static Future<http.Response> getFriendsOfUser(
+      String userId, int friendPage, int friendPageSize) {
+    return http
+        .get(Uri.parse(
+            "${StorageService.connectionString}/api/users/$userId/friends?page=$friendPage&pageSize=$friendPageSize"))
         .then((value) {
       return value;
     }).catchError((error) {

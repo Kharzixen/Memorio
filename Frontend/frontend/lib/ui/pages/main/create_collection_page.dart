@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/cubit/collection_creation_cubit/collection_creation_cubit.dart';
+import 'package:frontend/model/album_model.dart';
+import 'package:frontend/model/utils/action_types_for_pop_payload.dart';
+import 'package:frontend/model/utils/pop_payload.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -32,15 +35,17 @@ class _CreateCollectionPageState extends State<CreateCollectionPage>
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
-        iconTheme: IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: BlocBuilder<CollectionCreationCubit, CollectionCreationState>(
         builder: (context, state) {
           if (state is CollectionCreationSuccessState) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               Navigator.of(context, rootNavigator: true).pop();
-              context.pop("removed");
+              context.pop(PopPayload<CollectionPreview>(
+                  ActionType.created, state.collection));
             });
+            return Container();
           }
 
           if (state is CollectionCreationInProgressState) {

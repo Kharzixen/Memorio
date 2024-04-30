@@ -82,53 +82,53 @@ class AlbumHeaderCard extends StatelessWidget {
                   const SizedBox(
                     width: 15,
                   ),
-                  Expanded(
-                    child: Stack(
-                      children: List.generate(
-                        albumInfo.contributors.length + 1,
-                        (index) {
-                          if (index < albumInfo.contributors.length) {
-                            if (index == 0) {
-                              return CircleAvatar(
-                                foregroundImage: NetworkImage(
-                                    albumInfo.contributors[index].pfpLink),
-                              );
-                            }
-                            return Positioned(
-                              left: index * 28,
-                              child: CircleAvatar(
-                                foregroundImage: NetworkImage(
-                                    albumInfo.contributors[index].pfpLink),
-                              ),
-                            );
-                          } else {
-                            if (albumInfo.nrOfContributors -
-                                    albumInfo.contributors.length >
-                                0) {
-                              return Positioned(
-                                left: index * 28,
-                                child: Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(100),
-                                      color: Colors.white),
-                                  child: Center(
-                                      child: Text(
-                                    '+${albumInfo.nrOfContributors - albumInfo.contributors.length}',
-                                    style: GoogleFonts.lato(
-                                        fontWeight: FontWeight.bold),
-                                  )),
-                                ),
-                              );
-                            } else {
-                              return Container();
-                            }
-                          }
-                        },
-                      ),
-                    ),
-                  ),
+                  // Expanded(
+                  //   child: Stack(
+                  //     children: List.generate(
+                  //       albumInfo.contributors.length + 1,
+                  //       (index) {
+                  //         if (index < albumInfo.contributors.length) {
+                  //           if (index == 0) {
+                  //             return CircleAvatar(
+                  //               foregroundImage: NetworkImage(
+                  //                   albumInfo.contributors[index].pfpLink),
+                  //             );
+                  //           }
+                  //           return Positioned(
+                  //             left: index * 28,
+                  //             child: CircleAvatar(
+                  //               foregroundImage: NetworkImage(
+                  //                   albumInfo.contributors[index].pfpLink),
+                  //             ),
+                  //           );
+                  //         } else {
+                  //           if (albumInfo.nrOfContributors -
+                  //                   albumInfo.contributors.length >
+                  //               0) {
+                  //             return Positioned(
+                  //               left: index * 28,
+                  //               child: Container(
+                  //                 width: 40,
+                  //                 height: 40,
+                  //                 decoration: BoxDecoration(
+                  //                     borderRadius: BorderRadius.circular(100),
+                  //                     color: Colors.white),
+                  //                 child: Center(
+                  //                     child: Text(
+                  //                   '+${albumInfo.nrOfContributors - albumInfo.contributors.length}',
+                  //                   style: GoogleFonts.lato(
+                  //                       fontWeight: FontWeight.bold),
+                  //                 )),
+                  //               ),
+                  //             );
+                  //           } else {
+                  //             return Container();
+                  //           }
+                  //         }
+                  //       },
+                  //     ),
+                  //   ),
+                  // ),
                 ]),
               ),
               Padding(

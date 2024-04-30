@@ -35,7 +35,7 @@ public class UserService {
         try {
             User user = UserMapper.INSTANCE.dtoToModel(userDtoIn);
             user.setAccountCreationDate(new Date());
-            if (userDtoIn.getProfileImage().isEmpty()) {
+            if (userDtoIn.getProfileImage().isEmpty() || userDtoIn.getProfileImage() == null) {
                 user.setPfpId("default_pfpId");
             } else {
                 ImageCreatedResponseDto imageDto = imageServiceClient.postImageToMediaService(userDtoIn.getProfileImage());
@@ -80,6 +80,15 @@ public class UserService {
         } catch (DataAccessResourceFailureException ex) {
             throw new DatabaseCommunicationException(ex.getMessage());
         }
+    }
+
+    public Page<SimpleUserDtoOut> getFriendsOfUser(Long userId, int page, int pageSize){
+        Sort sort = Sort.by(Sort.Direction.DESC, "username");
+        Pageable pageRequest = PageRequest.of(page, pageSize, sort);
+        User user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("User", "id", userId.toString(), "GET"));
+        Page<User> friends = userRepository.findFriendsOfUser(userId, pageRequest);
+        List<SimpleUserDtoOut>  friendsDtoOut = friends.getContent().stream().map(UserMapper.INSTANCE::modelToSimplifiedDto).toList();
+        return new PageImpl<>(friendsDtoOut, pageRequest, friends.getTotalElements() );
     }
 
     public UserDtoOut getUserById(Long userId)

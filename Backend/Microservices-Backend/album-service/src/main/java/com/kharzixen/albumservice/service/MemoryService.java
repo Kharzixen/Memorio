@@ -2,7 +2,7 @@ package com.kharzixen.albumservice.service;
 
 import com.kharzixen.albumservice.dto.ImageCreatedResponseDto;
 import com.kharzixen.albumservice.dto.incomming.MemoryDtoIn;
-import com.kharzixen.albumservice.dto.incomming.MemoryPatchCollectionsDtoIn;
+import com.kharzixen.albumservice.dto.incomming.PatchMemoryCollectionsDtoIn;
 import com.kharzixen.albumservice.dto.outgoing.memoryDto.DetailedMemoryDtoOut;
 import com.kharzixen.albumservice.dto.outgoing.memoryDto.MemoryPreviewDtoOut;
 import com.kharzixen.albumservice.exception.NotFoundException;
@@ -132,7 +132,7 @@ public class MemoryService {
 
     }
 
-    public DetailedMemoryDtoOut patchCollectionsOfMemory(Long albumId, Long memoryId, MemoryPatchCollectionsDtoIn dtoIn) {
+    public DetailedMemoryDtoOut patchCollectionsOfMemory(Long albumId, Long memoryId, PatchMemoryCollectionsDtoIn dtoIn) {
         //check if jwt token userId is authorized to perform this action (is contributor of album);
         Memory memory = memoryRepository.findById(memoryId).orElseThrow(() -> new NotFoundException("Memory", memoryId));
         ArrayList<MemoryCollection> newCollectionsList = dtoIn.getCollectionIds().stream()

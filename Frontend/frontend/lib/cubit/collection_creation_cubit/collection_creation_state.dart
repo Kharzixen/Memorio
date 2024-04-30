@@ -6,7 +6,10 @@ class CollectionCreationInitialState extends CollectionCreationState {}
 
 class CollectionCreationInProgressState extends CollectionCreationState {}
 
-class CollectionCreationSuccessState extends CollectionCreationState {}
+class CollectionCreationSuccessState extends CollectionCreationState {
+  CollectionPreview collection;
+  CollectionCreationSuccessState(this.collection);
+}
 
 class CollectionCreationErrorState extends CollectionCreationState {
   final String message;

@@ -17,7 +17,6 @@
     <modules>
         <module>user-service</module>
         <module>discovery-server</module>
-        <module>relationship-service</module>
         <module>api-gateway</module>
         <module>album-service</module>
         <module>media-service</module>

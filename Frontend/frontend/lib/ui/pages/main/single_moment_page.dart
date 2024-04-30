@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:frontend/bloc/moment_bloc/moment_bloc.dart';
 import 'package:frontend/model/album_model.dart';
+import 'package:frontend/model/utils/action_types_for_pop_payload.dart';
+import 'package:frontend/model/utils/pop_payload.dart';
 import 'package:frontend/ui/widgets/comment_list.dart';
 import 'package:frontend/ui/widgets/like_list.dart';
 import 'package:frontend/ui/widgets/moment_header.dart';
@@ -97,7 +99,8 @@ class _MemoryPageState extends State<MemoryPage> {
           if (state is MomentDeletedState) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (context.canPop()) {
-                context.pop("removed");
+                context.pop(
+                    PopPayload<String>(ActionType.deleted, widget.memoryId));
               }
             });
 
@@ -149,11 +152,8 @@ class Content extends StatelessWidget {
                           ),
                         ),
                       ),
-                      BlocProvider.value(
-                        value: BlocProvider.of<MomentBloc>(context),
-                        child: MemoryHeader(
-                          moment: moment,
-                        ),
+                      MemoryHeader(
+                        moment: moment,
                       ),
                       const SizedBox(
                         height: 10,

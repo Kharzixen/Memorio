@@ -15,6 +15,9 @@ class AlbumsPreviewBloc extends Bloc<AlbumPreviewEvent, AlbumsPreviewState> {
   AlbumsPreviewBloc(this.albumRepository) : super(AlbumsPreviewInitialState()) {
     on<AlbumsPreviewFetched>(_getAlbumPreview);
     on<AlbumsRefreshRequested>(_refreshAlbumsPage);
+    on<AlbumLeaved>(_removeAlbumFromList);
+    on<NewImageCreatedForAlbum>(_addToImagePreviewsNewImage);
+    on<LeaveAlbum>(_leaveAlbum);
   }
 
   void _getAlbumPreview(
@@ -23,7 +26,7 @@ class AlbumsPreviewBloc extends Bloc<AlbumPreviewEvent, AlbumsPreviewState> {
     userId = event.userId;
     try {
       albumPreview.addAll(await albumRepository.getAlbumPreviewOfUser(userId));
-      emit(AlbumsPreviewLoadedState(albumPreview));
+      emit(AlbumsPreviewLoadedState(albumPreview, false));
     } catch (e) {
       emit(AlbumsPreviewErrorState(e.toString()));
     }
@@ -33,6 +36,46 @@ class AlbumsPreviewBloc extends Bloc<AlbumPreviewEvent, AlbumsPreviewState> {
       AlbumsRefreshRequested event, Emitter<AlbumsPreviewState> emit) async {
     albumPreview = [];
     albumPreview.addAll(await albumRepository.getAlbumPreviewOfUser(userId));
-    emit(AlbumsPreviewLoadedState(albumPreview));
+    emit(AlbumsPreviewLoadedState(albumPreview, false));
+  }
+
+  FutureOr<void> _removeAlbumFromList(
+      AlbumLeaved event, Emitter<AlbumsPreviewState> emit) {
+    for (int i = 0; i < albumPreview.length; i++) {
+      if (albumPreview[i].albumId == event.albumId) {
+        albumPreview.removeAt(i);
+        break;
+      }
+    }
+    emit(AlbumsPreviewLoadedState(albumPreview, false));
+  }
+
+  FutureOr<void> _addToImagePreviewsNewImage(
+      NewImageCreatedForAlbum event, Emitter<AlbumsPreviewState> emit) {
+    for (int i = 0; i < albumPreview.length; i++) {
+      if (albumPreview[i].albumId == event.albumId) {
+        if (albumPreview[i].previewImages.isEmpty) {
+          albumPreview[i].previewImages.add(event.memory);
+        } else {
+          albumPreview[i].previewImages.insert(0, event.memory);
+          albumPreview[i].previewImages.removeLast();
+        }
+        break;
+      }
+    }
+    emit(AlbumsPreviewLoadedState(albumPreview, false));
+  }
+
+  FutureOr<void> _leaveAlbum(
+      LeaveAlbum event, Emitter<AlbumsPreviewState> emit) async {
+    emit(AlbumsPreviewLoadedState(albumPreview, true));
+    await albumRepository.removeUserFromAlbum(event.albumId, userId);
+    for (int i = 0; i < albumPreview.length; i++) {
+      if (albumPreview[i].albumId == event.albumId) {
+        albumPreview.removeAt(i);
+        break;
+      }
+    }
+    emit(AlbumsPreviewLoadedState(albumPreview, false));
   }
 }

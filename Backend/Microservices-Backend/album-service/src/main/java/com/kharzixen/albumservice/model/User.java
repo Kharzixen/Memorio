@@ -20,8 +20,9 @@ public class User {
     private Long id;
     private String username;
     private String pfpId;
+    private boolean isDeleted;
 
-    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = false)
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.PERSIST, orphanRemoval = false)
     private List<Album> ownedAlbums;
 
     @ManyToMany( mappedBy = "contributors" )

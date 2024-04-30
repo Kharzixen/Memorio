@@ -26,22 +26,25 @@ class CollectionPreview {
         description: json['collectionDescription'] == null
             ? "Default description"
             : json['collectionDescription'] as String,
-        creationDate:
-            DateTime.now(), //DateTime.parse(json['creationDate'] as String),
-        latestMemories: (json['latestMemories'] as List<dynamic>)
-            .map((e) => Memory.fromJson(e as Map<String, dynamic>))
-            .toList(),
+        creationDate: DateTime.parse(json[
+            'creationDate']), //DateTime.parse(json['creationDate'] as String),
+        latestMemories: json['latestMemories'] != null
+            ? (json['latestMemories'] as List<dynamic>)
+                .map((e) => Memory.fromJson(e as Map<String, dynamic>))
+                .toList()
+            : [],
         creator: SimpleUser.fromMap(json['creator']),
         simpleAlbum: SimpleAlbum.fromJson(json['album']));
   }
 
   @override
   bool operator ==(Object other) {
+    if (identical(this, other)) return true;
     return (other is CollectionPreview) && other.collectionId == collectionId;
   }
 
   @override
-  int get hashCode => super.hashCode;
+  int get hashCode => collectionId.hashCode;
 }
 
 class SimpleCollection {

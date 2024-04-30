@@ -183,15 +183,11 @@ class CollectionPreviewCard extends StatelessWidget {
                               fontSize: 15,
                               fontWeight: FontWeight.bold)),
                     ),
-                    IconButton(
-                        onPressed: () {
-                          print("button");
-                        },
-                        icon: const Icon(
-                          Icons.navigate_next_sharp,
-                          size: 28,
-                          color: Colors.white,
-                        )),
+                    const Icon(
+                      Icons.navigate_next_sharp,
+                      size: 28,
+                      color: Colors.white,
+                    ),
                   ],
                 ),
               ),

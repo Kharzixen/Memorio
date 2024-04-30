@@ -13,6 +13,7 @@ import 'package:frontend/bloc/timeline_bloc/timeline_bloc.dart';
 import 'package:frontend/cubit/add_memories_to_collection_cubit/add_memories_to_collection_cubit.dart';
 import 'package:frontend/cubit/collection_creation_cubit/collection_creation_cubit.dart';
 import 'package:frontend/cubit/collection_cubit/collection_cubit.dart';
+import 'package:frontend/cubit/invitation_cubit/invitation_cubit.dart';
 import 'package:frontend/cubit/user_cubit/user_cubit.dart';
 import 'package:frontend/data/repository/album_repository.dart';
 import 'package:frontend/data/repository/collection_repository.dart';
@@ -25,6 +26,7 @@ import 'package:frontend/ui/pages/auth/login_page.dart';
 import 'package:frontend/ui/pages/auth/registration_page.dart';
 import 'package:frontend/ui/pages/main/add_memories_to_collection_page.dart';
 import 'package:frontend/ui/pages/main/album_info_page.dart';
+import 'package:frontend/ui/pages/main/album_invitation_page.dart';
 import 'package:frontend/ui/pages/main/albums_page.dart';
 import 'package:frontend/ui/pages/main/create_album_page.dart';
 import 'package:frontend/ui/pages/main/create_collection_page.dart';
@@ -208,7 +210,21 @@ class AppRouter {
                               ),
                             );
                           },
-                        )
+                        ),
+                        GoRoute(
+                          path: 'invitations-page',
+                          builder: (context, state) {
+                            final String albumId =
+                                state.pathParameters['albumId']!;
+                            return BlocProvider(
+                                create: (context) => InvitationCubit(
+                                    context.read<AlbumRepository>(),
+                                    context.read<UserRepository>()),
+                                child: AlbumInvitationPage(
+                                  albumId: albumId,
+                                ));
+                          },
+                        ),
                       ],
                     )
                   ]),
@@ -232,7 +248,8 @@ class AppRouter {
                 builder: (context, state) {
                   return BlocProvider(
                     create: (context) => AlbumCreationBloc(
-                        albumRepository: context.read<AlbumRepository>()),
+                        albumRepository: context.read<AlbumRepository>(),
+                        userRepository: context.read<UserRepository>()),
                     child: CreateAlbumPage(),
                   );
                 },

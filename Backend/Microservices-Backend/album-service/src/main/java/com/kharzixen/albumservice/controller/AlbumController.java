@@ -1,11 +1,11 @@
 package com.kharzixen.albumservice.controller;
 
-import com.kharzixen.albumservice.dto.incomming.AlbumDtoIn;
-import com.kharzixen.albumservice.dto.incomming.MemoryCollectionDtoIn;
-import com.kharzixen.albumservice.dto.incomming.MemoryDtoIn;
-import com.kharzixen.albumservice.dto.incomming.MemoryPatchCollectionsDtoIn;
+import com.kharzixen.albumservice.dto.incomming.*;
+import com.kharzixen.albumservice.dto.outgoing.UserDtoOut;
+import com.kharzixen.albumservice.dto.outgoing.albumDto.AlbumContributorsPatchedDtoOut;
 import com.kharzixen.albumservice.dto.outgoing.albumDto.AlbumDtoOut;
 import com.kharzixen.albumservice.dto.outgoing.collectionDto.MemoryCollectionDtoOut;
+import com.kharzixen.albumservice.dto.outgoing.collectionDto.MemoryCollectionPatchedDtoOut;
 import com.kharzixen.albumservice.dto.outgoing.collectionDto.MemoryCollectionPreviewDtoOut;
 import com.kharzixen.albumservice.dto.outgoing.memoryDto.DetailedMemoryDtoOut;
 import com.kharzixen.albumservice.dto.outgoing.memoryDto.MemoryPreviewDtoOut;
@@ -21,6 +21,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @AllArgsConstructor
@@ -55,6 +57,24 @@ public class AlbumController {
         return ResponseEntity.ok(albumDtoOut);
     }
 
+    @GetMapping("/{albumId}/contributors")
+    ResponseEntity<List<UserDtoOut>> getContributorsOfAlbum(@PathVariable Long albumId){
+        List<UserDtoOut> contributors = albumService.getContributorsOfAlbum(albumId);
+        return ResponseEntity.ok(contributors);
+    }
+
+    @PatchMapping("/{albumId}/contributors")
+    ResponseEntity<AlbumContributorsPatchedDtoOut> patchContributorsOfAlbum(@PathVariable Long albumId,@RequestBody PatchAlbumContributorsDtoIn patchDto) {
+        switch (patchDto.getMethod()) {
+            case "ADD":
+                AlbumContributorsPatchedDtoOut response = albumService
+                        .addContributors(albumId, patchDto);
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            default:
+                throw new RuntimeException("Unknown method");
+        }
+    }
+
     @GetMapping("/{albumId}/collections")
     ResponseEntity<Page<MemoryCollectionPreviewDtoOut>> getCollectionPreviewsOfAlbum(
             @PathVariable Long albumId,
@@ -87,7 +107,7 @@ public class AlbumController {
     ResponseEntity<DetailedMemoryDtoOut> getMemoriesOfCollection(
             @PathVariable Long albumId,
             @PathVariable Long memoryId,
-            @Valid @RequestBody MemoryPatchCollectionsDtoIn dtoIn) {
+            @Valid @RequestBody PatchMemoryCollectionsDtoIn dtoIn) {
         DetailedMemoryDtoOut memoryDtoOut = memoryService.patchCollectionsOfMemory(albumId, memoryId, dtoIn);
         return ResponseEntity.ok(memoryDtoOut);
     }
@@ -97,15 +117,15 @@ public class AlbumController {
     ResponseEntity<Page<MemoryPreviewDtoOut>> getMemoriesOfAlbum(
             @PathVariable Long albumId,
             @RequestParam(required = false) Long uploaderId,
-            @RequestParam(required = false,  name = "notIncludedInCollectionId") Long collectionId,
+            @RequestParam(required = false, name = "notIncludedInCollectionId") Long collectionId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize) {
-        if(uploaderId != null && collectionId !=null){
+        if (uploaderId != null && collectionId != null) {
             Page<MemoryPreviewDtoOut> pageOfMemories = memoryService.getMemoriesOfAlbumByUploaderWhichNotIncludedInCollectionPaginated(albumId, uploaderId, collectionId, page, pageSize);
             return ResponseEntity.ok(pageOfMemories);
         }
 
-        if(uploaderId != null){
+        if (uploaderId != null) {
             Page<MemoryPreviewDtoOut> pageOfMemories = memoryService.getMemoriesOfAlbumPaginated(albumId, page, pageSize);
             return ResponseEntity.ok(pageOfMemories);
         }
@@ -125,6 +145,40 @@ public class AlbumController {
     @DeleteMapping("/{albumId}/memories/{memoryId}")
     ResponseEntity<Void> deleteMemoryById(@PathVariable Long albumId, @PathVariable Long memoryId) {
         memoryService.delete(albumId, memoryId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{albumId}")
+    ResponseEntity<Void>  deleteAlbumWithEverything(@PathVariable Long albumId){
+        albumService.removeAlbum(albumId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{albumId}/collections/{collectionId}/memories")
+    ResponseEntity<MemoryCollectionPatchedDtoOut> patchMemoriesOfCollection(
+            @PathVariable Long albumId,
+            @PathVariable Long collectionId,
+            @RequestBody PatchCollectionMemoriesDtoIn patchCollectionMemoriesDtoIn) {
+        switch (patchCollectionMemoriesDtoIn.getMethod()) {
+            case "ADD":
+                MemoryCollectionPatchedDtoOut resp = collectionService
+                        .addMemoriesToCollection(albumId, collectionId, patchCollectionMemoriesDtoIn);
+                return new ResponseEntity<>(resp, HttpStatus.OK);
+            default:
+                throw new RuntimeException("Unknown method");
+        }
+    }
+
+    @DeleteMapping("/{albumId}/collections/{collectionId}")
+    ResponseEntity<Void> deleteCollection(@PathVariable Long albumId,
+                                          @PathVariable Long collectionId){
+        collectionService.deleteCollection(albumId, collectionId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{albumId}/contributors/{userId}")
+    ResponseEntity<Void> patchUserAlbums(@PathVariable Long userId, @PathVariable Long albumId){
+        albumService.removeUserFromAlbum(userId, albumId);
         return ResponseEntity.noContent().build();
     }
 

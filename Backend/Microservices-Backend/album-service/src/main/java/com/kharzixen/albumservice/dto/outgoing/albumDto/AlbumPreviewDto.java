@@ -21,7 +21,6 @@ public class AlbumPreviewDto {
 
     private String albumImageLink;
 
-
     //  4 image
     List<MemoryPreviewDtoOut> recentMemories;
 }

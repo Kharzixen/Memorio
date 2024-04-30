@@ -1,11 +1,13 @@
-package com.kharzixen.userrelationshipservice.listener;
+package com.kharzixen.albumservice.kafkalistener;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kharzixen.userrelationshipservice.mapper.UserMapper;
-import com.kharzixen.userrelationshipservice.model.User;
-import com.kharzixen.userrelationshipservice.service.UserService;
+import com.kharzixen.albumservice.dto.incomming.UserDtoIn;
+import com.kharzixen.albumservice.dto.outgoing.UserDtoOut;
+import com.kharzixen.albumservice.mapper.UserMapper;
+import com.kharzixen.albumservice.model.User;
+import com.kharzixen.albumservice.service.UserService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -13,7 +15,6 @@ import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
-
 
 @Service
 @Slf4j
@@ -24,7 +25,7 @@ public class UserTopicListener {
     private final UserService userService;
     private final UserMapper userMapper;
 
-    @KafkaListener(topics = "mongodb.users.user", groupId = "userEventConsumer")
+    @KafkaListener(topics = "mysql.userdb_test.user", groupId = "userEventConsumer")
     public void listen(@Payload(required = false) String message, @Header(KafkaHeaders.RECEIVED_KEY) String key) {
         log.info("Received message: " + message);
         try {
@@ -32,25 +33,26 @@ public class UserTopicListener {
             //decide what to do based on the "operation" field
             switch (messagePayload.get("op").asText()) {
                 case "c" -> {
-                    User user = userMapper.jsonObjectToModel(messagePayload.get("after").asText());
-                    userService.createUser(user);
-                    log.info("User with id: {} created.", user.getUserId());
+                    UserDtoIn user = objectMapper.readValue(messagePayload.get("after").toString(),UserDtoIn.class);
+                    UserDtoOut savedUser = userService.createUser(user);
+                    log.info("User with id: {} created.", savedUser.getId());
                 }
-                case "u" -> {
-                    User newUser = userMapper.jsonObjectToModel(messagePayload.get("after").asText());
-                    userService.updateUser(newUser.getUserId(), newUser.getPfpLink());
-                    log.info("User with id: {} updated.", newUser.getUserId());
-                }
-                case "d" -> {
-                    String userId = getDocumentIdFromKey(key);
-                    userService.deleteUser(userId);
-                    log.info("User with id: idk deleted.");
-                }
+//                case "u" -> {
+//                    User newUser = userMapper.jsonObjectToModel(messagePayload.get("after").asText());
+//                    userService.updateUser(newUser.getUserId(), newUser.getPfpLink());
+//                    log.info("User with id: {} updated.", newUser.getUserId());
+//
+//                }
+//                case "d" -> {
+//                    String userId = getDocumentIdFromKey(key);
+//                    userService.deleteUser(userId);
+//                    log.info("User with id: idk deleted.");
+//                }
                 default -> log.warn("No operation field found.");
             }
             //log.info(jsonNode.get("payload").toString());
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            log.info(e.getMessage());
         }
     }
 

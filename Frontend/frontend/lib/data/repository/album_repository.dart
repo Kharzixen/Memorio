@@ -43,7 +43,7 @@ class AlbumRepository {
     }
   }
 
-  Future<int> createAlbum(
+  Future<SimpleAlbum> createAlbum(
     String ownerId,
     String albumName,
     String caption,
@@ -57,9 +57,58 @@ class AlbumRepository {
           caption: caption,
           invitedUserIds: contributors.map((e) => e.userId).toList(),
           albumImage: image);
-      return response.statusCode;
+
+      Map<String, dynamic> jsonResponse =
+          json.decode(await response.stream.bytesToString());
+      SimpleAlbum album = SimpleAlbum.fromJson(jsonResponse);
+      return album;
     } catch (e) {
-      print(e);
+      rethrow;
+    }
+  }
+
+  Future<List<SimpleUser>> getContributorsOfAlbum(String albumId) async {
+    try {
+      final response = await AlbumDataProvider.getContributorsOfAlbum(albumId);
+      if (response.statusCode == 200) {
+        List<dynamic> contributorJsonList = json.decode(response.body);
+        List<SimpleUser> contributors = [];
+        for (var contributorJson in contributorJsonList) {
+          SimpleUser user = SimpleUser.fromMap(contributorJson);
+          contributors.add(user);
+        }
+        return contributors;
+      } else {
+        throw Exception(response.body);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<int> addUsersToAlbum(
+      String albumId, Set<SimpleUser> selectedUsers) async {
+    try {
+      final response = await AlbumDataProvider.addUsersToContributors(
+          albumId, selectedUsers);
+      if (response.statusCode == 200) {
+        return 200;
+      } else {
+        throw Exception(response.body);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> removeUserFromAlbum(String albumId, String userId) async {
+    try {
+      final response =
+          await AlbumDataProvider.removeUserFromAlbum(albumId, userId);
+      if (!(response.statusCode == 204)) {
+        throw Exception(response.body);
+      }
+    } catch (e) {
       rethrow;
     }
   }

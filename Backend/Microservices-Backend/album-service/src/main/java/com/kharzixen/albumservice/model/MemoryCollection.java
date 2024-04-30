@@ -32,7 +32,7 @@ public class MemoryCollection {
     @JoinColumn(name = "album_id")
     private Album album;
 
-    @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY, mappedBy = "collections")
+    @ManyToMany(cascade= CascadeType.PERSIST, fetch = FetchType.LAZY, mappedBy = "collections")
     private List<Memory> memories;
 
     private Date creationDate;

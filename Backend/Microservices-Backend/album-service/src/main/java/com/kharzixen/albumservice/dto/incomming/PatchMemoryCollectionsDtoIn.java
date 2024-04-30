@@ -1,7 +1,5 @@
 package com.kharzixen.albumservice.dto.incomming;
 
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,6 +12,6 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 @Data
-public class MemoryPatchCollectionsDtoIn {
+public class PatchMemoryCollectionsDtoIn {
     private List<Long> collectionIds = new ArrayList<>();
 }

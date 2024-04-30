@@ -13,8 +13,15 @@ class AddMemoriesToCollectionPageLoadedState
   List<Memory> memories;
   List<bool> isSelected;
   int nrOfSelected;
-  AddMemoriesToCollectionPageLoadedState(
-      this.memories, this.isSelected, this.nrOfSelected);
+  bool isAsyncMethodRunning;
+  AddMemoriesToCollectionPageLoadedState(this.memories, this.isSelected,
+      this.nrOfSelected, this.isAsyncMethodRunning);
+}
+
+class AddMemoriesToCollectionPageFinishedState
+    extends AddMemoriesToCollectionPageState {
+  List<Memory> memories;
+  AddMemoriesToCollectionPageFinishedState(this.memories);
 }
 
 class AddMemoriesToCollectionPageErrorState

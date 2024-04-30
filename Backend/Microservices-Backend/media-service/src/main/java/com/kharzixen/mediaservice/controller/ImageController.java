@@ -42,6 +42,9 @@ public class ImageController {
     @PostMapping
     ResponseEntity<ImageCreatedResponseDto> createImage(@RequestParam("image") MultipartFile image) {
         try {
+            if(image.isEmpty()){
+                return ResponseEntity.ok(new ImageCreatedResponseDto(HttpStatus.OK.value(), "default_album_image.jpg"));
+            }
             String fileName = image.getOriginalFilename();
             InputStream inputStream = image.getInputStream();
             String imageName = UUID.randomUUID().toString().replace("-", "");

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:frontend/model/album_model.dart';
 import 'package:frontend/service/storage_service.dart';
 import 'package:http/http.dart' as http;
 
@@ -46,6 +47,40 @@ class CollectionDataProvider {
               'Content-Type': 'application/json; charset=UTF-8',
             },
             body: jsonEncode(requestBody))
+        .then((value) {
+      return value;
+    }).catchError((error) {
+      throw Exception(error);
+    });
+  }
+
+  static Future<http.Response> patchCollectionAddImages(
+      String albumId, String collectionId, List<Memory> selectedMemories) {
+    Map<String, dynamic> requestBody = {
+      'method': "ADD",
+      'memoryIds': selectedMemories.map((e) => e.memoryId).toList(),
+    };
+
+    return http
+        .patch(
+            Uri.parse(
+                "${StorageService.connectionString}/api/albums/$albumId/collections/$collectionId/memories"),
+            headers: <String, String>{
+              'Content-Type': 'application/json; charset=UTF-8',
+            },
+            body: jsonEncode(requestBody))
+        .then((value) {
+      return value;
+    }).catchError((error) {
+      throw Exception(error);
+    });
+  }
+
+  static Future<http.Response> deleteCollection(
+      String albumId, String collectionId) {
+    return http
+        .delete(Uri.parse(
+            "${StorageService.connectionString}/api/albums/$albumId/collections/$collectionId"))
         .then((value) {
       return value;
     }).catchError((error) {

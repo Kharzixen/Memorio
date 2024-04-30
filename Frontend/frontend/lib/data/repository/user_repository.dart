@@ -37,7 +37,8 @@ class UserRepository {
     }
   }
 
-  getFollowing(String userId, int followingPage, int followingPageSize) async {
+  Future<PaginatedResponse<SimpleUser>> getFollowing(
+      String userId, int followingPage, int followingPageSize) async {
     try {
       final response = await UserDataProvider.getFollowing(
           userId, followingPage, followingPageSize);
@@ -49,6 +50,22 @@ class UserRepository {
       }
     } catch (e) {
       throw e.toString();
+    }
+  }
+
+  Future<PaginatedResponse<SimpleUser>> getFriendsOfUser(
+      String userId, int friendPage, int friendPageSize) async {
+    try {
+      final response = await UserDataProvider.getFriendsOfUser(
+          userId, friendPage, friendPageSize);
+      if (response.statusCode == 200) {
+        Map<String, dynamic> responseJson = json.decode(response.body);
+        return PaginatedResponse.fromJson(responseJson, SimpleUser.fromMap);
+      } else {
+        throw Exception(response.body);
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 }

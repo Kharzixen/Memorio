@@ -247,87 +247,94 @@ class MemoryHeader extends StatelessWidget {
                   showBottomSheet(
                     context: context,
                     builder: (BuildContext context) {
-                      return Container(
-                          decoration: BoxDecoration(
-                              borderRadius: const BorderRadius.only(
-                                topLeft: Radius.circular(20.0),
-                                topRight: Radius.circular(20.0),
-                              ),
-                              color: Colors.grey.shade900),
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
-                            child: Column(
-                              children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      "Collections:",
-                                      style: GoogleFonts.lato(
-                                          color: Colors.white,
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    const Spacer(),
-                                    TextButton(
-                                        onPressed: () async {
-                                          List<SimpleCollection>
-                                              newCollections =
-                                              await context.push(
-                                                  '/albums/${moment.album.albumId}/memories/${moment.memoryId}/edit-collections',
-                                                  extra:
-                                                      moment) as List<
-                                                  SimpleCollection>;
+                      List<SimpleCollection> collections = moment.collections;
+                      return StatefulBuilder(builder: (context, setState) {
+                        return Container(
+                            decoration: BoxDecoration(
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(20.0),
+                                  topRight: Radius.circular(20.0),
+                                ),
+                                color: Colors.grey.shade900),
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        "Collections:",
+                                        style: GoogleFonts.lato(
+                                            color: Colors.white,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      const Spacer(),
+                                      TextButton(
+                                          onPressed: () async {
+                                            List<SimpleCollection>
+                                                newCollections =
+                                                await context.push(
+                                                    '/albums/${moment.album.albumId}/memories/${moment.memoryId}/edit-collections',
+                                                    extra:
+                                                        moment) as List<
+                                                    SimpleCollection>;
 
-                                          if (context.mounted) {
-                                            context.read<MomentBloc>().add(
-                                                MemoryCollectionsChanged(
-                                                    newCollections:
-                                                        newCollections));
-                                          }
-                                        },
-                                        child: Text(
-                                          "Edit collections",
-                                          style: GoogleFonts.lato(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold),
-                                        )),
-                                  ],
-                                ),
-                                ListView.builder(
-                                  shrinkWrap: true,
-                                  itemCount: moment.collections.length,
-                                  itemBuilder: (context, index) {
-                                    return Row(
-                                      children: [
-                                        const SizedBox(
-                                          width: 10,
-                                        ),
-                                        Expanded(
+                                            if (context.mounted) {
+                                              context.read<MomentBloc>().add(
+                                                  MemoryCollectionsChanged(
+                                                      newCollections:
+                                                          newCollections));
+                                              setState(() {
+                                                collections = newCollections;
+                                              });
+                                            }
+                                          },
                                           child: Text(
-                                              moment.collections[index]
-                                                  .collectionName,
-                                              maxLines: 2,
-                                              softWrap: true,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: GoogleFonts.lato(
-                                                  color: Colors.white,
-                                                  fontSize: 17,
-                                                  fontWeight: FontWeight.bold)),
-                                        ),
-                                        IconButton(
-                                            onPressed: () {},
-                                            icon: const Icon(
-                                              Icons.navigate_next_sharp,
-                                              size: 28,
-                                              color: Colors.white,
-                                            )),
-                                      ],
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
-                          ));
+                                            "Edit collections",
+                                            style: GoogleFonts.lato(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold),
+                                          )),
+                                    ],
+                                  ),
+                                  ListView.builder(
+                                    shrinkWrap: true,
+                                    itemCount: collections.length,
+                                    itemBuilder: (context, index) {
+                                      return Row(
+                                        children: [
+                                          const SizedBox(
+                                            width: 10,
+                                          ),
+                                          Expanded(
+                                            child: Text(
+                                                collections[index]
+                                                    .collectionName,
+                                                maxLines: 2,
+                                                softWrap: true,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: GoogleFonts.lato(
+                                                    color: Colors.white,
+                                                    fontSize: 17,
+                                                    fontWeight:
+                                                        FontWeight.bold)),
+                                          ),
+                                          IconButton(
+                                              onPressed: () {},
+                                              icon: const Icon(
+                                                Icons.navigate_next_sharp,
+                                                size: 28,
+                                                color: Colors.white,
+                                              )),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ));
+                      });
                     },
                   );
                 },

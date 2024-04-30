@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/bloc/album_preview_bloc/albums_preview_bloc.dart';
 import 'package:frontend/model/album_model.dart';
+import 'package:frontend/model/utils/action_types_for_pop_payload.dart';
+import 'package:frontend/model/utils/pop_payload.dart';
 import 'package:frontend/ui/widgets/animated_dialog.dart';
+import 'package:frontend/ui/widgets/bottom_sheet.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -19,9 +24,21 @@ class _AlbumPreviewCardState extends State<AlbumPreviewCard> {
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
-      onTap: () {
-        context.push("/albums/${widget.albumPreview.albumId}",
+      onTap: () async {
+        var returnObject = await context.push(
+            "/albums/${widget.albumPreview.albumId}",
             extra: SimpleAlbum.fromAlbumPreview(widget.albumPreview));
+        if (returnObject != null) {
+          PopPayload<String> popPayload = returnObject as PopPayload<String>;
+
+          if (popPayload.actionType == ActionType.leaved) {
+            if (context.mounted) {
+              context
+                  .read<AlbumsPreviewBloc>()
+                  .add(AlbumLeaved(popPayload.data!));
+            }
+          }
+        }
       },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -71,13 +88,123 @@ class _AlbumPreviewCardState extends State<AlbumPreviewCard> {
                           fontSize: 17,
                           fontWeight: FontWeight.bold)),
                 ),
-                IconButton(
-                    onPressed: () {},
-                    icon: const Icon(
-                      Icons.more_vert,
-                      size: 25,
-                      color: Colors.white,
-                    )),
+                PopupMenuButton<String>(
+                  color: Colors.grey.shade900,
+                  icon: const Icon(
+                    Icons.more_vert,
+                    color: Colors.white,
+                  ),
+                  onSelected: (value) async {
+                    switch (value) {
+                      case "Leave this album":
+                        showDialog<void>(
+                          context: context,
+                          builder: (BuildContext dialogContext) {
+                            return AlertDialog(
+                              backgroundColor: Colors.grey.shade800,
+                              titleTextStyle: GoogleFonts.lato(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold),
+                              title: Text(
+                                  'Are you sure you want to leave this ${widget.albumPreview.name} album ?'),
+                              actions: [
+                                TextButton(
+                                  child: Text(
+                                    'Leave',
+                                    style: GoogleFonts.lato(
+                                        color: Colors.red.shade800,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  onPressed: () async {
+                                    context.read<AlbumsPreviewBloc>().add(
+                                        LeaveAlbum(
+                                            widget.albumPreview.albumId));
+                                    if (Navigator.of(dialogContext).canPop()) {
+                                      Navigator.of(dialogContext,
+                                              rootNavigator: true)
+                                          .pop();
+                                    }
+                                  },
+                                ),
+                                TextButton(
+                                  child: Text('Cancel',
+                                      style: GoogleFonts.lato(
+                                          color: Colors.white,
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.bold)),
+                                  onPressed: () {
+                                    if (Navigator.of(context).canPop()) {
+                                      Navigator.of(context, rootNavigator: true)
+                                          .pop();
+                                    }
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      case "Add memory":
+                        var response = await showModalBottomSheet(
+                          context: context,
+                          builder: (BuildContext context1) {
+                            return CustomBottomSheet(
+                              album: SimpleAlbum.fromAlbumPreview(
+                                  widget.albumPreview),
+                            );
+                          },
+                        );
+                        if (response != null) {
+                          PopPayload popResponse = response as PopPayload;
+                          if (popResponse.actionType == ActionType.created &&
+                              context.mounted) {
+                            context.read<AlbumsPreviewBloc>().add(
+                                NewImageCreatedForAlbum(
+                                    widget.albumPreview.albumId,
+                                    popResponse.data! as Memory));
+                          }
+                        }
+                        break;
+                      case "Invite people":
+                        var response = await context.push(
+                            "/albums/${widget.albumPreview.albumId}/invitations-page");
+                        if (response != null && context.mounted) {
+                          String message = response as String;
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              backgroundColor: Colors.grey.shade800,
+                              content: Text(message)));
+                        }
+
+                        break;
+                      case "Report":
+                        break;
+                    }
+                  },
+                  itemBuilder: (BuildContext context) {
+                    Set<String> options = {};
+
+                    options = {
+                      "Leave this album",
+                      "Add memory",
+                      "Invite people",
+                      "Report",
+                    };
+
+                    return options.map((String choice) {
+                      return PopupMenuItem<String>(
+                        value: choice,
+                        child: Text(
+                          choice,
+                          style: GoogleFonts.lato(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      );
+                    }).toList();
+                  },
+                ),
               ],
             ),
           ),
@@ -112,19 +239,104 @@ class _AlbumPreviewCardState extends State<AlbumPreviewCard> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           IconButton(
-                              onPressed: () {},
+                              onPressed: () async {
+                                var response = await showModalBottomSheet(
+                                  context: context,
+                                  builder: (BuildContext context1) {
+                                    return CustomBottomSheet(
+                                      album: SimpleAlbum.fromAlbumPreview(
+                                          widget.albumPreview),
+                                    );
+                                  },
+                                );
+                                if (response != null) {
+                                  PopPayload popResponse =
+                                      response as PopPayload;
+                                  if (popResponse.actionType ==
+                                          ActionType.created &&
+                                      context.mounted) {
+                                    context.read<AlbumsPreviewBloc>().add(
+                                        NewImageCreatedForAlbum(
+                                            widget.albumPreview.albumId,
+                                            popResponse.data! as Memory));
+                                  }
+                                }
+                              },
                               icon: const Icon(
                                 Icons.add_a_photo,
                                 color: Colors.white,
                               )),
                           IconButton(
-                              onPressed: () {},
+                              onPressed: () async {
+                                var response = await context.push(
+                                    "/albums/${widget.albumPreview.albumId}/invitations-page");
+                                if (response != null && context.mounted) {
+                                  String message = response as String;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                          backgroundColor: Colors.grey.shade800,
+                                          content: Text(message)));
+                                }
+                              },
                               icon: const Icon(
                                 Icons.person_add,
                                 color: Colors.white,
                               )),
                           IconButton(
-                              onPressed: () {},
+                              onPressed: () async {
+                                return showDialog<void>(
+                                  context: context,
+                                  builder: (BuildContext dialogContext) {
+                                    return AlertDialog(
+                                      backgroundColor: Colors.grey.shade800,
+                                      titleTextStyle: GoogleFonts.lato(
+                                          color: Colors.white,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold),
+                                      title: Text(
+                                          'Are you sure you want to leave this ${widget.albumPreview.name} album ?'),
+                                      actions: [
+                                        TextButton(
+                                          child: Text(
+                                            'Leave',
+                                            style: GoogleFonts.lato(
+                                                color: Colors.red.shade800,
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          onPressed: () async {
+                                            context
+                                                .read<AlbumsPreviewBloc>()
+                                                .add(LeaveAlbum(widget
+                                                    .albumPreview.albumId));
+                                            if (Navigator.of(dialogContext)
+                                                .canPop()) {
+                                              Navigator.of(dialogContext,
+                                                      rootNavigator: true)
+                                                  .pop();
+                                            }
+                                          },
+                                        ),
+                                        TextButton(
+                                          child: Text('Cancel',
+                                              style: GoogleFonts.lato(
+                                                  color: Colors.white,
+                                                  fontSize: 17,
+                                                  fontWeight: FontWeight.bold)),
+                                          onPressed: () {
+                                            if (Navigator.of(context)
+                                                .canPop()) {
+                                              Navigator.of(context,
+                                                      rootNavigator: true)
+                                                  .pop();
+                                            }
+                                          },
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
                               icon: const Icon(
                                 Icons.exit_to_app_rounded,
                                 color: Colors.white,

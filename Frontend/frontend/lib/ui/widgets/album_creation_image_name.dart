@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/bloc/album_creation_bloc/album_creation_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 
 class AlbumCreationPhotoAndNameSelection extends StatefulWidget {
   final TabController tabController;
-  final formKey;
-  final nameController;
-  final descriptionController;
+  final GlobalKey<FormState> formKey;
+  final TextEditingController nameController;
+  final TextEditingController descriptionController;
+
   const AlbumCreationPhotoAndNameSelection(
       {Key? key,
       required this.tabController,
@@ -25,14 +26,19 @@ class AlbumCreationPhotoAndNameSelection extends StatefulWidget {
 class _AlbumCreationPhotoAndNameSelectionState
     extends State<AlbumCreationPhotoAndNameSelection>
     with AutomaticKeepAliveClientMixin {
+  bool selectImageSourceBottomSheetIsUp = false;
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
     return BlocBuilder<AlbumCreationBloc, AlbumCreationState>(
       builder: (context, state) {
         if (state is AlbumCreationInProgressState) {
-          if (state.image.isNotEmpty) {
-            context.pop();
+          if (state.image.isNotEmpty && selectImageSourceBottomSheetIsUp) {
+            selectImageSourceBottomSheetIsUp = false;
+            WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+              Navigator.of(context).pop();
+            });
           }
           return ListView(
             shrinkWrap: true,
@@ -63,6 +69,7 @@ class _AlbumCreationPhotoAndNameSelectionState
                         showModalBottomSheet(
                             context: context,
                             builder: (context1) {
+                              selectImageSourceBottomSheetIsUp = true;
                               return BlocProvider.value(
                                   value: BlocProvider.of<AlbumCreationBloc>(
                                       context),
@@ -349,7 +356,11 @@ class ChooseImageSourceBottomSheet extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10)),
                     backgroundColor: Colors.white),
-                onPressed: () {},
+                onPressed: () {
+                  context
+                      .read<AlbumCreationBloc>()
+                      .add(ImageSelectionStarted(ImageSource.camera));
+                },
                 child: const SizedBox(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -402,7 +413,7 @@ class ChooseImageSourceBottomSheet extends StatelessWidget {
                 onPressed: () {
                   context
                       .read<AlbumCreationBloc>()
-                      .add(ImageSelectionStarted());
+                      .add(ImageSelectionStarted(ImageSource.gallery));
                 },
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,

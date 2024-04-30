@@ -32,7 +32,7 @@ public class Memory {
     @JoinColumn(name = "album_id")
     private Album album;
 
-    @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
+    @ManyToMany(cascade= CascadeType.PERSIST, fetch = FetchType.EAGER)
     @JoinTable(name = "memory_collection", joinColumns  =  @JoinColumn(name = "memory_id") , inverseJoinColumns =  @JoinColumn(name = "collection_id"))
     private List<MemoryCollection> collections;
 

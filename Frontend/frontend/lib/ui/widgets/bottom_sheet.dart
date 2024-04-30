@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/bloc/timeline_bloc/timeline_bloc.dart';
 import 'package:frontend/model/album_model.dart';
 import 'package:frontend/model/memory_creation_details.dart';
-import 'package:frontend/model/utils/memory_creation_pop_response.dart';
+import 'package:frontend/model/utils/pop_payload.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -52,21 +50,15 @@ class _CustomBottomSheetState extends State<CustomBottomSheet> {
                         borderRadius: BorderRadius.circular(10)),
                     backgroundColor: Colors.white),
                 onPressed: () async {
-                  MemoryCreationPopResponse response = await context.push(
-                          "/createMemory",
-                          extra: MemoryCreationDetails(
-                              source: ImageSource.camera,
-                              album: widget.album,
-                              collection: widget.collection))
-                      as MemoryCreationPopResponse;
-                  print(response.toString());
-                  if (context.mounted) {
-                    if (response.message == "success") {
-                      context
-                          .read<TimelineBloc>()
-                          .add(NewMemoryCreatedTimeline(response.memory!));
-                    } else if (response.message == "returned") {
-                      context.pop();
+                  var response = await context.push("/createMemory",
+                      extra: MemoryCreationDetails(
+                          source: ImageSource.camera,
+                          album: widget.album,
+                          collection: widget.collection));
+                  if (response != null) {
+                    PopPayload<Memory> payload = response as PopPayload<Memory>;
+                    if (context.mounted) {
+                      context.pop(payload);
                     }
                   }
                 },
@@ -120,22 +112,15 @@ class _CustomBottomSheetState extends State<CustomBottomSheet> {
                         borderRadius: BorderRadius.circular(10)),
                     backgroundColor: Colors.white),
                 onPressed: () async {
-                  MemoryCreationPopResponse response = await context.push(
-                          "/createMemory",
-                          extra: MemoryCreationDetails(
-                              source: ImageSource.gallery,
-                              album: widget.album,
-                              collection: widget.collection))
-                      as MemoryCreationPopResponse;
-
-                  if (context.mounted) {
-                    print(response.message);
-                    if (response.message == "success") {
-                      context
-                          .read<TimelineBloc>()
-                          .add(NewMemoryCreatedTimeline(response.memory!));
-                    } else if (response.message == "returned") {
-                      context.pop();
+                  var response = await context.push("/createMemory",
+                      extra: MemoryCreationDetails(
+                          source: ImageSource.gallery,
+                          album: widget.album,
+                          collection: widget.collection));
+                  if (response != null) {
+                    PopPayload<Memory> payload = response as PopPayload<Memory>;
+                    if (context.mounted) {
+                      context.pop(payload);
                     }
                   }
                 },

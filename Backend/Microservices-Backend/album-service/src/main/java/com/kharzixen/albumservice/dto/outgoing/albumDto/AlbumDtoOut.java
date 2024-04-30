@@ -26,6 +26,5 @@ public class AlbumDtoOut {
 
     private String albumImageLink;
 
-    private List<UserDtoOut> contributorsPreview;
 
 }

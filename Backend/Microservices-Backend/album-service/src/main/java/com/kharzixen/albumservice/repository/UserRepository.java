@@ -14,6 +14,4 @@ import java.util.List;
 @Repository
 public interface UserRepository extends JpaRepository<User,Long> {
 
-    @Query("SELECT a.contributors FROM Album a WHERE a.id = :albumId")
-    Page<UserProjection> getContributorsOfAlbumByIdPaginated(Long albumId, Pageable pageable);
 }

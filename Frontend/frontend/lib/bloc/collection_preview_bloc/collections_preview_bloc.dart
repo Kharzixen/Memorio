@@ -26,6 +26,8 @@ class CollectionsPreviewBloc
     on<NextDatasetFetched>(_getNextPageOfMemories);
     on<MemoryRemovedFromCollections>(_removeMemoryFromCollectionsPreview);
     on<CollectionRefreshRequested>(_refreshCollectionsPreviewPage);
+    on<NewCollectionCreated>(_addNewCollection);
+    on<CollectionRemoved>(_deleteCollection);
   }
 
   FutureOr<void> _getNextPageOfMemories(
@@ -91,4 +93,28 @@ class CollectionsPreviewBloc
     ));
   }
 
+  FutureOr<void> _addNewCollection(
+      NewCollectionCreated event, Emitter<CollectionsPreviewState> emit) {
+    collections.insert(0, event.newCollection);
+    emit(CollectionsPreviewLoadedState(
+      albumId: albumId,
+      collections: collections,
+      hasMoreData: hasMoreData,
+    ));
+  }
+
+  FutureOr<void> _deleteCollection(
+      CollectionRemoved event, Emitter<CollectionsPreviewState> emit) {
+    for (int i = 0; i < collections.length; i++) {
+      if (collections[i].collectionId == event.collectionId) {
+        collections.removeAt(i);
+        break;
+      }
+    }
+    emit(CollectionsPreviewLoadedState(
+      albumId: albumId,
+      collections: collections,
+      hasMoreData: hasMoreData,
+    ));
+  }
 }

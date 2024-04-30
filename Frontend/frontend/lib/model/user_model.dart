@@ -57,4 +57,14 @@ class SimpleUser {
           : "${StorageService.connectionString}/images/${map["pfpId"]}",
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is SimpleUser && other.userId == userId;
+  }
+
+  @override
+  int get hashCode => userId.hashCode;
 }

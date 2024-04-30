@@ -62,12 +62,18 @@ class MemoryCreationBloc
       emit(MemoryCreationNoImageSelectedState());
     }
     File imageFile = File(pickedImage!.path);
+    
     double imageSize = await imageFile.length() / 1024;
+    double prevImageSize = 0;
 
     if (imageSize > 650) {
       while (imageSize > 650) {
         imageFile = await compressFile(imageFile);
+        prevImageSize = imageSize;
         imageSize = await imageFile.length() / 1024;
+        if(prevImageSize != 0 && prevImageSize - imageSize < 10.0){
+          break;
+        }
       }
       image = imageFile.readAsBytesSync();
     } else {

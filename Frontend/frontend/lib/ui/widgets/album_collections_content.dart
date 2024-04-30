@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/bloc/collection_preview_bloc/collections_preview_bloc.dart';
 import 'package:frontend/model/album_model.dart';
+import 'package:frontend/model/utils/action_types_for_pop_payload.dart';
+import 'package:frontend/model/utils/pop_payload.dart';
 import 'package:frontend/ui/widgets/collection_preview_card.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -59,7 +61,7 @@ class _CollectionsContentState extends State<CollectionsContent>
                   sliver: SliverToBoxAdapter(
                     child: ListView(
                       shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
+                      physics: const NeverScrollableScrollPhysics(),
                       children: [
                         Align(
                           alignment: Alignment.centerLeft,
@@ -76,11 +78,24 @@ class _CollectionsContentState extends State<CollectionsContent>
                                       fontSize: 23,
                                       fontWeight: FontWeight.bold),
                                 ),
-                                Spacer(),
+                                const Spacer(),
                                 IconButton(
-                                    onPressed: () {
-                                      context.push(
+                                    onPressed: () async {
+                                      var response = await context.push(
                                           "/albums/${widget.album.albumId}/create-collection");
+                                      if (response != null) {
+                                        PopPayload<CollectionPreview>
+                                            popPayload = response as PopPayload<
+                                                CollectionPreview>;
+                                        if (popPayload.actionType ==
+                                                ActionType.created &&
+                                            context.mounted) {
+                                          context
+                                              .read<CollectionsPreviewBloc>()
+                                              .add(NewCollectionCreated(
+                                                  popPayload.data!));
+                                        }
+                                      }
                                     },
                                     icon: const Icon(
                                       Icons.add_box_outlined,
@@ -97,9 +112,21 @@ class _CollectionsContentState extends State<CollectionsContent>
                                 itemCount: state.collections.length,
                                 itemBuilder: (context, collectionIndex) {
                                   return GestureDetector(
-                                    onTap: () {
-                                      context.push(
+                                    onTap: () async {
+                                      var response = await context.push(
                                           "/albums/${widget.album.albumId}/collections/${state.collections[collectionIndex].collectionId}");
+                                      if (response != null) {
+                                        PopPayload<String> payload =
+                                            response as PopPayload<String>;
+                                        if (payload.actionType ==
+                                                ActionType.deleted &&
+                                            context.mounted) {
+                                          context
+                                              .read<CollectionsPreviewBloc>()
+                                              .add(CollectionRemoved(
+                                                  payload.data!));
+                                        }
+                                      }
                                     },
                                     child: CollectionPreviewCard(
                                       collection:
@@ -162,6 +189,5 @@ class _CollectionsContentState extends State<CollectionsContent>
   }
 
   @override
-  // TODO: implement wantKeepAlive
   bool get wantKeepAlive => true;
 }

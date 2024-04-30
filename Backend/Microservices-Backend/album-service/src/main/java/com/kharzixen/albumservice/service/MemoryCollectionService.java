@@ -1,7 +1,9 @@
 package com.kharzixen.albumservice.service;
 
 import com.kharzixen.albumservice.dto.incomming.MemoryCollectionDtoIn;
+import com.kharzixen.albumservice.dto.incomming.PatchCollectionMemoriesDtoIn;
 import com.kharzixen.albumservice.dto.outgoing.collectionDto.MemoryCollectionDtoOut;
+import com.kharzixen.albumservice.dto.outgoing.collectionDto.MemoryCollectionPatchedDtoOut;
 import com.kharzixen.albumservice.dto.outgoing.collectionDto.MemoryCollectionPreviewDtoOut;
 import com.kharzixen.albumservice.dto.outgoing.memoryDto.MemoryPreviewDtoOut;
 import com.kharzixen.albumservice.exception.CollectionNameDuplicateException;
@@ -9,6 +11,7 @@ import com.kharzixen.albumservice.exception.NotFoundException;
 import com.kharzixen.albumservice.mapper.MemoryCollectionMapper;
 import com.kharzixen.albumservice.mapper.MemoryMapper;
 import com.kharzixen.albumservice.model.Album;
+import com.kharzixen.albumservice.model.Memory;
 import com.kharzixen.albumservice.model.MemoryCollection;
 import com.kharzixen.albumservice.model.User;
 import com.kharzixen.albumservice.projection.MemoryCollectionPreviewProjection;
@@ -82,12 +85,12 @@ public class MemoryCollectionService {
 
     public Page<MemoryCollectionPreviewDtoOut> getCollectionPreviewsPaginated(Long albumId, int page, int pageSize) {
         Sort sort = Sort.by(Sort.Direction.DESC, "creationDate");
-        Pageable collectionPageRequest = PageRequest.of(page,pageSize,sort);
+        Pageable collectionPageRequest = PageRequest.of(page, pageSize, sort);
 
         Pageable memoryPageRequest = PageRequest.of(0, 4, sort);
 
         Page<MemoryCollectionPreviewProjection> pageResponse = memoryCollectionRepository
-                .findAllCollectionsOfAlbumPaginated(albumId, collectionPageRequest );
+                .findAllCollectionsOfAlbumPaginated(albumId, collectionPageRequest);
         List<MemoryCollectionPreviewDtoOut> collectionDtos = pageResponse.getContent().stream()
                 .map(projection -> {
                     MemoryCollectionPreviewDtoOut dtoOut = MemoryCollectionMapper.INSTANCE.projectionToDto(projection);
@@ -98,13 +101,13 @@ public class MemoryCollectionService {
                     return dtoOut;
                 })
                 .toList();
-        return new PageImpl<>(collectionDtos,collectionPageRequest, pageResponse.getTotalElements());
+        return new PageImpl<>(collectionDtos, collectionPageRequest, pageResponse.getTotalElements());
     }
 
     public MemoryCollectionPreviewDtoOut getCollectionPreviewById(Long albumId, Long collectionId) {
         MemoryCollection collection = memoryCollectionRepository.findById(collectionId)
                 .orElseThrow(() -> new NotFoundException("Collection", collectionId));
-        MemoryCollectionPreviewDtoOut responseDto =  MemoryCollectionMapper.INSTANCE.modelToPreviewDto(collection);
+        MemoryCollectionPreviewDtoOut responseDto = MemoryCollectionMapper.INSTANCE.modelToPreviewDto(collection);
         Sort sort = Sort.by(Sort.Direction.DESC, "creationDate");
         Pageable memoryPageRequestForLatestMemories = PageRequest.of(0, 4, sort);
         List<MemoryPreviewDtoOut> latestMemories =
@@ -114,5 +117,41 @@ public class MemoryCollectionService {
                         .map(MemoryMapper.INSTANCE::projectionToPreviewDto).toList();
         responseDto.setLatestMemories(latestMemories);
         return responseDto;
+    }
+
+
+    public MemoryCollectionPatchedDtoOut addMemoriesToCollection(Long albumId, Long collectionId, PatchCollectionMemoriesDtoIn dtoIn) {
+        MemoryCollection collection = memoryCollectionRepository.findById(collectionId)
+                .orElseThrow(() -> new NotFoundException("Collection", collectionId));
+
+        List<Memory> collectionMemories = collection.getMemories();
+        List<Memory> memoriesInContext = new ArrayList<>();
+        for (Long id : dtoIn.getMemoryIds()) {
+            Memory memory = memoryRepository.findById(id)
+                    .orElseThrow(() -> new NotFoundException("Memory", id));
+            if(!memory.getCollections().contains(collection)) {
+                memory.getCollections().add(collection);
+                memoriesInContext.add(memory);
+                collectionMemories.add(memory);
+            }
+        }
+        collection.setMemories(collectionMemories);
+        MemoryCollection savedCollection = memoryCollectionRepository.save(collection);
+        log.info(String.valueOf(savedCollection.getMemories().size()));
+        return new MemoryCollectionPatchedDtoOut( dtoIn.getMethod(),collection.getId(),
+                memoriesInContext.stream().map(MemoryMapper.INSTANCE::modelToPreviewDto).toList());
+    }
+
+    public void deleteCollection(Long albumId, Long collectionId) {
+        Album album = albumRepository.findById(albumId).orElseThrow(() -> new NotFoundException("ALBUM", albumId));
+        MemoryCollection collection = memoryCollectionRepository.findById(collectionId)
+                .orElseThrow(() -> new NotFoundException("COLLECTION", collectionId));
+        //optimize with query, much faster;
+        for(Memory memory : collection.getMemories()){
+            memory.getCollections().remove(collection);
+        }
+        album.getCollections().remove(collection);
+        memoryCollectionRepository.delete(collection);
+        albumRepository.save(album);
     }
 }

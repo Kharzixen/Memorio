@@ -12,4 +12,14 @@ class MemoryRemovedFromCollections extends CollectionsPreviewEvent {
   MemoryRemovedFromCollections({required this.memoryId});
 }
 
+class NewCollectionCreated extends CollectionsPreviewEvent {
+  CollectionPreview newCollection;
+  NewCollectionCreated(this.newCollection);
+}
+
 class CollectionRefreshRequested extends CollectionsPreviewEvent {}
+
+class CollectionRemoved extends CollectionsPreviewEvent {
+  String collectionId;
+  CollectionRemoved(this.collectionId);
+}

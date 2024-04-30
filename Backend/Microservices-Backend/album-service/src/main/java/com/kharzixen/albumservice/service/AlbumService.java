@@ -2,6 +2,8 @@ package com.kharzixen.albumservice.service;
 
 import com.kharzixen.albumservice.dto.ImageCreatedResponseDto;
 import com.kharzixen.albumservice.dto.incomming.AlbumDtoIn;
+import com.kharzixen.albumservice.dto.incomming.PatchAlbumContributorsDtoIn;
+import com.kharzixen.albumservice.dto.outgoing.albumDto.AlbumContributorsPatchedDtoOut;
 import com.kharzixen.albumservice.dto.outgoing.albumDto.AlbumDtoOut;
 import com.kharzixen.albumservice.dto.outgoing.albumDto.AlbumPreviewDto;
 import com.kharzixen.albumservice.dto.outgoing.UserDtoOut;
@@ -54,33 +56,23 @@ public class AlbumService {
         ImageCreatedResponseDto response = imageServiceClient.postImageToMediaService(albumDtoIn.getImage());
         album.setAlbumImageLink(response.getImageId());
         Album savedAlbum = albumRepository.save(album);
-        AlbumDtoOut responseDto = AlbumMapper.INSTANCE.modelToDto(album);
-        List<UserDtoOut> contributorsPreview =
-                userRepository.getContributorsOfAlbumByIdPaginated(savedAlbum.getId(), PageRequest.of(0,4))
-                        .getContent().stream().map(UserMapper.INSTANCE::projectionToDto)
-                        .toList();
-        responseDto.setContributorsPreview(contributorsPreview);
-        return responseDto;
+        return AlbumMapper.INSTANCE.modelToDto(album);
     }
 
-    public AlbumDtoOut getAlbumById(Long id){
+    public AlbumDtoOut getAlbumById(Long id) {
         Album album = albumRepository.findById(id).orElseThrow(() -> new NotFoundException("Album", id));
-        AlbumDtoOut responseDto = AlbumMapper.INSTANCE.modelToDto(album);
-        List<UserDtoOut> contributorsPreview =
-                userRepository.getContributorsOfAlbumByIdPaginated(id, PageRequest.of(0,4))
-                        .getContent().stream().map(UserMapper.INSTANCE::projectionToDto)
-                        .toList();
-        responseDto.setContributorsPreview(contributorsPreview);
-        return responseDto;
+        return AlbumMapper.INSTANCE.modelToDto(album);
     }
 
     public Page<AlbumPreviewDto> getAlbumPreviews(Long userId, int page, int pageSize) {
-        Pageable albumPageRequest = PageRequest.of(page,pageSize);
-        Sort sort = Sort.by(Sort.Direction.DESC, "creationDate");
-        Pageable memoryPageRequest = PageRequest.of(0, 4, sort);
+
+        Sort memorySort = Sort.by(Sort.Direction.DESC, "creationDate");
+        Sort albumSort = Sort.by(Sort.Direction.DESC, "albumName");
+        Pageable albumPageRequest = PageRequest.of(page, pageSize, albumSort);
+        Pageable memoryPageRequest = PageRequest.of(0, 4, memorySort);
         Page<AlbumPreviewProjection> albums = albumRepository.findAllWhereUserIsContributor(userId, albumPageRequest);
 
-        List<AlbumPreviewDto> previews =  albums.stream().map(album -> {
+        List<AlbumPreviewDto> previews = albums.stream().map(album -> {
             AlbumPreviewDto albumDto = AlbumMapper.INSTANCE.projectionToDto(album);
             List<MemoryProjection> recentMemoriesProjection = memoryRepository
                     .findMemoriesOfAlbumPaginated(album.getId(), memoryPageRequest).getContent();
@@ -88,8 +80,52 @@ public class AlbumService {
             albumDto.setRecentMemories(recentMemoriesProjection.stream().map(MemoryMapper.INSTANCE::projectionToPreviewDto).toList());
             return albumDto;
         }).toList();
-        //TODO: marks the response as unsorted FIX
-        return new PageImpl<>(previews);
+
+        return new PageImpl<>(previews, albumPageRequest, albums.getTotalElements());
+    }
+
+    public void removeAlbum(Long albumId) {
+        albumRepository.deleteById(albumId);
+    }
+
+    public List<UserDtoOut> getContributorsOfAlbum(Long albumId) {
+        List<User> contributors = albumRepository.findAllContributorsOfAlbum(albumId);
+        return contributors.stream().map(UserMapper.INSTANCE::modelToDto).toList();
+    }
+
+    @Transactional
+    public AlbumContributorsPatchedDtoOut addContributors(Long albumId, PatchAlbumContributorsDtoIn patchDto) {
+        Album album = albumRepository.findById(albumId).orElseThrow(() -> new NotFoundException("Album", albumId));
+        List<UserDtoOut> changedUsers = new ArrayList<>();
+        for (Long userId : patchDto.getUserIds()) {
+
+            User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User", userId));
+            if (! album.getContributors().contains(user)) {
+                album.getContributors().add(user);
+                user.getAlbums().add(album);
+                changedUsers.add(UserMapper.INSTANCE.modelToDto(user));
+            }
+        }
+        Album savedAlbum = albumRepository.save(album);
+        return new AlbumContributorsPatchedDtoOut(patchDto.getMethod(), savedAlbum.getId().toString(), changedUsers);
+    }
+    @Transactional
+    public void removeUserFromAlbum(Long userId, Long albumId) {
+        //check if user who we want to remove is the same user who made the request jwt token
+        //or proceed if the user
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("USER", userId));
+        Album album = albumRepository.findById(albumId).orElseThrow(()-> new NotFoundException("ALBUM", albumId));
+        user.getAlbums().remove(album);
+        album.getContributors().remove(user);
+
+        //if no more contributors, delete the album
+        if(album.getContributors().isEmpty()){
+            albumRepository.delete(album);
+        } else if(album.getOwner() == user){
+            album.setOwner(album.getContributors().get(0));
+        }
+
+        userRepository.save(user);
     }
 
 }

@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:typed_data';
+import 'package:frontend/model/user_model.dart';
 import 'package:frontend/service/storage_service.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:http/http.dart' as http;
@@ -19,7 +21,7 @@ class AlbumDataProvider {
       String userId, int page, int pageSize) async {
     return http
         .get(Uri.parse(
-            "${StorageService.connectionString}/api/albums/users/$userId/album-previews?page=$page&pageSize=$pageSize"))
+            "${StorageService.connectionString}/api/users/$userId/albums?page=$page&pageSize=$pageSize"))
         .then((value) {
       return value;
     }).catchError((error) {
@@ -57,5 +59,48 @@ class AlbumDataProvider {
       print('Error uploading file: $e');
       rethrow;
     }
+  }
+
+  static Future<http.Response> getContributorsOfAlbum(String albumId) {
+    return http
+        .get(Uri.parse(
+            "${StorageService.connectionString}/api/albums/$albumId/contributors"))
+        .then((value) {
+      return value;
+    }).catchError((error) {
+      throw Exception(error);
+    });
+  }
+
+  static addUsersToContributors(String albumId, Set<SimpleUser> selectedUsers) {
+    Map<String, dynamic> requestBody = {
+      'method': "ADD",
+      'userIds': selectedUsers.map((e) => e.userId).toList(),
+    };
+
+    return http
+        .patch(
+            Uri.parse(
+                "${StorageService.connectionString}/api/albums/$albumId/contributors"),
+            headers: <String, String>{
+              'Content-Type': 'application/json; charset=UTF-8',
+            },
+            body: jsonEncode(requestBody))
+        .then((value) {
+      return value;
+    }).catchError((error) {
+      throw Exception(error);
+    });
+  }
+
+  static removeUserFromAlbum(String albumId, String userId) {
+    return http
+        .delete(Uri.parse(
+            "${StorageService.connectionString}/api/albums/$albumId/contributors/$userId"))
+        .then((value) {
+      return value;
+    }).catchError((error) {
+      throw Exception(error);
+    });
   }
 }

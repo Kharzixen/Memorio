@@ -8,7 +8,8 @@ final class AlbumsPreviewLoadingState extends AlbumsPreviewState {}
 
 final class AlbumsPreviewLoadedState extends AlbumsPreviewState {
   final List<AlbumPreview> albums;
-  AlbumsPreviewLoadedState(this.albums);
+  final bool isAsyncMethodInProgress;
+  AlbumsPreviewLoadedState(this.albums, this.isAsyncMethodInProgress);
 }
 
 final class AlbumsPreviewErrorState extends AlbumsPreviewState {

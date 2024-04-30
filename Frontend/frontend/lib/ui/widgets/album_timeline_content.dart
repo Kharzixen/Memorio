@@ -72,18 +72,12 @@ class _TimelineContentGridState extends State<TimelineContentGrid>
                       child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 300),
                     transitionBuilder: (child, animation) {
-                      return SizeTransition(
-                        sizeFactor: Tween<double>(
-                          begin: 0.8, // Start with no size (hidden)
-                          end: 1.0, // End with full size (visible)
+                      return SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(1.0, 0.0), // Start from right
+                          end: const Offset(0.0, 0.0), // End at the center
                         ).animate(animation),
-                        child: SlideTransition(
-                          position: Tween<Offset>(
-                            begin: Offset(1.0, 0.0), // Start from right
-                            end: Offset(0.0, 0.0), // End at the center
-                          ).animate(animation),
-                          child: child,
-                        ),
+                        child: child,
                       );
                     },
                     child: state.photosByDate.isNotEmpty
@@ -148,35 +142,35 @@ class _TimelineContentGridState extends State<TimelineContentGrid>
                                             onTap: () async {
                                               String? response = await context.push(
                                                   "/albums/${widget.album.albumId}/memories/${memory.memoryId}");
-                                              if (response == "removed") {
-                                                if (context.mounted) {
-                                                  context.read<TimelineBloc>().add(
-                                                      MemoryRemovedFromTimeline(
-                                                          memoryId:
-                                                              memory.memoryId,
-                                                          date: date));
-                                                  context
-                                                      .read<
-                                                          CollectionsPreviewBloc>()
-                                                      .add(
-                                                          MemoryRemovedFromCollections(
-                                                              memoryId: memory
-                                                                  .memoryId));
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(
-                                                    SnackBar(
-                                                      content: const Text(
-                                                          'Memory Removed'),
-                                                      backgroundColor:
-                                                          (Colors.black),
-                                                      action: SnackBarAction(
-                                                        label: 'Dismiss',
-                                                        onPressed: () {},
-                                                      ),
-                                                    ),
-                                                  );
-                                                }
-                                              }
+                                              // if (response == "removed") {
+                                              //   if (context.mounted) {
+                                              //     context.read<TimelineBloc>().add(
+                                              //         MemoryRemovedFromTimeline(
+                                              //             memoryId:
+                                              //                 memory.memoryId,
+                                              //             date: date));
+                                              //     context
+                                              //         .read<
+                                              //             CollectionsPreviewBloc>()
+                                              //         .add(
+                                              //             MemoryRemovedFromCollections(
+                                              //                 memoryId: memory
+                                              //                     .memoryId));
+                                              //     ScaffoldMessenger.of(context)
+                                              //         .showSnackBar(
+                                              //       SnackBar(
+                                              //         content: const Text(
+                                              //             'Memory Removed'),
+                                              //         backgroundColor:
+                                              //             (Colors.black),
+                                              //         action: SnackBarAction(
+                                              //           label: 'Dismiss',
+                                              //           onPressed: () {},
+                                              //         ),
+                                              //       ),
+                                              //     );
+                                              //   }
+                                              // }
                                             },
                                             child: CachedNetworkImage(
                                               imageUrl: memory.photo,

@@ -12,12 +12,10 @@ class AlbumInfo {
   String albumDescription;
   int nrOfContributors;
   SimpleUser owner;
-  List<SimpleUser> contributors;
   AlbumInfo({
     required this.albumId,
     required this.name,
     required this.nrOfContributors,
-    required this.contributors,
     required this.albumPicture,
     required this.albumDescription,
     required this.owner,
@@ -28,9 +26,9 @@ class AlbumInfo {
         albumId: json['id'].toString(),
         name: json['albumName'] as String,
         nrOfContributors: json['contributorCount'] as int,
-        contributors: (json['contributorsPreview'] as List<dynamic>)
-            .map((user) => SimpleUser.fromMap(user as Map<String, dynamic>))
-            .toList(),
+        // contributors: (json['contributorsPreview'] as List<dynamic>)
+        //     .map((user) => SimpleUser.fromMap(user as Map<String, dynamic>))
+        //     .toList(),
         albumPicture: (json['albumImageLink'] as String).contains("https")
             ? json['albumImageLink']
             : "${StorageService.connectionString}/images/${json['albumImageLink']}",

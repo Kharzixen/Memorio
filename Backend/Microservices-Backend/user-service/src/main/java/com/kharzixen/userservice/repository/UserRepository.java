@@ -32,4 +32,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
             nativeQuery = true)
     Long getFollowingCount(@Param("userId") Long userId);
 
+    @Query("SELECT DISTINCT u FROM User u " +
+            "JOIN u.followers AS f " +
+            "JOIN u.following AS fl " +
+            "WHERE f.id = :userId AND fl.id = :userId")
+    Page<User> findFriendsOfUser(Long userId, Pageable pageRequest);
 }

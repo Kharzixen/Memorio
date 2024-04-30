@@ -9,5 +9,27 @@
         "collection.include.list": "demo.items",
         "capture.mode": "change_streams_update_full",
         "tombstones.on.delete": "true"
+    },
+
+
+    "name": "mysql-db-connector",
+    "config": {
+        "connector.class": "io.debezium.connector.mysql.MySqlConnector",
+        "tasks.max": "1",
+        "database.hostname": "192.168.1.103",
+        "database.port": "3306",
+        "database.user": "connector_user",
+        "database.password": "123456",
+        "database.server.id": "1",
+        "topic.prefix": "mysql",
+        "database.useSSL": "false",
+        "database.allowPublicKeyRetrieval": "true",
+        "database.include.list": "userdb_test",
+        "table.whitelist": "user",
+        "database.history.kafka.bootstrap.servers": "localhost:9092",
+        "include.schema.changes": "true"
     }
+
 }
+
+

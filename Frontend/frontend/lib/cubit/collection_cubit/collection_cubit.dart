@@ -10,6 +10,8 @@ class CollectionPageCubit extends Cubit<CollectionPageState> {
   final CollectionRepository collectionRepository;
   final MemoryRepository memoryRepository;
 
+  Set<String> includedImages = {};
+
   Map<String, List<Memory>> memoriesByDate = {};
   int page = 0;
   bool hasMoreData = true;
@@ -37,11 +39,64 @@ class CollectionPageCubit extends Cubit<CollectionPageState> {
       _addToPhotoMap(nextPageMemoriesOfAlbum.content);
 
       emit(CollectionPageLoadedState(collectionPreview, memoriesByDate,
-          hasMoreData, _dateGranularityIndex));
+          hasMoreData, _dateGranularityIndex, false));
     } catch (e) {
       // Emit error state if an error occurs
       emit(CollectionPageErrorState('Failed to fetch collection data: $e'));
     }
+  }
+
+  Future<void> refreshCollection() async {
+    memoriesByDate = {};
+    page = 0;
+    hasMoreData = true;
+    try {
+      collectionPreview = await collectionRepository.getCollectionPreviewById(
+          albumId, collectionId);
+
+      PaginatedResponse<Memory> nextPageMemoriesOfAlbum = await memoryRepository
+          .getMemoriesOrderedByDatePaginated(albumId, page, collectionId);
+      _addToPhotoMap(nextPageMemoriesOfAlbum.content);
+
+      emit(CollectionPageLoadedState(collectionPreview, memoriesByDate,
+          hasMoreData, _dateGranularityIndex, false));
+    } catch (e) {
+      // Emit error state if an error occurs
+      emit(CollectionPageErrorState('Failed to fetch collection data: $e'));
+    }
+  }
+
+  void addNewMemory(Memory memory) {
+    String displayDate = _getDisplayDate(memory.date);
+    if (memoriesByDate.containsKey(displayDate)) {
+      memoriesByDate[displayDate]!.insert(0, memory);
+      includedImages.add(memory.memoryId);
+    } else {
+      memoriesByDate[displayDate] = [memory];
+      includedImages.add(memory.memoryId);
+    }
+    //true ?
+    emit(CollectionPageLoadedState(collectionPreview, memoriesByDate,
+        hasMoreData, _dateGranularityIndex, false));
+  }
+
+  void removeMemory(String date, Memory memoryToRemove) {
+    for (int i = 0; i < memoriesByDate[date]!.length; i++) {
+      if (memoriesByDate[date]![i].memoryId == memoryToRemove.memoryId) {
+        memoriesByDate[date]!.removeAt(i);
+        includedImages.remove(memoryToRemove.memoryId);
+        break;
+      }
+    }
+    emit(CollectionPageLoadedState(collectionPreview, memoriesByDate,
+        hasMoreData, _dateGranularityIndex, false));
+  }
+
+  void deleteCollection() {
+    emit(CollectionPageLoadedState(collectionPreview, memoriesByDate,
+        hasMoreData, _dateGranularityIndex, true));
+    collectionRepository.deleteCollection(albumId, collectionId);
+    emit(CollectionPageDeletedState());
   }
 
 //   void _getNextPageOfMemories(
@@ -78,12 +133,8 @@ class CollectionPageCubit extends Cubit<CollectionPageState> {
         }
       }
       memoriesByDate = newPhotosByDate;
-      emit(CollectionPageLoadedState(
-        collectionPreview,
-        memoriesByDate,
-        hasMoreData,
-        _dateGranularityIndex,
-      ));
+      emit(CollectionPageLoadedState(collectionPreview, memoriesByDate,
+          hasMoreData, _dateGranularityIndex, false));
     }
   }
 
@@ -102,22 +153,10 @@ class CollectionPageCubit extends Cubit<CollectionPageState> {
         }
       }
       memoriesByDate = newPhotosByDate;
-      emit(CollectionPageLoadedState(
-        collectionPreview,
-        memoriesByDate,
-        hasMoreData,
-        _dateGranularityIndex,
-      ));
+      emit(CollectionPageLoadedState(collectionPreview, memoriesByDate,
+          hasMoreData, _dateGranularityIndex, false));
     }
   }
-
-// FutureOr<void> _refreshState(
-//     RefreshRequested event, Emitter<TimelineState> emit) async {
-//   page = 0;
-//   photosByDate = {};
-//   hasMoreData = true;
-
-//   _dateGranularityIndex = 2;
 
 //   PaginatedResponse<Memory> memories =
 //       await memoryRepository.getMemoriesForTimeline(albumId, page);
@@ -139,7 +178,10 @@ class CollectionPageCubit extends Cubit<CollectionPageState> {
     for (Memory element in entries) {
       String displayDate = _getDisplayDate(element.date);
       if (memoriesByDate.containsKey(displayDate)) {
-        memoriesByDate[displayDate]!.add(element);
+        if (!includedImages.contains(element.memoryId)) {
+          memoriesByDate[displayDate]!.add(element);
+          includedImages.add(element.memoryId);
+        }
       } else {
         memoriesByDate[displayDate] = [element];
       }
@@ -192,4 +234,6 @@ class CollectionPageCubit extends Cubit<CollectionPageState> {
         return '';
     }
   }
+
+  void addExistingMemories(List<Memory> memories) {}
 }

@@ -7,19 +7,9 @@ final class AlbumFetched extends AlbumEvent {
   AlbumFetched({required this.albumId});
 }
 
-final class AlbumDisplayChangedToCollection extends AlbumEvent {
-  AlbumDisplayChangedToCollection();
+final class RemoveUserFromAlbumInitiated extends AlbumEvent {
+  String userId;
+  RemoveUserFromAlbumInitiated(this.userId);
 }
 
-final class AlbumDisplayChangedToTimeline extends AlbumEvent {
-  AlbumDisplayChangedToTimeline();
-}
-
-final class AlbumTimelineNewChunkFetched extends AlbumEvent {
-  String albumId;
-  AlbumTimelineNewChunkFetched({required this.albumId});
-}
-
-final class IncreaseGranularity extends AlbumEvent {}
-
-final class DecreaseGranularity extends AlbumEvent {}
+final class Refresh extends AlbumEvent {}
