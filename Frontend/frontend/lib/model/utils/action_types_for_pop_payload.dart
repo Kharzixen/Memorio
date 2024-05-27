@@ -5,5 +5,5 @@ enum ActionType {
   noChanges,
   leaved,
   error,
-  multiAction
+  multiAction,
 }

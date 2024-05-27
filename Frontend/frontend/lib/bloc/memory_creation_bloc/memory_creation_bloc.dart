@@ -2,11 +2,13 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/data/repository/memory_repository.dart';
-import 'package:frontend/model/album_model.dart';
-import 'package:frontend/model/memory_creation_details.dart';
+import 'package:frontend/data/repository/private_memory_repository.dart';
+import 'package:frontend/model/private-album_model.dart';
+import 'package:frontend/model/utils/memory_creation_details.dart';
 import 'package:frontend/service/storage_service.dart';
+import 'package:gal/gal.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 
@@ -19,13 +21,13 @@ class MemoryCreationBloc
   int width = 0;
   int height = 0;
   int page = 0;
-  Map<String, AlbumWithSelectedCollections> albums = {};
+  Map<String, PrivateAlbumWithSelectedCollections> albums = {};
 
   String description = "";
 
   late MemoryCreationDetails _memoryCreationDetails;
 
-  MemoryRepository memoryRepository;
+  PrivateMemoryRepository memoryRepository;
   MemoryCreationBloc(this.memoryRepository)
       : super(MemoryCreationInitialState()) {
     on<MemoryCreationStarted>(_loadAndDecodePhoto);
@@ -35,6 +37,7 @@ class MemoryCreationBloc
     on<AlbumUnselected>(_removeAlbumFromAlbums);
     on<DescriptionSaved>(_saveDescription);
     on<MemoryCreationFinished>(_saveCreation);
+    on<ImageSaveRequested>(saveImage);
   }
 
   Future _loadAndDecodePhoto(
@@ -43,7 +46,7 @@ class MemoryCreationBloc
     _memoryCreationDetails = event.memoryCreationDetails;
     final album = _memoryCreationDetails.album;
     if (album != null) {
-      albums[album.albumId] = AlbumWithSelectedCollections(
+      albums[album.albumId] = PrivateAlbumWithSelectedCollections(
         albumId: album.albumId,
         albumName: album.albumName,
         albumPicture: album.albumPicture,
@@ -60,9 +63,10 @@ class MemoryCreationBloc
 
     if (pickedImage == null) {
       emit(MemoryCreationNoImageSelectedState());
+      return;
     }
-    File imageFile = File(pickedImage!.path);
-    
+    File imageFile = File(pickedImage.path);
+
     double imageSize = await imageFile.length() / 1024;
     double prevImageSize = 0;
 
@@ -71,7 +75,7 @@ class MemoryCreationBloc
         imageFile = await compressFile(imageFile);
         prevImageSize = imageSize;
         imageSize = await imageFile.length() / 1024;
-        if(prevImageSize != 0 && prevImageSize - imageSize < 10.0){
+        if (prevImageSize != 0 && prevImageSize - imageSize < 10.0) {
           break;
         }
       }
@@ -124,7 +128,7 @@ class MemoryCreationBloc
   FutureOr<void> _addAlbumToAlbums(
       AlbumSelected event, Emitter<MemoryCreationState> emit) {
     String albumId = event.albumId;
-    albums[albumId] = AlbumWithSelectedCollections(
+    albums[albumId] = PrivateAlbumWithSelectedCollections(
         albumId: event.album.albumId,
         albumName: event.album.albumName,
         albumPicture: event.album.albumPicture,
@@ -172,9 +176,9 @@ class MemoryCreationBloc
   Future<FutureOr<void>> _saveCreation(
       MemoryCreationFinished event, Emitter<MemoryCreationState> emit) async {
     try {
-      Memory? createdMemory;
-      for (AlbumWithSelectedCollections album in albums.values) {
-        Memory currentSavedMemory = await memoryRepository.createMemory(
+      PrivateMemory? createdMemory;
+      for (PrivateAlbumWithSelectedCollections album in albums.values) {
+        PrivateMemory currentSavedMemory = await memoryRepository.createMemory(
             StorageService().userId,
             album.albumId,
             description,
@@ -207,5 +211,10 @@ class MemoryCreationBloc
     );
 
     return File(result!.path);
+  }
+
+  void saveImage(event, emit) async {
+    await Gal.putImageBytes(image,
+        album: "Memorio", name: "IMG_${DateTime.now()}.jpg");
   }
 }

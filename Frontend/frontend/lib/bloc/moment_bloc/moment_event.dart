@@ -14,6 +14,12 @@ final class MemoryRemoved extends MemoryEvent {
 }
 
 final class MemoryCollectionsChanged extends MemoryEvent {
-  List<SimpleCollection> newCollections;
+  List<SimplePrivateCollection> newCollections;
   MemoryCollectionsChanged({required this.newCollections});
+}
+
+final class MomentLikedByUser extends MemoryEvent {
+  String memoryId;
+  String userId;
+  MomentLikedByUser(this.memoryId, this.userId);
 }

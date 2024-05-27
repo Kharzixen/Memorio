@@ -4,9 +4,9 @@ import 'dart:typed_data';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:frontend/data/repository/album_repository.dart';
+import 'package:frontend/data/repository/private_album_repository.dart';
 import 'package:frontend/data/repository/user_repository.dart';
-import 'package:frontend/model/album_model.dart';
+import 'package:frontend/model/private-album_model.dart';
 import 'package:frontend/model/user_model.dart';
 import 'package:frontend/model/utils/paginated_response_generic.dart';
 import 'package:frontend/service/storage_service.dart';
@@ -16,7 +16,7 @@ part 'album_creation_event.dart';
 part 'album_creation_state.dart';
 
 class AlbumCreationBloc extends Bloc<AlbumCreationEvent, AlbumCreationState> {
-  final AlbumRepository albumRepository;
+  final PrivateAlbumRepository albumRepository;
   final UserRepository userRepository;
 
   List<SimpleUser> friends = [];
@@ -77,7 +77,7 @@ class AlbumCreationBloc extends Bloc<AlbumCreationEvent, AlbumCreationState> {
 
   FutureOr<void> _createAlbum(
       AlbumCreationFinalized event, Emitter<AlbumCreationState> emit) async {
-    SimpleAlbum simpleAlbum = await albumRepository.createAlbum(
+    PrivateAlbumPreview simpleAlbum = await albumRepository.createAlbum(
         StorageService().userId,
         event.albumName,
         event.caption,

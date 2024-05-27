@@ -20,6 +20,6 @@ final class MemoryRemovedFromTimeline extends TimelineEvent {
 }
 
 final class NewMemoryCreatedTimeline extends TimelineEvent {
-  Memory memory;
+  PrivateMemory memory;
   NewMemoryCreatedTimeline(this.memory);
 }

@@ -1,17 +1,23 @@
-part of 'album_model.dart';
+part of 'private-album_model.dart';
 
 class Comment {
-  String commentId;
-  String userId;
-  String username;
-  String text;
-  String userpfp;
-  DateTime date;
-  Comment(
-      {required this.commentId,
-      required this.userId,
-      required this.userpfp,
-      required this.username,
-      required this.date,
-      required this.text});
+  String id;
+  SimpleUser user;
+  DateTime creationDate;
+  String message;
+
+  Comment({
+    required this.id,
+    required this.user,
+    required this.creationDate,
+    required this.message,
+  });
+
+  factory Comment.fromJson(Map<String, dynamic> json) {
+    return Comment(
+        id: json['id'].toString(),
+        user: SimpleUser.fromMap(json['owner']),
+        creationDate: DateTime.parse(json['dateWhenMade']),
+        message: json['message'] as String);
+  }
 }

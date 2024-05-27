@@ -12,7 +12,7 @@ class MemoryCreationLoadedState extends MemoryCreationState {
   int height;
   int page;
   String description;
-  Map<String, AlbumWithSelectedCollections> albums;
+  Map<String, PrivateAlbumWithSelectedCollections> albums;
   MemoryCreationLoadedState(
       {required this.image,
       required this.width,
@@ -25,7 +25,7 @@ class MemoryCreationLoadedState extends MemoryCreationState {
 class MemoryCreationNoImageSelectedState extends MemoryCreationState {}
 
 class MemoryCreationFinishedState extends MemoryCreationState {
-  Memory memory;
+  PrivateMemory memory;
   MemoryCreationFinishedState(this.memory);
 }
 

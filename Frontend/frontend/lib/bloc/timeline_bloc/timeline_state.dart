@@ -8,7 +8,7 @@ final class TimelineLoadingState extends TimelineState {}
 
 final class TimelineLoadedState extends TimelineState {
   final String albumId;
-  final Map<String, List<Memory>> photosByDate;
+  final Map<String, List<PrivateMemory>> photosByDate;
   final bool hasMoreData;
   final int granularityIndex;
   TimelineLoadedState(

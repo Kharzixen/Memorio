@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/data/repository/album_repository.dart';
+import 'package:frontend/data/repository/private_album_repository.dart';
 import 'package:frontend/data/repository/user_repository.dart';
 import 'package:frontend/model/user_model.dart';
 import 'package:frontend/model/utils/paginated_response_generic.dart';
@@ -8,7 +8,7 @@ part 'invitation_state.dart';
 
 class InvitationCubit extends Cubit<InvitationPageState> {
   late String albumId;
-  final AlbumRepository albumRepository;
+  final PrivateAlbumRepository albumRepository;
   final UserRepository userRepository;
 
   Set<String> contributorIds = {};

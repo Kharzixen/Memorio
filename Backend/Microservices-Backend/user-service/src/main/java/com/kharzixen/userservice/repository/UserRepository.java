@@ -5,6 +5,7 @@ import com.kharzixen.userservice.projection.SimpleUserProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -37,4 +38,18 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "JOIN u.following AS fl " +
             "WHERE f.id = :userId AND fl.id = :userId")
     Page<User> findFriendsOfUser(Long userId, Pageable pageRequest);
+
+    @Query(value = "SELECT id as id, username as username, pfp_id as pfpId FROM userdb_test.user WHERE id <> :userId " +
+            "AND id NOT IN (SELECT user_id FROM user_followers WHERE follower_id = :userId)", nativeQuery = true)
+    Page<SimpleUserProjection> findUsersUserNotFollowing(Long userId, Pageable pageRequest);
+
+    @Modifying
+    @Query(value = "DELETE FROM user_followers WHERE user_id = :userId AND follower_id = :followerId",
+            nativeQuery = true)
+    int removeUserFromFollowing(Long followerId, Long userId);
+
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM user_followers " +
+            "WHERE user_id = :userId AND follower_id = :followerId", nativeQuery = true)
+    int isFollowing(Long userId, Long followerId);
 }

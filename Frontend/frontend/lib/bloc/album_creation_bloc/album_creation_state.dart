@@ -13,6 +13,6 @@ class AlbumCreationInProgressState extends AlbumCreationState {
 }
 
 class AlbumCreationFinishedState extends AlbumCreationState {
-  SimpleAlbum album;
+  PrivateAlbumPreview album;
   AlbumCreationFinishedState(this.album);
 }

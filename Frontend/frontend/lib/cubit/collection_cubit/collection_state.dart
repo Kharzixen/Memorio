@@ -5,8 +5,8 @@ sealed class CollectionPageState {}
 class CollectionPageLoadingState extends CollectionPageState {}
 
 class CollectionPageLoadedState extends CollectionPageState {
-  CollectionPreview collectionPreview;
-  Map<String, List<Memory>> memories;
+  PrivateCollectionPreview collectionPreview;
+  Map<String, List<PrivateMemory>> memories;
   int dateGranularityIndex;
   bool hasMoreData;
   bool isAsyncMethodRunning;

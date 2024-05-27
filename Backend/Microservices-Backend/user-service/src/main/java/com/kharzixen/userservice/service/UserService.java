@@ -13,10 +13,15 @@ import com.kharzixen.userservice.exception.EntityNotFoundException;
 import com.kharzixen.userservice.exception.NoBodyException;
 import com.kharzixen.userservice.mapper.UserMapper;
 import com.kharzixen.userservice.model.User;
+import com.kharzixen.userservice.model.UserEventOutbox;
 import com.kharzixen.userservice.projection.SimpleUserProjection;
+import com.kharzixen.userservice.repository.UserOutboxEventRepository;
 import com.kharzixen.userservice.repository.UserRepository;
 import com.kharzixen.userservice.webclient.ImageServiceClient;
+import jakarta.ws.rs.NotFoundException;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.*;
@@ -27,16 +32,19 @@ import java.util.*;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class UserService {
     private final UserRepository userRepository;
+    private final UserOutboxEventRepository userOutboxEventRepository;
     private final ImageServiceClient imageServiceClient;
 
-    public UserDtoOut createUser(UserDtoIn userDtoIn) throws DatabaseCommunicationException, DuplicateFieldException {
+    @Transactional
+    public UserDtoOut createUser(UserDtoIn userDtoIn) throws DatabaseCommunicationException, DuplicateFieldException, FileUploadException {
         try {
             User user = UserMapper.INSTANCE.dtoToModel(userDtoIn);
             user.setAccountCreationDate(new Date());
-            if (userDtoIn.getProfileImage().isEmpty() || userDtoIn.getProfileImage() == null) {
-                user.setPfpId("default_pfpId");
+            if (userDtoIn.getProfileImage() == null || userDtoIn.getProfileImage().isEmpty()) {
+                user.setPfpId("default_pfp_id.jpg");
             } else {
                 ImageCreatedResponseDto imageDto = imageServiceClient.postImageToMediaService(userDtoIn.getProfileImage());
                 user.setPfpId(imageDto.getImageId());
@@ -44,7 +52,9 @@ public class UserService {
             user.setFollowersCount(0);
             user.setFollowingCount(0);
             User saved = userRepository.save(user);
-
+            UserEventOutbox event = new UserEventOutbox(null, "CREATE", saved.getId(),
+                    saved.getUsername(), saved.getPfpId());
+            userOutboxEventRepository.save(event);
             return UserMapper.INSTANCE.modelToDto(saved);
         } catch (DataAccessResourceFailureException ex) {
             throw new DatabaseCommunicationException(ex.getMessage());
@@ -82,13 +92,13 @@ public class UserService {
         }
     }
 
-    public Page<SimpleUserDtoOut> getFriendsOfUser(Long userId, int page, int pageSize){
+    public Page<SimpleUserDtoOut> getFriendsOfUser(Long userId, int page, int pageSize) {
         Sort sort = Sort.by(Sort.Direction.DESC, "username");
         Pageable pageRequest = PageRequest.of(page, pageSize, sort);
         User user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("User", "id", userId.toString(), "GET"));
         Page<User> friends = userRepository.findFriendsOfUser(userId, pageRequest);
-        List<SimpleUserDtoOut>  friendsDtoOut = friends.getContent().stream().map(UserMapper.INSTANCE::modelToSimplifiedDto).toList();
-        return new PageImpl<>(friendsDtoOut, pageRequest, friends.getTotalElements() );
+        List<SimpleUserDtoOut> friendsDtoOut = friends.getContent().stream().map(UserMapper.INSTANCE::modelToSimplifiedDto).toList();
+        return new PageImpl<>(friendsDtoOut, pageRequest, friends.getTotalElements());
     }
 
     public UserDtoOut getUserById(Long userId)
@@ -102,13 +112,16 @@ public class UserService {
         }
     }
 
+    @Transactional
     public void deleteUserById(Long userId)
             throws DatabaseCommunicationException, EntityNotFoundException {
         try {
-            userRepository.findById(userId)
+            User user = userRepository.findById(userId)
                     .orElseThrow(() -> new EntityNotFoundException("user", "id", userId.toString(), "DELETE"));
             userRepository.deleteById(userId);
-            //kafka to the friend service event
+            //save event to outbox in the same transaction;
+            userOutboxEventRepository.save(new UserEventOutbox(null, "DELETE", user.getId(),
+                    user.getUsername(), user.getPfpId()));
         } catch (
                 DataAccessResourceFailureException ex) {
             throw new DatabaseCommunicationException(ex.getMessage());
@@ -235,9 +248,54 @@ public class UserService {
         }
         Sort sort = Sort.by(Sort.Direction.DESC, "username");
         Pageable pageRequest = PageRequest.of(page, pageSize, sort);
-        Page<SimpleUserProjection> pageResponse = userRepository.findFollowingOfUserByIdPaginated(userId, pageRequest);;
+        Page<SimpleUserProjection> pageResponse = userRepository.findFollowingOfUserByIdPaginated(userId, pageRequest);
+        ;
         List<SimpleUserDtoOut> responseContent = pageResponse.getContent().stream().map(UserMapper.INSTANCE::projectionToDto).toList();
         return new PageImpl<>(responseContent, pageRequest, userRepository.getFollowingCount(userId));
 
+    }
+
+    public Page<SimpleUserDtoOut> getSuggestionsOfUser(Long userId, int page, int pageSize) {
+        if (userRepository.findById(userId).isEmpty()) {
+            throw new EntityNotFoundException("user", "id", userId.toString(), "GET FOLLOWING");
+        }
+        Sort sort = Sort.by(Sort.Direction.DESC, "username");
+        Pageable pageRequest = PageRequest.of(page, pageSize, sort);
+        Page<SimpleUserProjection> pageResponse = userRepository.findUsersUserNotFollowing(userId, pageRequest);
+        ;
+        List<SimpleUserDtoOut> responseContent = pageResponse.getContent().stream().map(UserMapper.INSTANCE::projectionToDto).toList();
+        return new PageImpl<>(responseContent, pageRequest, userRepository.getFollowingCount(userId));
+    }
+
+    @Transactional
+    public void removeUserFromFollowing(Long followerId, Long userId) {
+        User follower = userRepository.findById(followerId)
+                .orElseThrow(() -> new EntityNotFoundException("USER", "ID", userId.toString(), "DELETE"));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("USER", "ID", followerId.toString(), "DELETE"));
+
+        int rowsAffected = userRepository.removeUserFromFollowing(followerId, userId);
+        if (rowsAffected > 0) {
+            follower.setFollowingCount(follower.getFollowingCount() - 1);
+            user.setFollowersCount(user.getFollowersCount() - 1);
+            userRepository.saveAll(List.of(user, follower));
+        }
+        log.info("${} number of rows affected.", rowsAffected);
+    }
+
+    public SimpleUserDtoOut getFollowingByIdOfUser(Long userId, Long followingId) {
+        User following = userRepository.findById(followingId)
+                .orElseThrow(() -> new EntityNotFoundException("USER", "ID", followingId.toString(), "DELETE"));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("USER", "ID", userId.toString(), "DELETE"));
+
+        int numberOfRow = userRepository.isFollowing(followingId, userId);
+        if (numberOfRow > 0) {
+            return UserMapper.INSTANCE.modelToSimplifiedDto(following);
+        } else {
+            throw new EntityNotFoundException("USER", "ID", followingId.toString(), "GET FOLLOWING");
+        }
     }
 }

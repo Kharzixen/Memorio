@@ -9,11 +9,13 @@ final class ProfileLoadingState extends ProfileState {}
 final class ProfileLoadedState extends ProfileState {
   final User user;
   final List<SimpleUser> followers;
+  final List<bool> isFollowed;
   final List<SimpleUser> following;
   bool followersHasMoreData;
   bool followingHasMoreData;
-  ProfileLoadedState(this.user, this.followers, this.following,
-      this.followersHasMoreData, this.followingHasMoreData);
+  List<Post> posts;
+  ProfileLoadedState(this.user, this.followers, this.isFollowed, this.following,
+      this.followersHasMoreData, this.followingHasMoreData, this.posts);
 }
 
 final class ProfileErrorState extends ProfileState {

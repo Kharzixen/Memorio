@@ -1,7 +1,7 @@
-import 'package:frontend/model/album_model.dart';
+import 'package:frontend/model/private-album_model.dart';
 
 class MemoryWithSelectedBit {
-  Memory memory;
+  PrivateMemory memory;
   bool isSelected;
   MemoryWithSelectedBit(this.memory, this.isSelected);
 }

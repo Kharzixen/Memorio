@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 
 @Entity
@@ -40,10 +41,10 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "follower_id")
     )
-    private List<User> followers;
+    private Set<User> followers;
     private int followersCount;
 
-    @ManyToMany(mappedBy = "followers")
-    private List<User> following;
+    @ManyToMany(mappedBy = "followers", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private Set<User> following;
     private int followingCount;
 }

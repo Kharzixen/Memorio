@@ -3,9 +3,13 @@
     "dart.hotReloadOnSave": "all",
     "cSpell.words": [
         "granularities",
+        "horiz",
         "lato",
+        "LTRB",
+        "Memorio",
         "Napoca",
         "Overscroll",
+        "unfollow",
         "vsync"
     ]
 }

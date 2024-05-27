@@ -4,7 +4,7 @@ sealed class SelectAlbumsSheetEvent {}
 
 class NextAlbumsDatasetFetched extends SelectAlbumsSheetEvent {
   String userId;
-  List<SimpleAlbum> includedAlbums;
+  List<SimplePrivateAlbum> includedAlbums;
   NextAlbumsDatasetFetched(
       {required this.userId, required this.includedAlbums});
 }

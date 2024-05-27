@@ -26,7 +26,7 @@ class _CustomNavBarState extends State<CustomNavBar> {
           color: Colors.white,
           activeColor: Colors.white,
           tabBackgroundColor: Colors.grey.shade800,
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           tabs: [
             GButton(
               icon: Icons.photo_library_outlined,
@@ -36,10 +36,10 @@ class _CustomNavBarState extends State<CustomNavBar> {
               },
             ),
             GButton(
-              icon: Icons.add_box_outlined,
-              text: "Create",
+              icon: Icons.camera_outlined,
+              text: "Vault",
               onPressed: () {
-                context.go("/create");
+                context.go("/vault");
               },
             ),
             GButton(

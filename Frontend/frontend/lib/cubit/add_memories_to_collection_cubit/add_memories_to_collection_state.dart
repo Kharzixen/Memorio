@@ -10,7 +10,7 @@ class AddMemoriesToCollectionPageLoadingState
 
 class AddMemoriesToCollectionPageLoadedState
     extends AddMemoriesToCollectionPageState {
-  List<Memory> memories;
+  List<PrivateMemory> memories;
   List<bool> isSelected;
   int nrOfSelected;
   bool isAsyncMethodRunning;
@@ -20,7 +20,7 @@ class AddMemoriesToCollectionPageLoadedState
 
 class AddMemoriesToCollectionPageFinishedState
     extends AddMemoriesToCollectionPageState {
-  List<Memory> memories;
+  List<PrivateMemory> memories;
   AddMemoriesToCollectionPageFinishedState(this.memories);
 }
 

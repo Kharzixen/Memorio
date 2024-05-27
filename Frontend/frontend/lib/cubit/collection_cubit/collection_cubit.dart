@@ -1,25 +1,25 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/data/repository/collection_repository.dart';
-import 'package:frontend/data/repository/memory_repository.dart';
-import 'package:frontend/model/album_model.dart';
+import 'package:frontend/data/repository/private_collection_repository.dart';
+import 'package:frontend/data/repository/private_memory_repository.dart';
+import 'package:frontend/model/private-album_model.dart';
 import 'package:frontend/model/utils/paginated_response_generic.dart';
 
 part 'collection_state.dart';
 
 class CollectionPageCubit extends Cubit<CollectionPageState> {
-  final CollectionRepository collectionRepository;
-  final MemoryRepository memoryRepository;
+  final PrivateCollectionRepository collectionRepository;
+  final PrivateMemoryRepository memoryRepository;
 
   Set<String> includedImages = {};
 
-  Map<String, List<Memory>> memoriesByDate = {};
+  Map<String, List<PrivateMemory>> memoriesByDate = {};
   int page = 0;
   bool hasMoreData = true;
 
   final List<String> _granularities = ["all", "year", "month", "day"];
   int _dateGranularityIndex = 2;
 
-  late CollectionPreview collectionPreview;
+  late PrivateCollectionPreview collectionPreview;
   String albumId = "";
   String collectionId = "";
 
@@ -34,8 +34,9 @@ class CollectionPageCubit extends Cubit<CollectionPageState> {
       collectionPreview = await collectionRepository.getCollectionPreviewById(
           albumId, collectionId);
 
-      PaginatedResponse<Memory> nextPageMemoriesOfAlbum = await memoryRepository
-          .getMemoriesOrderedByDatePaginated(albumId, page, collectionId);
+      PaginatedResponse<PrivateCollectionMemory> nextPageMemoriesOfAlbum =
+          await memoryRepository.getMemoriesOfCollectionOrderedByAddedDate(
+              albumId, page, collectionId);
       _addToPhotoMap(nextPageMemoriesOfAlbum.content);
 
       emit(CollectionPageLoadedState(collectionPreview, memoriesByDate,
@@ -50,12 +51,13 @@ class CollectionPageCubit extends Cubit<CollectionPageState> {
     memoriesByDate = {};
     page = 0;
     hasMoreData = true;
+    includedImages = {};
     try {
       collectionPreview = await collectionRepository.getCollectionPreviewById(
           albumId, collectionId);
-
-      PaginatedResponse<Memory> nextPageMemoriesOfAlbum = await memoryRepository
-          .getMemoriesOrderedByDatePaginated(albumId, page, collectionId);
+      PaginatedResponse<PrivateCollectionMemory> nextPageMemoriesOfAlbum =
+          await memoryRepository.getMemoriesOfCollectionOrderedByAddedDate(
+              albumId, page, collectionId);
       _addToPhotoMap(nextPageMemoriesOfAlbum.content);
 
       emit(CollectionPageLoadedState(collectionPreview, memoriesByDate,
@@ -66,7 +68,7 @@ class CollectionPageCubit extends Cubit<CollectionPageState> {
     }
   }
 
-  void addNewMemory(Memory memory) {
+  void addNewMemory(PrivateMemory memory) {
     String displayDate = _getDisplayDate(memory.date);
     if (memoriesByDate.containsKey(displayDate)) {
       memoriesByDate[displayDate]!.insert(0, memory);
@@ -80,7 +82,7 @@ class CollectionPageCubit extends Cubit<CollectionPageState> {
         hasMoreData, _dateGranularityIndex, false));
   }
 
-  void removeMemory(String date, Memory memoryToRemove) {
+  void removeMemory(String date, PrivateMemory memoryToRemove) {
     for (int i = 0; i < memoriesByDate[date]!.length; i++) {
       if (memoriesByDate[date]![i].memoryId == memoryToRemove.memoryId) {
         memoriesByDate[date]!.removeAt(i);
@@ -121,9 +123,9 @@ class CollectionPageCubit extends Cubit<CollectionPageState> {
   void increaseGranularity() async {
     if (_dateGranularityIndex < _granularities.length - 1) {
       _dateGranularityIndex++;
-      Map<String, List<Memory>> newPhotosByDate = {};
+      Map<String, List<PrivateMemory>> newPhotosByDate = {};
       for (String key in memoriesByDate.keys) {
-        for (Memory element in memoriesByDate[key]!) {
+        for (PrivateMemory element in memoriesByDate[key]!) {
           String displayDate = _getDisplayDate(element.date);
           if (newPhotosByDate.containsKey(displayDate)) {
             newPhotosByDate[displayDate]!.add(element);
@@ -141,9 +143,9 @@ class CollectionPageCubit extends Cubit<CollectionPageState> {
   void decreaseGranularity() {
     if (_dateGranularityIndex > 0) {
       _dateGranularityIndex--;
-      Map<String, List<Memory>> newPhotosByDate = {};
+      Map<String, List<PrivateMemory>> newPhotosByDate = {};
       for (String key in memoriesByDate.keys) {
-        for (Memory element in memoriesByDate[key]!) {
+        for (PrivateMemory element in memoriesByDate[key]!) {
           String displayDate = _getDisplayDate(element.date);
           if (newPhotosByDate.containsKey(displayDate)) {
             newPhotosByDate[displayDate]!.add(element);
@@ -174,16 +176,16 @@ class CollectionPageCubit extends Cubit<CollectionPageState> {
 // }
 
 //------------------------------------------------------------------------------------------------------//
-  void _addToPhotoMap(List<Memory> entries) {
-    for (Memory element in entries) {
-      String displayDate = _getDisplayDate(element.date);
+  void _addToPhotoMap(List<PrivateCollectionMemory> entries) {
+    for (PrivateCollectionMemory element in entries) {
+      String displayDate = _getDisplayDate(element.addedToCollectionDate);
       if (memoriesByDate.containsKey(displayDate)) {
-        if (!includedImages.contains(element.memoryId)) {
-          memoriesByDate[displayDate]!.add(element);
-          includedImages.add(element.memoryId);
+        if (!includedImages.contains(element.memory.memoryId)) {
+          memoriesByDate[displayDate]!.add(element.memory);
+          includedImages.add(element.memory.memoryId);
         }
       } else {
-        memoriesByDate[displayDate] = [element];
+        memoriesByDate[displayDate] = [element.memory];
       }
     }
   }
@@ -235,5 +237,5 @@ class CollectionPageCubit extends Cubit<CollectionPageState> {
     }
   }
 
-  void addExistingMemories(List<Memory> memories) {}
+  void addExistingMemories(List<PrivateMemory> memories) {}
 }

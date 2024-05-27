@@ -13,19 +13,19 @@ class PrevPageFetched extends MemoryCreationEvent {}
 
 class CollectionSelected extends MemoryCreationEvent {
   String albumId;
-  SimpleCollection collection;
+  SimplePrivateCollection collection;
   CollectionSelected({required this.albumId, required this.collection});
 }
 
 class CollectionUnselected extends MemoryCreationEvent {
   String albumId;
-  SimpleCollection collection;
+  SimplePrivateCollection collection;
   CollectionUnselected({required this.albumId, required this.collection});
 }
 
 class AlbumSelected extends MemoryCreationEvent {
   String albumId;
-  SimpleAlbum album;
+  SimplePrivateAlbum album;
   AlbumSelected({required this.albumId, required this.album});
 }
 
@@ -40,3 +40,5 @@ class DescriptionSaved extends MemoryCreationEvent {
 }
 
 class MemoryCreationFinished extends MemoryCreationEvent {}
+
+class ImageSaveRequested extends MemoryCreationEvent {}

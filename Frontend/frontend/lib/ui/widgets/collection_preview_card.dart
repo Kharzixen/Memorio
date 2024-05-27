@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/model/album_model.dart';
-import 'package:frontend/model/memory_creation_details.dart';
+import 'package:frontend/model/private-album_model.dart';
+import 'package:frontend/model/utils/memory_creation_details.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 class CollectionPreviewCard extends StatelessWidget {
-  final CollectionPreview collection;
-  final SimpleAlbum album;
+  final PrivateCollectionPreview collection;
+  final SimplePrivateAlbum album;
   final double _collectionCardSize = 200;
   const CollectionPreviewCard(
       {super.key, required this.collection, required this.album});
@@ -53,9 +53,10 @@ class CollectionPreviewCard extends StatelessWidget {
                                           extra: MemoryCreationDetails(
                                               source: ImageSource.camera,
                                               album: album,
-                                              collection: SimpleCollection
-                                                  .fromCollectionPreview(
-                                                      collection)));
+                                              collection:
+                                                  SimplePrivateCollection
+                                                      .fromCollectionPreview(
+                                                          collection)));
                                     },
                                     icon: const Icon(
                                       Icons.add_a_photo,
@@ -67,9 +68,10 @@ class CollectionPreviewCard extends StatelessWidget {
                                           extra: MemoryCreationDetails(
                                               source: ImageSource.gallery,
                                               album: album,
-                                              collection: SimpleCollection
-                                                  .fromCollectionPreview(
-                                                      collection)));
+                                              collection:
+                                                  SimplePrivateCollection
+                                                      .fromCollectionPreview(
+                                                          collection)));
                                     },
                                     icon: const Icon(
                                       Icons.add_photo_alternate,
@@ -101,6 +103,7 @@ class CollectionPreviewCard extends StatelessWidget {
                                               child: Image.network(
                                                 collection
                                                     .latestMemories[memoryIndex]
+                                                    .memory
                                                     .photo,
                                                 fit: BoxFit.cover,
                                                 loadingBuilder:
@@ -127,6 +130,7 @@ class CollectionPreviewCard extends StatelessWidget {
                                                   collection
                                                       .latestMemories[
                                                           memoryIndex]
+                                                      .memory
                                                       .photo,
                                                   fit: BoxFit.cover,
                                                   loadingBuilder:

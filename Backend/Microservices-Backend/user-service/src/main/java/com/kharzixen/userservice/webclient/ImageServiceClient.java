@@ -2,6 +2,7 @@ package com.kharzixen.userservice.webclient;
 
 import com.kharzixen.userservice.dto.ImageCreatedResponseDto;
 import lombok.AllArgsConstructor;
+import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.MultipartBodyBuilder;
@@ -16,19 +17,22 @@ import reactor.core.publisher.Mono;
 public class ImageServiceClient {
     private final WebClient.Builder webClientBuilder;
 
-    public ImageCreatedResponseDto postImageToMediaService(MultipartFile image){
+    public ImageCreatedResponseDto postImageToMediaService(MultipartFile image) throws FileUploadException {
         MultipartBodyBuilder builder = new MultipartBodyBuilder();
         builder.part("image", image.getResource());
-        Mono<ImageCreatedResponseDto> status = webClientBuilder.build().post().uri("http://media-service/images")
+
+        return webClientBuilder.build().post().uri("http://media-service/album-images")
                 .contentType(MediaType.MULTIPART_FORM_DATA)
-                .body(BodyInserters.fromMultipartData(builder.build())).exchangeToMono(clientResponse -> {
-                    if(clientResponse.statusCode().equals(HttpStatus.OK)){
+                .body(BodyInserters.fromMultipartData(builder.build()))
+                .exchangeToMono(clientResponse -> {
+                    if (clientResponse.statusCode().equals(HttpStatus.OK)) {
                         return clientResponse.bodyToMono(ImageCreatedResponseDto.class);
                     } else {
-                        throw new RuntimeException("Error uploading file");
+                        return clientResponse.createException()
+                                .flatMap(error -> Mono.error(new FileUploadException("Error uploading file")));
                     }
-                });
-        return status.block();
+                })
+                .block();
     }
 
 }

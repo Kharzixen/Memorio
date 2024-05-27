@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/data/repository/collection_repository.dart';
-import 'package:frontend/model/album_model.dart';
+import 'package:frontend/data/repository/private_collection_repository.dart';
+import 'package:frontend/model/private-album_model.dart';
 import 'package:frontend/model/utils/paginated_response_generic.dart';
 
 part 'collections_preview_event.dart';
@@ -10,7 +10,7 @@ part 'collections_preview_state.dart';
 
 class CollectionsPreviewBloc
     extends Bloc<CollectionsPreviewEvent, CollectionsPreviewState> {
-  final CollectionRepository collectionRepository;
+  final PrivateCollectionRepository collectionRepository;
 
   int page = 0;
   int pageSize = 10;
@@ -19,7 +19,7 @@ class CollectionsPreviewBloc
   String albumId = "";
   bool hasMoreData = true;
 
-  List<CollectionPreview> collections = [];
+  List<PrivateCollectionPreview> collections = [];
 
   CollectionsPreviewBloc({required this.collectionRepository})
       : super(CollectionsPreviewInitialState()) {
@@ -35,7 +35,7 @@ class CollectionsPreviewBloc
     if (albumId == "") {
       albumId = event.albumId;
     }
-    PaginatedResponse<CollectionPreview> newCollections =
+    PaginatedResponse<PrivateCollectionPreview> newCollections =
         await collectionRepository.getCollectionsOfAlbum(
             albumId, page, pageSize);
     if (newCollections.last) {
@@ -55,9 +55,10 @@ class CollectionsPreviewBloc
       Emitter<CollectionsPreviewState> emit) async {
     if (albumId != "") {
       for (int i = 0; i < collections.length; i++) {
-        CollectionPreview collection = collections[i];
-        for (Memory memory in collection.latestMemories) {
-          if (memory.memoryId == event.memoryId) {
+        PrivateCollectionPreview collection = collections[i];
+        for (PrivateCollectionMemory collectionMemory
+            in collection.latestMemories) {
+          if (collectionMemory.memory.memoryId == event.memoryId) {
             collections[i] = await collectionRepository
                 .getCollectionPreviewById(albumId, collection.collectionId);
           }
@@ -78,7 +79,7 @@ class CollectionsPreviewBloc
     hasMoreData = true;
     collections = [];
     page = 0;
-    PaginatedResponse<CollectionPreview> newCollections =
+    PaginatedResponse<PrivateCollectionPreview> newCollections =
         await collectionRepository.getCollectionsOfAlbum(
             albumId, page, pageSize);
     if (newCollections.last) {

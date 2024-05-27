@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/bloc/profile_bloc/profile_bloc.dart';
+import 'package:frontend/model/post_model.dart';
+import 'package:frontend/model/utils/action_types_for_pop_payload.dart';
+import 'package:frontend/model/utils/pop_payload.dart';
 import 'package:frontend/service/storage_service.dart';
+import 'package:frontend/ui/widgets/create_post_bottom_sheet.dart';
 import 'package:frontend/ui/widgets/profile_content.dart';
 import 'package:frontend/ui/widgets/profile_header.dart';
 
@@ -30,6 +34,33 @@ class _ProfilePageState extends State<ProfilePage> {
           return SafeArea(
               child: Scaffold(
             backgroundColor: Colors.black,
+            floatingActionButton: FloatingActionButton(
+              backgroundColor: Colors.grey.shade900.withOpacity(0.6),
+              onPressed: () async {
+                var response = await showModalBottomSheet(
+                  context: context,
+                  builder: (BuildContext context1) {
+                    return CreatePostBottomSheet(
+                      userId: state.user.userId,
+                    );
+                  },
+                );
+                if (response != null) {
+                  PopPayload popResponse = response as PopPayload;
+                  if (popResponse.actionType == ActionType.created &&
+                      context.mounted) {
+                    context
+                        .read<ProfileBloc>()
+                        .add(NewPostCreated(popResponse.data! as Post));
+                  }
+                }
+              },
+              child: const Icon(
+                Icons.add_a_photo,
+                color: Colors.white,
+                size: 30,
+              ),
+            ),
             appBar: AppBar(
               automaticallyImplyLeading: false,
               title: Text(
@@ -55,18 +86,23 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ],
             ),
-            body: ListView(
-              scrollDirection: Axis.vertical,
-              children: [
-                BlocProvider.value(
-                    value: BlocProvider.of<ProfileBloc>(context),
-                    child: ProfileHeader(user: state.user)),
-                const Divider(
-                  height: 30,
-                  thickness: 0.5,
-                ),
-                ProfileContent(),
-              ],
+            body: RefreshIndicator.adaptive(
+              onRefresh: () async {
+                var cubit = context.read<ProfileBloc>().stream.first;
+                context.read<ProfileBloc>().add(RefreshProfile());
+                await cubit;
+              },
+              child: ListView(
+                scrollDirection: Axis.vertical,
+                children: [
+                  ProfileHeader(user: state.user),
+                  const Divider(
+                    height: 30,
+                    thickness: 0.5,
+                  ),
+                  ProfileContent(posts: state.posts),
+                ],
+              ),
             ),
           ));
         }
@@ -78,7 +114,7 @@ class _ProfilePageState extends State<ProfilePage> {
           );
         }
 
-        return Text("elbaszva");
+        return const Text("Something went wrong");
       },
     );
   }

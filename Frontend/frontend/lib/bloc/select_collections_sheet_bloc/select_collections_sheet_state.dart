@@ -8,8 +8,8 @@ class SelectCollectionsSheetLoadingState extends SelectCollectionsSheetState {}
 
 class SelectCollectionsSheetLoadedState extends SelectCollectionsSheetState {
   final String albumId;
-  final Map<String, SimpleCollection> collections;
-  final Map<String, SimpleCollection> includedCollections;
+  final Map<String, SimplePrivateCollection> collections;
+  final Map<String, SimplePrivateCollection> includedCollections;
   final bool hasMoreData;
   SelectCollectionsSheetLoadedState(
       {required this.albumId,

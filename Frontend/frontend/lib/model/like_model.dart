@@ -1,14 +1,17 @@
+import 'package:frontend/model/user_model.dart';
+
 class LikeModel {
-  String userId;
-  String username;
-  //temporary
-  String userpfp;
+  SimpleUser user;
   DateTime creationDate;
 
   LikeModel({
-    required this.userId,
-    required this.username,
-    required this.userpfp,
+    required this.user,
     required this.creationDate,
   });
+
+  factory LikeModel.fromJson(Map<String, dynamic> json) {
+    return LikeModel(
+        user: SimpleUser.fromMap(json['user']),
+        creationDate: DateTime.parse(json['likedDate'] as String));
+  }
 }

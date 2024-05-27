@@ -7,7 +7,7 @@ final class MomentInitialState extends MomentState {}
 final class MomentLoadingState extends MomentState {}
 
 final class MomentLoadedState extends MomentState {
-  final DetailedMemory moment;
+  final DetailedPrivateMemory moment;
   final bool asyncMethodInProgress;
   MomentLoadedState(this.moment, this.asyncMethodInProgress);
 }

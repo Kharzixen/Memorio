@@ -1,20 +1,20 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/data/repository/memory_repository.dart';
-import 'package:frontend/model/album_model.dart';
+import 'package:frontend/data/repository/private_memory_repository.dart';
+import 'package:frontend/model/private-album_model.dart';
 import 'package:frontend/model/utils/paginated_response_generic.dart';
 
 part 'timeline_event.dart';
 part 'timeline_state.dart';
 
 class TimelineBloc extends Bloc<TimelineEvent, TimelineState> {
-  final MemoryRepository memoryRepository;
+  final PrivateMemoryRepository memoryRepository;
   int page = 0;
   //this field indicates if the first load is made,
   // if it is "" string, the first load is not yet made
   String albumId = "";
-  Map<String, List<Memory>> photosByDate = {};
+  Map<String, List<PrivateMemory>> photosByDate = {};
   bool hasMoreData = true;
 
   final List<String> _granularities = ["all", "year", "month", "day"];
@@ -35,7 +35,7 @@ class TimelineBloc extends Bloc<TimelineEvent, TimelineState> {
     if (albumId == "") {
       albumId = event.albumId;
     }
-    PaginatedResponse<Memory> memories =
+    PaginatedResponse<PrivateMemory> memories =
         await memoryRepository.getMemoriesOrderedByDatePaginated(albumId, page);
     if (memories.last) {
       hasMoreData = false;
@@ -54,9 +54,9 @@ class TimelineBloc extends Bloc<TimelineEvent, TimelineState> {
       IncreaseGranularity event, Emitter<TimelineState> emit) async {
     if (_dateGranularityIndex < _granularities.length - 1) {
       _dateGranularityIndex++;
-      Map<String, List<Memory>> newPhotosByDate = {};
+      Map<String, List<PrivateMemory>> newPhotosByDate = {};
       for (String key in photosByDate.keys) {
-        for (Memory element in photosByDate[key]!) {
+        for (PrivateMemory element in photosByDate[key]!) {
           String displayDate = _getDisplayDate(element.date);
           if (newPhotosByDate.containsKey(displayDate)) {
             newPhotosByDate[displayDate]!.add(element);
@@ -78,9 +78,9 @@ class TimelineBloc extends Bloc<TimelineEvent, TimelineState> {
       DecreaseGranularity event, Emitter<TimelineState> emit) {
     if (_dateGranularityIndex > 0) {
       _dateGranularityIndex--;
-      Map<String, List<Memory>> newPhotosByDate = {};
+      Map<String, List<PrivateMemory>> newPhotosByDate = {};
       for (String key in photosByDate.keys) {
-        for (Memory element in photosByDate[key]!) {
+        for (PrivateMemory element in photosByDate[key]!) {
           String displayDate = _getDisplayDate(element.date);
           if (newPhotosByDate.containsKey(displayDate)) {
             newPhotosByDate[displayDate]!.add(element);
@@ -106,7 +106,7 @@ class TimelineBloc extends Bloc<TimelineEvent, TimelineState> {
 
     _dateGranularityIndex = 2;
 
-    PaginatedResponse<Memory> memories =
+    PaginatedResponse<PrivateMemory> memories =
         await memoryRepository.getMemoriesOrderedByDatePaginated(albumId, page);
     if (memories.last) {
       hasMoreData = false;
@@ -122,8 +122,8 @@ class TimelineBloc extends Bloc<TimelineEvent, TimelineState> {
   }
 
 //------------------------------------------------------------------------------------------------------//
-  void _addSortedEntriesToPhotoMap(List<Memory> entries) {
-    for (Memory element in entries) {
+  void _addSortedEntriesToPhotoMap(List<PrivateMemory> entries) {
+    for (PrivateMemory element in entries) {
       String displayDate = _getDisplayDate(element.date);
       if (photosByDate.containsKey(displayDate)) {
         photosByDate[displayDate]!.add(element);
@@ -133,7 +133,7 @@ class TimelineBloc extends Bloc<TimelineEvent, TimelineState> {
     }
   }
 
-  void _addNewMemoryToPhotoMap(Memory memory) {
+  void _addNewMemoryToPhotoMap(PrivateMemory memory) {
     String displayDate = _getDisplayDate(memory.date);
     if (photosByDate.containsKey(displayDate)) {
       photosByDate[displayDate]!.insert(0, memory);

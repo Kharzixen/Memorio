@@ -10,21 +10,30 @@ public class GatewayConfig {
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
-                .route("album-service-user-route", r -> r.path("/api/users/{userId}/albums/**")
-                        .uri("lb://album-service"))
+                .route("private-album-service-user-route", r -> r.path("/api/users/{userId}/private-albums/**")
+                        .uri("lb://private-album-service"))
+
+                .route("post-service-user-route", r-> r.path("/api/users/{userId}/posts/**")
+                        .uri("lb://post-service"))
 
                 .route("user-service-route", r -> r.path("/api/users/**")
                         .uri("lb://user-service"))
-                .route("relationship-service-route", r -> r
-                        .path("/api/relationships/**")
-                        .uri("lb://relationship-service"))
 
-                .route("image-service-route", r -> r.path("/images/**")
+
+                .route("private-album-image-service-route", r -> r.path("/private-album-images/**")
                         .uri("lb://media-service"))
 
+                .route("post-image-service-route", r -> r.path("/post-images/**")
+                        .uri("lb://media-service"))
 
-                .route("album-service-route", r -> r.path("/api/albums/**")
-                        .uri("lb://album-service"))
+                .route("private-album-service-route", r -> r.path("/api/private-albums/**")
+                        .uri("lb://private-album-service"))
+
+                .route("post-service-route", r -> r.path("/api/posts/**")
+                        .uri("lb://post-service"))
+
                 .build();
+
+
     }
 }

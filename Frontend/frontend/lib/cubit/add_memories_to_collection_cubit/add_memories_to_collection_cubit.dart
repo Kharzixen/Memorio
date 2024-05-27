@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/data/repository/collection_repository.dart';
-import 'package:frontend/data/repository/memory_repository.dart';
-import 'package:frontend/model/album_model.dart';
+import 'package:frontend/data/repository/private_collection_repository.dart';
+import 'package:frontend/data/repository/private_memory_repository.dart';
+import 'package:frontend/model/private-album_model.dart';
 import 'package:frontend/model/utils/paginated_response_generic.dart';
 import 'package:frontend/service/storage_service.dart';
 
@@ -9,13 +9,13 @@ part 'add_memories_to_collection_state.dart';
 
 class AddMemoriesToCollectionCubit
     extends Cubit<AddMemoriesToCollectionPageState> {
-  final CollectionRepository collectionRepository;
-  final MemoryRepository memoryRepository;
+  final PrivateCollectionRepository collectionRepository;
+  final PrivateMemoryRepository memoryRepository;
 
   int page = 0;
   bool hasMoreData = true;
 
-  List<Memory> memories = [];
+  List<PrivateMemory> memories = [];
   List<bool> isSelected = [];
   int nrOfSelected = 0;
 
@@ -30,7 +30,7 @@ class AddMemoriesToCollectionCubit
     if (hasMoreData) {
       this.albumId = albumId;
       this.collectionId = collectionId;
-      PaginatedResponse<Memory> paginatedResponse =
+      PaginatedResponse<PrivateMemory> paginatedResponse =
           await memoryRepository.getMemoriesWhichCanBeAddedToCollection(
               albumId, collectionId, StorageService().userId, page);
       page++;
@@ -73,7 +73,7 @@ class AddMemoriesToCollectionCubit
   void addSelectedImagesToCollection() async {
     emit(AddMemoriesToCollectionPageLoadedState(
         memories, isSelected, nrOfSelected, true));
-    List<Memory> selectedMemories = [];
+    List<PrivateMemory> selectedMemories = [];
     for (int i = 0; i < memories.length; i++) {
       if (isSelected[i]) {
         selectedMemories.add(memories[i]);

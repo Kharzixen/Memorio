@@ -28,7 +28,7 @@ class User {
       bio: map["bio"],
       pfpLink: (map["pfpId"] as String).contains("https")
           ? map["pfpId"]
-          : "${StorageService.connectionString}/images/${map["pfpId"]}",
+          : "${StorageService.connectionString}/private-album-images/${map["pfpId"]}",
       followersCount: map["followersCount"].toString(),
       followingCount: map["followingCount"].toString(),
     );
@@ -54,7 +54,7 @@ class SimpleUser {
       username: map["username"] as String,
       pfpLink: (map["pfpId"] as String).contains("https")
           ? map["pfpId"]
-          : "${StorageService.connectionString}/images/${map["pfpId"]}",
+          : "${StorageService.connectionString}/private-album-images/${map["pfpId"]}",
     );
   }
 

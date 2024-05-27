@@ -18,8 +18,11 @@
         <module>user-service</module>
         <module>discovery-server</module>
         <module>api-gateway</module>
-        <module>album-service</module>
+        <module>private-album-service</module>
         <module>media-service</module>
+        <module>post-service</module>
+        <module>public-album-service</module>
+        <module>authentication-service</module>
     </modules>
 
     <properties>

@@ -13,7 +13,7 @@ class MemoryRemovedFromCollections extends CollectionsPreviewEvent {
 }
 
 class NewCollectionCreated extends CollectionsPreviewEvent {
-  CollectionPreview newCollection;
+  PrivateCollectionPreview newCollection;
   NewCollectionCreated(this.newCollection);
 }
 

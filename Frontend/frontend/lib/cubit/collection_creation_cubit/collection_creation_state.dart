@@ -7,7 +7,7 @@ class CollectionCreationInitialState extends CollectionCreationState {}
 class CollectionCreationInProgressState extends CollectionCreationState {}
 
 class CollectionCreationSuccessState extends CollectionCreationState {
-  CollectionPreview collection;
+  PrivateCollectionPreview collection;
   CollectionCreationSuccessState(this.collection);
 }
 

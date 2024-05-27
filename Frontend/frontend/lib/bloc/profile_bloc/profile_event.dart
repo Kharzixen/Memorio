@@ -10,3 +10,15 @@ final class ProfileFetched extends ProfileEvent {
 final class FollowersNextPageFetched extends ProfileEvent {}
 
 final class FollowingNextPageFetched extends ProfileEvent {}
+
+final class NewPostCreated extends ProfileEvent {
+  Post post;
+  NewPostCreated(this.post);
+}
+
+final class PostDeleted extends ProfileEvent {
+  String postId;
+  PostDeleted(this.postId);
+}
+
+final class RefreshProfile extends ProfileEvent {}

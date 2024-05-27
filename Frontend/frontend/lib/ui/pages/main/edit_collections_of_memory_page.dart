@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/bloc/select_collections_sheet_bloc/select_collections_sheet_bloc.dart';
-import 'package:frontend/model/album_model.dart';
+import 'package:frontend/model/private-album_model.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class EditCollectionOfMemoryPage extends StatefulWidget {
-  final DetailedMemory memory;
+  final DetailedPrivateMemory memory;
   const EditCollectionOfMemoryPage({super.key, required this.memory});
 
   @override
