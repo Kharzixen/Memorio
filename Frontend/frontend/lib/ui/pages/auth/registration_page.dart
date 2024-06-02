@@ -22,6 +22,17 @@ class _RegistrationFormState extends State<RegistrationPage> {
   String confirmPassword = "";
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    precacheImage(AssetImage("assets/pexels-photo-1537636.jpeg"), context);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return AnnotatedRegion(
       value: SystemUiOverlayStyle.light,
@@ -29,8 +40,7 @@ class _RegistrationFormState extends State<RegistrationPage> {
         child: Container(
           decoration: const BoxDecoration(
               image: DecorationImage(
-                  image: NetworkImage(
-                      "https://images.pexels.com/photos/1537636/pexels-photo-1537636.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2"),
+                  image: AssetImage("assets/pexels-photo-1537636.jpeg"),
                   fit: BoxFit.cover)),
           child: Container(
             decoration:

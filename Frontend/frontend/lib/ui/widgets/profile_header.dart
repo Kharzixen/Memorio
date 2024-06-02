@@ -1,9 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/bloc/auth_bloc/auth_bloc.dart';
 import 'package:frontend/cubit/following_sheet_cubit.dart/following_sheet_cubit.dart';
+import 'package:frontend/data/data_provider/utils/http_headers.dart';
 import 'package:frontend/data/repository/user_repository.dart';
 import 'package:frontend/model/user_model.dart';
+import 'package:frontend/service/auth_service.dart';
 import 'package:frontend/ui/widgets/following_sheet_widget.dart';
 
 class ProfileHeader extends StatefulWidget {
@@ -30,14 +33,14 @@ class _ProfileHeaderState extends State<ProfileHeader> {
                   borderRadius: BorderRadius.circular(120),
                   child: CachedNetworkImage(
                     imageUrl: widget.user.pfpLink,
-                    fadeInDuration: Duration.zero,
-                    fadeOutDuration: Duration.zero,
-                    fit: BoxFit.cover,
-                    placeholder: (context, _) {
+                    httpHeaders:
+                        HttpHeadersFactory.getDefaultRequestHeaderForImage(
+                            TokenManager().accessToken!),
+                    imageBuilder: (context, imageProvider) {
                       return Container(
-                        color: Colors.black,
-                        child: const Center(
-                          child: CircularProgressIndicator(color: Colors.white),
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                              image: imageProvider, fit: BoxFit.cover),
                         ),
                       );
                     },

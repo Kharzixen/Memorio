@@ -1,10 +1,14 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/bloc/auth_bloc/auth_bloc.dart';
 import 'package:frontend/cubit/create_post_cubit/create_post_cubit.dart';
+import 'package:frontend/data/data_provider/utils/http_headers.dart';
 import 'package:frontend/model/post_model.dart';
 import 'package:frontend/model/utils/action_types_for_pop_payload.dart';
 import 'package:frontend/model/utils/pop_payload.dart';
 import 'package:frontend/model/utils/post_creation_details.dart';
+import 'package:frontend/service/auth_service.dart';
 import 'package:frontend/service/storage_service.dart';
 import 'package:frontend/ui/widgets/post_image_and_description_widget.dart';
 import 'package:frontend/ui/widgets/select_hashtags_for_post.dart';
@@ -128,8 +132,12 @@ class _CreatePostPageState extends State<CreatePostPage>
                             child: Row(
                               children: [
                                 CircleAvatar(
-                                  foregroundImage:
-                                      NetworkImage(StorageService().pfp),
+                                  foregroundImage: CachedNetworkImageProvider(
+                                    StorageService().pfp,
+                                    headers: HttpHeadersFactory
+                                        .getDefaultRequestHeaderForImage(
+                                            TokenManager().accessToken!),
+                                  ),
                                 ),
                                 const SizedBox(
                                   width: 10,

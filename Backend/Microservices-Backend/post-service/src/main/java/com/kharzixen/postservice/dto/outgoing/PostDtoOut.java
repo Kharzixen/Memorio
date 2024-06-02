@@ -23,4 +23,6 @@ public class PostDtoOut {
     private String imageId;
 
     private Date creationDate;
+
+    private Boolean isLikedByRequester;
 }

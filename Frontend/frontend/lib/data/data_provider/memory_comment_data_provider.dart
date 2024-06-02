@@ -1,15 +1,18 @@
 import 'dart:convert';
 
+import 'package:frontend/data/data_provider/utils/http_headers.dart';
 import 'package:frontend/service/storage_service.dart';
 import 'package:http/http.dart' as http;
 
 class CommentDataProvider {
-  static getCommentsOfMemory(String albumId, String memoryId) {
+  static getCommentsOfMemory(String albumId, String memoryId) async {
+    Map<String, String> headers =
+        await HttpHeadersFactory.getDefaultRequestHeader();
     return http
         .get(
-      Uri.parse(
-          "${StorageService.connectionString}/api/private-albums/$albumId/memories/$memoryId/comments"),
-    )
+            Uri.parse(
+                "${StorageService.connectionString}/api/private-albums/$albumId/memories/$memoryId/comments"),
+            headers: headers)
         .then(
       (value) {
         return value;
@@ -22,7 +25,9 @@ class CommentDataProvider {
   }
 
   static createNewCommentForMemory(
-      String albumId, String userId, String memoryId, String message) {
+      String albumId, String userId, String memoryId, String message) async {
+    Map<String, String> headers =
+        await HttpHeadersFactory.getDefaultRequestHeader();
     Map<String, dynamic> requestBody = {
       "userId": userId,
       "memoryId": memoryId,
@@ -32,9 +37,7 @@ class CommentDataProvider {
         .post(
             Uri.parse(
                 "${StorageService.connectionString}/api/private-albums/$albumId/memories/$memoryId/comments"),
-            headers: <String, String>{
-              'Content-Type': 'application/json; charset=UTF-8',
-            },
+            headers: headers,
             body: jsonEncode(requestBody))
         .then(
       (value) {
@@ -48,10 +51,14 @@ class CommentDataProvider {
   }
 
   static deleteCommentFromMemory(
-      String albumId, String memoryId, String commentId) {
+      String albumId, String memoryId, String commentId) async {
+    Map<String, String> headers =
+        await HttpHeadersFactory.getDefaultRequestHeader();
     return http
-        .delete(Uri.parse(
-            "${StorageService.connectionString}/api/private-albums/$albumId/memories/$memoryId/comments/$commentId"))
+        .delete(
+            Uri.parse(
+                "${StorageService.connectionString}/api/private-albums/$albumId/memories/$memoryId/comments/$commentId"),
+            headers: headers)
         .then(
       (value) {
         return value;

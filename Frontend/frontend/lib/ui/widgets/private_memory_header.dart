@@ -1,13 +1,17 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/bloc/auth_bloc/auth_bloc.dart';
 import 'package:frontend/bloc/moment_bloc/moment_bloc.dart';
 import 'package:frontend/cubit/private_memory_comments_cubit/private_memory_comments_cubit.dart';
 import 'package:frontend/cubit/private_memory_likes_cubit/private_memory_likes_cubit.dart';
+import 'package:frontend/data/data_provider/utils/http_headers.dart';
 import 'package:frontend/data/repository/memory_comment_repository.dart';
 import 'package:frontend/data/repository/memory_like_repository.dart';
 import 'package:frontend/model/private-album_model.dart';
+import 'package:frontend/service/auth_service.dart';
 import 'package:frontend/service/storage_service.dart';
 import 'package:frontend/ui/widgets/private_memory_comments.dart';
 import 'package:frontend/ui/widgets/private_memory_likes.dart';
@@ -225,7 +229,11 @@ class PrivateMemoryHeader extends StatelessWidget {
         Row(
           children: [
             CircleAvatar(
-              foregroundImage: NetworkImage(moment.uploader.pfpLink),
+              foregroundImage: CachedNetworkImageProvider(
+                moment.uploader.pfpLink,
+                headers: HttpHeadersFactory.getDefaultRequestHeaderForImage(
+                    TokenManager().accessToken!),
+              ),
             ),
             const SizedBox(
               width: 10,

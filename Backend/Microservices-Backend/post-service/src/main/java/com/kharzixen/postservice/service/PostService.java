@@ -26,9 +26,11 @@ public class PostService {
     private final UserRepository userRepository;
     private final ImageServiceClient imageServiceClient;
 
-    public PostDtoOut getPostById(Long postId) throws PostNotFoundException {
+    public PostDtoOut getPostById(Long postId, Long requesterId) throws PostNotFoundException {
         Post post = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(postId));
-        return PostMapper.INSTANCE.modelToDto(post);
+        PostDtoOut postDtoOut = PostMapper.INSTANCE.modelToDto(post);
+        postDtoOut.setIsLikedByRequester(postRepository.isPostLikedByUser(postId, requesterId));
+        return postDtoOut;
     }
 
     public PostDtoOut createPost(PostDtoIn postDtoIn) {

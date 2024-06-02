@@ -2,10 +2,13 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:frontend/bloc/auth_bloc/auth_bloc.dart';
 import 'package:frontend/bloc/moment_bloc/moment_bloc.dart';
+import 'package:frontend/data/data_provider/utils/http_headers.dart';
 import 'package:frontend/model/private-album_model.dart';
 import 'package:frontend/model/utils/action_types_for_pop_payload.dart';
 import 'package:frontend/model/utils/pop_payload.dart';
+import 'package:frontend/service/auth_service.dart';
 import 'package:frontend/ui/widgets/private_memory_header.dart';
 import 'package:go_router/go_router.dart';
 import 'package:widget_zoom/widget_zoom.dart';
@@ -143,6 +146,9 @@ class Content extends StatelessWidget {
                 heroAnimationTag: "tag",
                 zoomWidget: CachedNetworkImage(
                   imageUrl: moment.photo,
+                  httpHeaders:
+                      HttpHeadersFactory.getDefaultRequestHeaderForImage(
+                          TokenManager().accessToken!),
                   fit: BoxFit.contain,
                 ),
               ),

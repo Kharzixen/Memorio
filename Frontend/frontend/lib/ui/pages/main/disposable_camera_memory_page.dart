@@ -1,9 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/bloc/auth_bloc/auth_bloc.dart';
 import 'package:frontend/cubit/disposable_camera_memory_cubit/disposable_camera_memory_cubit.dart';
+import 'package:frontend/data/data_provider/utils/http_headers.dart';
 import 'package:frontend/model/utils/action_types_for_pop_payload.dart';
 import 'package:frontend/model/utils/pop_payload.dart';
+import 'package:frontend/service/auth_service.dart';
 import 'package:frontend/service/storage_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -52,6 +55,9 @@ class _DisposableCameraMemoryPageState
                     child: WidgetZoom(
                       heroAnimationTag: "tag",
                       zoomWidget: CachedNetworkImage(
+                        httpHeaders:
+                            HttpHeadersFactory.getDefaultRequestHeaderForImage(
+                                TokenManager().accessToken!),
                         imageUrl: state.memory.imageLink,
                         fit: BoxFit.contain,
                       ),
@@ -71,8 +77,12 @@ class _DisposableCameraMemoryPageState
                           Row(
                             children: [
                               CircleAvatar(
-                                foregroundImage:
-                                    NetworkImage(state.memory.uploader.pfpLink),
+                                foregroundImage: CachedNetworkImageProvider(
+                                  state.memory.uploader.pfpLink,
+                                  headers: HttpHeadersFactory
+                                      .getDefaultRequestHeaderForImage(
+                                          TokenManager().accessToken!),
+                                ),
                               ),
                               const SizedBox(
                                 width: 10,

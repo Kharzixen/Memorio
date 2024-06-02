@@ -1,7 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/bloc/auth_bloc/auth_bloc.dart';
 import 'package:frontend/cubit/contributor_cubit/contributor_cubit.dart';
+import 'package:frontend/data/data_provider/utils/http_headers.dart';
+import 'package:frontend/service/auth_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class PrivateAlbumContributorPage extends StatefulWidget {
@@ -60,7 +63,12 @@ class _PrivateAlbumContributorPageState
                           color: Colors.grey.shade600,
                           image: DecorationImage(
                             fit: BoxFit.cover,
-                            image: NetworkImage(state.contributor.pfpLink),
+                            image: CachedNetworkImageProvider(
+                              state.contributor.pfpLink,
+                              headers: HttpHeadersFactory
+                                  .getDefaultRequestHeaderForImage(
+                                      TokenManager().accessToken!),
+                            ),
                           ),
                           borderRadius: BorderRadius.circular(100),
                         ),
@@ -212,6 +220,9 @@ class _PrivateAlbumContributorPageState
                           imageUrl: state.memories[index].photo,
                           fadeInDuration: Duration.zero,
                           fadeOutDuration: Duration.zero,
+                          httpHeaders: HttpHeadersFactory
+                              .getDefaultRequestHeaderForImage(
+                                  TokenManager().accessToken!),
                           progressIndicatorBuilder: (context, url, progress) {
                             return Center(
                               child: CircularProgressIndicator(

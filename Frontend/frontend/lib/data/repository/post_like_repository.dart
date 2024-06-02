@@ -35,4 +35,17 @@ class PostLikeRepository {
       rethrow;
     }
   }
+
+  void deleteLike(String userId, String postId) async {
+    try {
+      var response = await PostLikeDataProvider.deleteLike(userId, postId);
+      if (response.statusCode == 204) {
+        return;
+      } else {
+        throw Exception(response.body);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

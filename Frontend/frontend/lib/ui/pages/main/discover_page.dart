@@ -1,6 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/cubit/public_album_previews_cubit/public_album_previews_cubit.dart';
+import 'package:frontend/cubit/public_album_previews_cubit/public_album_previews_cubit.dart';
+import 'package:frontend/data/repository/public_album_repository.dart';
+import 'package:frontend/ui/widgets/album_hub_widget.dart';
 import 'package:frontend/ui/widgets/follow_suggestions_widget.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -57,9 +62,10 @@ class _DiscoverPageState extends State<DiscoverPage> {
               children: [
                 const FollowingSuggestionWidget(),
                 //second tab
-                Container(
-                  color: Colors.red,
-                ),
+                BlocProvider(
+                    create: (context) => PublicAlbumPreviewsCubit(
+                        context.read<PublicAlbumRepository>()),
+                    child: AlbumHub()),
                 Container(
                   color: Colors.green,
                 ),

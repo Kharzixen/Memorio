@@ -1,6 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/bloc/auth_bloc/auth_bloc.dart';
 import 'package:frontend/cubit/invitation_cubit/invitation_cubit.dart';
+import 'package:frontend/data/data_provider/utils/http_headers.dart';
+import 'package:frontend/service/auth_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class InviteFriendsToAlbumWidget extends StatefulWidget {
@@ -66,8 +70,12 @@ class _InviteFriendsToAlbumWidgetState extends State<InviteFriendsToAlbumWidget>
                                     color: Colors.grey.shade600,
                                     image: DecorationImage(
                                       fit: BoxFit.cover,
-                                      image: NetworkImage(
-                                          state.friends[index].pfpLink),
+                                      image: CachedNetworkImageProvider(
+                                        state.friends[index].pfpLink,
+                                        headers: HttpHeadersFactory
+                                            .getDefaultRequestHeaderForImage(
+                                                TokenManager().accessToken!),
+                                      ),
                                     ),
                                     borderRadius: BorderRadius.circular(100),
                                   ),

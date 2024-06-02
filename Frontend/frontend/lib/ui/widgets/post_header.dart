@@ -1,12 +1,16 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/bloc/auth_bloc/auth_bloc.dart';
 import 'package:frontend/cubit/post_comments_cubit/post_comments_cubit.dart';
 import 'package:frontend/cubit/post_cubit/post_cubit.dart';
 import 'package:frontend/cubit/post_likes_cubit/post_likes_cubit.dart';
+import 'package:frontend/data/data_provider/utils/http_headers.dart';
 import 'package:frontend/data/repository/post_comment_repository.dart';
 import 'package:frontend/data/repository/post_like_repository.dart';
 import 'package:frontend/model/post_model.dart';
+import 'package:frontend/service/auth_service.dart';
 import 'package:frontend/service/storage_service.dart';
 import 'package:frontend/ui/widgets/post_comments_widget.dart';
 import 'package:frontend/ui/widgets/post_likes.dart';
@@ -28,9 +32,15 @@ class PostHeader extends StatelessWidget {
           children: [
             IconButton(
               onPressed: () {
-                context
-                    .read<PostCubit>()
-                    .likePost(StorageService().userId, post.postId);
+                if (!post.isLikedByUser) {
+                  context
+                      .read<PostCubit>()
+                      .likePost(StorageService().userId, post.postId);
+                } else {
+                  context
+                      .read<PostCubit>()
+                      .dislikePost(StorageService().userId, post.postId);
+                }
               },
               style: const ButtonStyle(
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -38,10 +48,9 @@ class PostHeader extends StatelessWidget {
               iconSize: 28.0, // desired size
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
-              icon: const Icon(
-                Icons.favorite_outline,
-                color: Colors.white,
-              ),
+              icon: post.isLikedByUser
+                  ? const Icon(Icons.favorite, color: Colors.red)
+                  : const Icon(Icons.favorite, color: Colors.white),
             ),
             const SizedBox(
               width: 15,
@@ -222,7 +231,11 @@ class PostHeader extends StatelessWidget {
         Row(
           children: [
             CircleAvatar(
-              foregroundImage: NetworkImage(post.owner.pfpLink),
+              foregroundImage: CachedNetworkImageProvider(
+                post.owner.pfpLink,
+                headers: HttpHeadersFactory.getDefaultRequestHeaderForImage(
+                    TokenManager().accessToken!),
+              ),
             ),
             const SizedBox(
               width: 10,

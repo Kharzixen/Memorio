@@ -7,12 +7,14 @@ class Post {
   DateTime creationDate;
   String imageLink;
   SimpleUser owner;
+  bool isLikedByUser;
 
   Post(
       {required this.postId,
       required this.caption,
       required this.creationDate,
       required this.imageLink,
+      required this.isLikedByUser,
       required this.owner});
 
   factory Post.fromJson(Map<String, dynamic> json) {
@@ -21,6 +23,9 @@ class Post {
         owner: SimpleUser.fromMap(json["owner"]),
         caption: json['caption'] as String,
         creationDate: DateTime.parse(json['creationDate']),
+        isLikedByUser: json['isLikedByRequester'] == null
+            ? false
+            : json['isLikedByRequester'] as bool,
         imageLink:
             "${StorageService.connectionString}/post-images/${json['imageId']}");
   }

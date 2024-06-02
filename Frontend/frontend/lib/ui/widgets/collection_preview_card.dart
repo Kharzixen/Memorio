@@ -1,6 +1,11 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/bloc/auth_bloc/auth_bloc.dart';
+import 'package:frontend/data/data_provider/utils/http_headers.dart';
 import 'package:frontend/model/private-album_model.dart';
 import 'package:frontend/model/utils/memory_creation_details.dart';
+import 'package:frontend/service/auth_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -100,55 +105,32 @@ class CollectionPreviewCard extends StatelessWidget {
                                           ? ClipRRect(
                                               borderRadius:
                                                   BorderRadius.circular(8),
-                                              child: Image.network(
-                                                collection
+                                              child: CachedNetworkImage(
+                                                imageUrl: collection
                                                     .latestMemories[memoryIndex]
                                                     .memory
                                                     .photo,
                                                 fit: BoxFit.cover,
-                                                loadingBuilder:
-                                                    (BuildContext context,
-                                                        Widget child,
-                                                        ImageChunkEvent?
-                                                            loadingProgress) {
-                                                  if (loadingProgress == null) {
-                                                    return child;
-                                                  }
-                                                  return const Center(
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                      color: Colors.white,
-                                                    ),
-                                                  );
-                                                },
+                                                httpHeaders: HttpHeadersFactory
+                                                    .getDefaultRequestHeaderForImage(
+                                                        TokenManager()
+                                                            .accessToken!),
                                               ),
                                             )
                                           : Stack(
                                               children: [
-                                                Image.network(
+                                                CachedNetworkImage(
                                                   height: 140,
-                                                  collection
+                                                  imageUrl: collection
                                                       .latestMemories[
                                                           memoryIndex]
                                                       .memory
                                                       .photo,
                                                   fit: BoxFit.cover,
-                                                  loadingBuilder:
-                                                      (BuildContext context,
-                                                          Widget child,
-                                                          ImageChunkEvent?
-                                                              loadingProgress) {
-                                                    if (loadingProgress ==
-                                                        null) {
-                                                      return child;
-                                                    }
-                                                    return const Center(
-                                                      child:
-                                                          CircularProgressIndicator(
-                                                        color: Colors.white,
-                                                      ),
-                                                    );
-                                                  },
+                                                  httpHeaders: HttpHeadersFactory
+                                                      .getDefaultRequestHeaderForImage(
+                                                          TokenManager()
+                                                              .accessToken!),
                                                 ),
                                                 Container(
                                                   height: 140,

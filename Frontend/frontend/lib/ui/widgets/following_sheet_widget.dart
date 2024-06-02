@@ -1,9 +1,13 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/bloc/auth_bloc/auth_bloc.dart';
 import 'package:frontend/cubit/following_sheet_cubit.dart/following_sheet_cubit.dart';
+import 'package:frontend/data/data_provider/utils/http_headers.dart';
 import 'package:frontend/model/utils/action_types_for_pop_payload.dart';
 import 'package:frontend/model/utils/pop_payload.dart';
+import 'package:frontend/service/auth_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -124,8 +128,12 @@ class _FollowingSheetWidgetState extends State<FollowingSheetWidget> {
                               color: Colors.grey.shade600,
                               image: DecorationImage(
                                 fit: BoxFit.cover,
-                                image: NetworkImage(
-                                    state.followers[index].user.pfpLink),
+                                image: CachedNetworkImageProvider(
+                                  state.followers[index].user.pfpLink,
+                                  headers: HttpHeadersFactory
+                                      .getDefaultRequestHeaderForImage(
+                                          TokenManager().accessToken!),
+                                ),
                               ),
                               borderRadius: BorderRadius.circular(100),
                             ),

@@ -9,6 +9,12 @@ class LoginRequestedEvent extends AuthEvent {
   LoginRequestedEvent({required this.username, required this.password});
 }
 
+class VerifyIfUserLoggedIn extends AuthEvent {}
+
+class LogoutRequested extends AuthEvent {}
+
+class TokenExpired extends AuthEvent {}
+
 class RegistrationRequestedEvent extends AuthEvent {
   final String username;
   final String email;

@@ -1,10 +1,61 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/bloc/auth_bloc/auth_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class AuthPage extends StatelessWidget {
+class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
+
+  @override
+  State<AuthPage> createState() => _AuthPageState();
+}
+
+class _AuthPageState extends State<AuthPage> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<AuthBloc>().add(VerifyIfUserLoggedIn());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    precacheImage(
+        AssetImage("assets/hand-holding-person-1942489.jpg"), context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    context.read<AuthBloc>().add(VerifyIfUserLoggedIn());
+
+    return BlocConsumer<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthSuccess) {
+          return context.go("/home");
+        }
+      },
+      builder: (context, state) {
+        if (state is AuthLoading) {
+          return const Stack(
+            children: [
+              AuthPageContent(),
+              Center(
+                child: CircularProgressIndicator(),
+              ),
+            ],
+          );
+        }
+
+        return const AuthPageContent();
+      },
+    );
+  }
+}
+
+class AuthPageContent extends StatelessWidget {
+  const AuthPageContent({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -14,8 +65,7 @@ class AuthPage extends StatelessWidget {
         child: Container(
           decoration: const BoxDecoration(
               image: DecorationImage(
-                  image: NetworkImage(
-                      "https://images.pexels.com/photos/1942489/pexels-photo-1942489.jpeg?cs=srgb&dl=hand-holding-person-1942489.jpg&fm=jpg"),
+                  image: AssetImage("assets/hand-holding-person-1942489.jpg"),
                   fit: BoxFit.cover)),
           child: Container(
             decoration: const BoxDecoration(color: Color.fromARGB(76, 0, 0, 0)),

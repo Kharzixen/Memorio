@@ -4,10 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_timer_countdown/flutter_timer_countdown.dart';
+import 'package:frontend/bloc/auth_bloc/auth_bloc.dart';
 import 'package:frontend/cubit/disposable_camera_cubit/disposable_camera_cubit.dart';
+import 'package:frontend/data/data_provider/utils/http_headers.dart';
 import 'package:frontend/model/private-album_model.dart';
 import 'package:frontend/model/utils/action_types_for_pop_payload.dart';
 import 'package:frontend/model/utils/pop_payload.dart';
+import 'package:frontend/service/auth_service.dart';
 import 'package:frontend/service/storage_service.dart';
 import 'package:frontend/ui/widgets/create_disposable_camera_memory_bottom_sheet.dart';
 import 'package:go_router/go_router.dart';
@@ -304,6 +307,9 @@ class _DisposableCameraWidgetState extends State<DisposableCameraWidget>
                                     imageUrl: state.memories[index].photo,
                                     fadeInDuration: Duration.zero,
                                     fadeOutDuration: Duration.zero,
+                                    httpHeaders: HttpHeadersFactory
+                                        .getDefaultRequestHeaderForImage(
+                                            TokenManager().accessToken!),
                                     progressIndicatorBuilder:
                                         (context, url, progress) {
                                       return Center(
@@ -351,6 +357,9 @@ class _DisposableCameraWidgetState extends State<DisposableCameraWidget>
                                     imageUrl: state.allMemories[index].photo,
                                     fadeInDuration: Duration.zero,
                                     fadeOutDuration: Duration.zero,
+                                    httpHeaders: HttpHeadersFactory
+                                        .getDefaultRequestHeaderForImage(
+                                            TokenManager().accessToken!),
                                     progressIndicatorBuilder:
                                         (context, url, progress) {
                                       return Center(
@@ -425,8 +434,12 @@ class _DisposableCameraWidgetState extends State<DisposableCameraWidget>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         CircleAvatar(
-                          foregroundImage:
-                              NetworkImage(state.albumInfo.owner.pfpLink),
+                          foregroundImage: CachedNetworkImageProvider(
+                            state.albumInfo.owner.pfpLink,
+                            headers: HttpHeadersFactory
+                                .getDefaultRequestHeaderForImage(
+                                    TokenManager().accessToken!),
+                          ),
                         ),
                         const SizedBox(
                           width: 10,

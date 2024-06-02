@@ -1,10 +1,15 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/bloc/auth_bloc/auth_bloc.dart';
 import 'package:frontend/bloc/profile_bloc/profile_bloc.dart';
+import 'package:frontend/data/data_provider/utils/http_headers.dart';
 import 'package:frontend/model/post_model.dart';
 import 'package:frontend/model/utils/action_types_for_pop_payload.dart';
 import 'package:frontend/model/utils/pop_payload.dart';
+import 'package:frontend/service/auth_service.dart';
+import 'package:frontend/service/storage_service.dart';
+import 'package:frontend/ui/widgets/cached_image.dart';
 import 'package:go_router/go_router.dart';
 
 class ProfileContent extends StatefulWidget {
@@ -69,17 +74,41 @@ class _ProfileContentState extends State<ProfileContent> {
               },
               child: CachedNetworkImage(
                 imageUrl: widget.posts[index].imageLink,
-                fadeInDuration: Duration.zero,
-                fadeOutDuration: Duration.zero,
-                progressIndicatorBuilder: (context, url, progress) {
-                  return Center(
-                    child: CircularProgressIndicator(
-                      value: progress.progress,
-                    ),
+                httpHeaders: HttpHeadersFactory.getDefaultRequestHeaderForImage(
+                    TokenManager().accessToken!),
+                imageBuilder: (context, imageProvider) {
+                  return Image(
+                    image: imageProvider,
+                    fit: BoxFit.cover,
                   );
                 },
-                fit: BoxFit.cover,
               ));
+          // child: CachedNetworkImage(
+          //   imageUrl: widget.posts[index].imageLink,
+          //   fadeInDuration: Duration.zero,
+          //   fadeOutDuration: Duration.zero,
+          //   imageBuilder: (context, imageProvider) {
+          //     return Image(
+          //       image: imageProvider,
+          //       fit: BoxFit.cover,
+          //     );
+          //   },
+          //   httpHeaders: HttpHeadersFactory.getDefaultRequestHeaderForImage(
+          //       TokenManager().accessToken!),
+          //   progressIndicatorBuilder: (context, url, progress) {
+          //     return Center(
+          //       child: CircularProgressIndicator(
+          //         value: progress.progress,
+          //       ),
+          //     );
+          //   },
+          //   errorListener: (value) async {
+          //     print("error occurred");
+          //     await TokenManager().refreshAccessToken();
+          //     setState(() {});
+          //   },
+          //   fit: BoxFit.cover,
+          // ));
         }),
         itemCount: widget.posts.length,
       );

@@ -35,6 +35,13 @@ class PostCubit extends Cubit<PostState> {
 
   void likePost(String userId, String postId) {
     postLikeRepository.createNewLikeForPost(userId, postId);
+    post.isLikedByUser = true;
+    emit(PostLoadedState(post, false));
+  }
+
+  void dislikePost(String userId, String postId) {
+    postLikeRepository.deleteLike(userId, postId);
+    post.isLikedByUser = false;
     emit(PostLoadedState(post, false));
   }
 }

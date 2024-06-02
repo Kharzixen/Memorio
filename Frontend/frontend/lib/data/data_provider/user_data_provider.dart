@@ -1,19 +1,16 @@
 import 'dart:convert';
 
+import 'package:frontend/data/data_provider/utils/http_headers.dart';
 import 'package:frontend/service/storage_service.dart';
 import 'package:http/http.dart' as http;
 
 class UserDataProvider {
   static Future<http.Response> getProfileUser(String userId) async {
-    Map<String, String> requestHeaders = {
-      'Content-type': 'application/json',
-      'Accept': 'application/json',
-      'Authorization': '<Your token>',
-      'ngrok-skip-browser-warning': "1"
-    };
+    Map<String, String> headers =
+        await HttpHeadersFactory.getDefaultRequestHeader();
     return http
         .get(Uri.parse("${StorageService.connectionString}/api/users/$userId"),
-            headers: requestHeaders)
+            headers: headers)
         .then((value) {
       return value;
     }).catchError((error) {
@@ -22,10 +19,14 @@ class UserDataProvider {
   }
 
   static Future<http.Response> getFollowers(
-      String userId, int followersPage, int followersPageSize) {
+      String userId, int followersPage, int followersPageSize) async {
+    Map<String, String> headers =
+        await HttpHeadersFactory.getDefaultRequestHeader();
     return http
-        .get(Uri.parse(
-            "${StorageService.connectionString}/api/users/$userId/followers?page=$followersPage&pageSize=$followersPageSize"))
+        .get(
+            Uri.parse(
+                "${StorageService.connectionString}/api/users/$userId/followers?page=$followersPage&pageSize=$followersPageSize"),
+            headers: headers)
         .then((value) {
       return value;
     }).catchError((error) {
@@ -34,10 +35,14 @@ class UserDataProvider {
   }
 
   static Future<http.Response> getFollowing(
-      String userId, int followingPage, int followingPageSize) {
+      String userId, int followingPage, int followingPageSize) async {
+    Map<String, String> headers =
+        await HttpHeadersFactory.getDefaultRequestHeader();
     return http
-        .get(Uri.parse(
-            "${StorageService.connectionString}/api/users/$userId/following?page=$followingPage&pageSize=$followingPageSize"))
+        .get(
+            Uri.parse(
+                "${StorageService.connectionString}/api/users/$userId/following?page=$followingPage&pageSize=$followingPageSize"),
+            headers: headers)
         .then((value) {
       return value;
     }).catchError((error) {
@@ -46,10 +51,14 @@ class UserDataProvider {
   }
 
   static Future<http.Response> getFriendsOfUser(
-      String userId, int friendPage, int friendPageSize) {
+      String userId, int friendPage, int friendPageSize) async {
+    Map<String, String> headers =
+        await HttpHeadersFactory.getDefaultRequestHeader();
     return http
-        .get(Uri.parse(
-            "${StorageService.connectionString}/api/users/$userId/friends?page=$friendPage&pageSize=$friendPageSize"))
+        .get(
+            Uri.parse(
+                "${StorageService.connectionString}/api/users/$userId/friends?page=$friendPage&pageSize=$friendPageSize"),
+            headers: headers)
         .then((value) {
       return value;
     }).catchError((error) {
@@ -57,10 +66,14 @@ class UserDataProvider {
     });
   }
 
-  static getSuggestionsForUser(String userId, int page, int pageSize) {
+  static getSuggestionsForUser(String userId, int page, int pageSize) async {
+    Map<String, String> headers =
+        await HttpHeadersFactory.getDefaultRequestHeader();
     return http
-        .get(Uri.parse(
-            "${StorageService.connectionString}/api/users/$userId/suggestions?page=$page&pageSize=$pageSize"))
+        .get(
+            Uri.parse(
+                "${StorageService.connectionString}/api/users/$userId/suggestions?page=$page&pageSize=$pageSize"),
+            headers: headers)
         .then((value) {
       return value;
     }).catchError((error) {
@@ -68,19 +81,20 @@ class UserDataProvider {
     });
   }
 
-  static Future<http.Response> addUserToFollowing(String fromId, String toId) {
+  static Future<http.Response> addUserToFollowing(
+      String fromId, String toId) async {
     Map<String, dynamic> requestBody = {
       'fromId': fromId,
       'toId': toId,
     };
+    Map<String, String> headers =
+        await HttpHeadersFactory.getDefaultRequestHeader();
 
     return http
         .post(
             Uri.parse(
                 "${StorageService.connectionString}/api/users/$fromId/following"),
-            headers: <String, String>{
-              'Content-Type': 'application/json; charset=UTF-8',
-            },
+            headers: headers,
             body: jsonEncode(requestBody))
         .then((value) {
       return value;
@@ -89,10 +103,14 @@ class UserDataProvider {
     });
   }
 
-  static unfollowUser(String userId, String followingId) {
+  static unfollowUser(String userId, String followingId) async {
+    Map<String, String> headers =
+        await HttpHeadersFactory.getDefaultRequestHeader();
     return http
-        .delete(Uri.parse(
-            "${StorageService.connectionString}/api/users/$userId/following/$followingId"))
+        .delete(
+            Uri.parse(
+                "${StorageService.connectionString}/api/users/$userId/following/$followingId"),
+            headers: headers)
         .then((value) {
       return value;
     }).catchError((error) {
@@ -100,10 +118,14 @@ class UserDataProvider {
     });
   }
 
-  static isUserFollowed(String userId) {
+  static isUserFollowed(String userId) async {
+    Map<String, String> headers =
+        await HttpHeadersFactory.getDefaultRequestHeader();
     return http
-        .get(Uri.parse(
-            "${StorageService.connectionString}/api/users/${StorageService().userId}/following/$userId"))
+        .get(
+            Uri.parse(
+                "${StorageService.connectionString}/api/users/${StorageService().userId}/following/$userId"),
+            headers: headers)
         .then((value) {
       return value;
     }).catchError((error) {

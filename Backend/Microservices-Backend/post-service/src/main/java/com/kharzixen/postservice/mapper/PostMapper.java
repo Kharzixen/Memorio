@@ -11,6 +11,7 @@ import org.mapstruct.factory.Mappers;
 public interface PostMapper {
     PostMapper INSTANCE = Mappers.getMapper(PostMapper.class);
 
+    @Mapping(target = "isLikedByRequester", ignore = true)
     PostDtoOut modelToDto(Post post);
 
 }

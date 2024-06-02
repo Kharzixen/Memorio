@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/bloc/memory_creation_bloc/memory_creation_bloc.dart';
@@ -115,24 +116,9 @@ class _PrivateMemoryCreationAlbumsAndCollectionsSelectionWidgetState
                                   .circle, // Use a circular shape for the container
                             ),
                             child: ClipOval(
-                              child: Image.network(
-                                album.value.albumPicture,
+                              child: CachedNetworkImage(
+                                imageUrl: album.value.albumPicture,
                                 fit: BoxFit.cover,
-                                loadingBuilder: (BuildContext context,
-                                    Widget child,
-                                    ImageChunkEvent? loadingProgress) {
-                                  if (loadingProgress == null) {
-                                    return child;
-                                  }
-                                  return Container(
-                                    color: Colors.grey,
-                                    child: const Center(
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  );
-                                },
                               ),
                             ),
                           ),
@@ -674,28 +660,11 @@ class _AlbumSelectionWidgetState extends State<AlbumSelectionWidget> {
                                                   .circle, // Use a circular shape for the container
                                             ),
                                             child: ClipOval(
-                                              child: Image.network(
-                                                state.includedAlbums[e]!
+                                              child: CachedNetworkImage(
+                                                imageUrl: state
+                                                    .includedAlbums[e]!
                                                     .albumPicture,
                                                 fit: BoxFit.cover,
-                                                loadingBuilder:
-                                                    (BuildContext context,
-                                                        Widget child,
-                                                        ImageChunkEvent?
-                                                            loadingProgress) {
-                                                  if (loadingProgress == null) {
-                                                    return child;
-                                                  }
-                                                  return Container(
-                                                    color: Colors.grey,
-                                                    child: const Center(
-                                                      child:
-                                                          CircularProgressIndicator(
-                                                        color: Colors.white,
-                                                      ),
-                                                    ),
-                                                  );
-                                                },
                                               ),
                                             ),
                                           ),
@@ -787,27 +756,10 @@ class _AlbumSelectionWidgetState extends State<AlbumSelectionWidget> {
                                                   .circle, // Use a circular shape for the container
                                             ),
                                             child: ClipOval(
-                                              child: Image.network(
-                                                state.albums[e]!.albumPicture,
+                                              child: CachedNetworkImage(
+                                                imageUrl: state
+                                                    .albums[e]!.albumPicture,
                                                 fit: BoxFit.cover,
-                                                loadingBuilder:
-                                                    (BuildContext context,
-                                                        Widget child,
-                                                        ImageChunkEvent?
-                                                            loadingProgress) {
-                                                  if (loadingProgress == null) {
-                                                    return child;
-                                                  }
-                                                  return Container(
-                                                    color: Colors.grey,
-                                                    child: const Center(
-                                                      child:
-                                                          CircularProgressIndicator(
-                                                        color: Colors.white,
-                                                      ),
-                                                    ),
-                                                  );
-                                                },
                                               ),
                                             ),
                                           ),

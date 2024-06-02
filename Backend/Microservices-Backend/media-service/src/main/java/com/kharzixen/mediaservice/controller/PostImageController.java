@@ -25,6 +25,7 @@ public class PostImageController {
     @GetMapping(path = "/{id}", produces = "image/jpg")
     ResponseEntity<?> getImageById(@PathVariable("id") String pathImageId) {
         String imageId = pathImageId.replace("-", "/");
+        log.info("Image with id {} fetched", imageId);
         try {
             InputStream stream =
                     minioClient.getObject(GetObjectArgs

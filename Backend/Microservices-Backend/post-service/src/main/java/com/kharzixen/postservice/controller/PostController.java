@@ -33,8 +33,10 @@ public class PostController {
     private final CommentService commentService;
 
     @GetMapping("/{postId}")
-    ResponseEntity<PostDtoOut> getPostById(@PathVariable("postId") Long postId){
-        PostDtoOut postDtoOut = postService.getPostById(postId);
+    ResponseEntity<PostDtoOut> getPostById(@PathVariable("postId") Long postId,
+                                           @RequestHeader("X-USER-ID") String requesterId,
+                                           @RequestHeader("X-USERNAME") String username){
+        PostDtoOut postDtoOut = postService.getPostById(postId, Long.valueOf(requesterId));
         return ResponseEntity.ok(postDtoOut);
     }
 
@@ -61,6 +63,13 @@ public class PostController {
     ResponseEntity<List<LikeDtoOut>> getLikesOfAPost(@PathVariable("postId") Long postId){
         List<LikeDtoOut> likeDtoOut = likeService.getLikesOfAPost(postId);
         return ResponseEntity.ok(likeDtoOut);
+    }
+
+    @DeleteMapping("/{postId}/likes")
+    ResponseEntity<Void> getLikesOfAPost(@PathVariable("postId") Long postId,
+                                                     @RequestParam("userId") String userId){
+         likeService.deleteLike(postId, userId);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{postId}/comments")

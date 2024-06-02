@@ -2,9 +2,12 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:frontend/bloc/auth_bloc/auth_bloc.dart';
 import 'package:frontend/bloc/collection_preview_bloc/collections_preview_bloc.dart';
 import 'package:frontend/bloc/timeline_bloc/timeline_bloc.dart';
+import 'package:frontend/data/data_provider/utils/http_headers.dart';
 import 'package:frontend/model/private-album_model.dart';
+import 'package:frontend/service/auth_service.dart';
 import 'package:frontend/ui/widgets/create_memory_bottom_sheet.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -185,6 +188,10 @@ class _PrivateAlbumTimelineContentGridState
                                               //             CircularProgressIndicator()),
                                               fadeInDuration: Duration.zero,
                                               fadeOutDuration: Duration.zero,
+                                              httpHeaders: HttpHeadersFactory
+                                                  .getDefaultRequestHeaderForImage(
+                                                      TokenManager()
+                                                          .accessToken!),
                                               progressIndicatorBuilder:
                                                   (context, url, progress) {
                                                 return Center(

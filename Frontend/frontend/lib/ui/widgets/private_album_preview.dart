@@ -1,9 +1,13 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/bloc/album_preview_bloc/private_albums_preview_bloc.dart';
+import 'package:frontend/bloc/auth_bloc/auth_bloc.dart';
+import 'package:frontend/data/data_provider/utils/http_headers.dart';
 import 'package:frontend/model/private-album_model.dart';
 import 'package:frontend/model/utils/action_types_for_pop_payload.dart';
 import 'package:frontend/model/utils/pop_payload.dart';
+import 'package:frontend/service/auth_service.dart';
 import 'package:frontend/ui/widgets/animated_dialog.dart';
 import 'package:frontend/ui/widgets/create_memory_bottom_sheet.dart';
 import 'package:go_router/go_router.dart';
@@ -55,23 +59,12 @@ class _AlbumPreviewCardState extends State<AlbumPreviewCard> {
                         .circle, // Use a circular shape for the container
                   ),
                   child: ClipOval(
-                    child: Image.network(
-                      widget.albumPreview.albumPicture,
+                    child: CachedNetworkImage(
+                      imageUrl: widget.albumPreview.albumPicture,
                       fit: BoxFit.cover,
-                      loadingBuilder: (BuildContext context, Widget child,
-                          ImageChunkEvent? loadingProgress) {
-                        if (loadingProgress == null) {
-                          return child;
-                        }
-                        return Container(
-                          color: Colors.grey,
-                          child: const Center(
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                            ),
-                          ),
-                        );
-                      },
+                      httpHeaders:
+                          HttpHeadersFactory.getDefaultRequestHeaderForImage(
+                              TokenManager().accessToken!),
                     ),
                   ),
                 ),
@@ -376,27 +369,14 @@ class _AlbumPreviewCardState extends State<AlbumPreviewCard> {
                                                 1
                                         ? 2
                                         : 0), // Apply margin only if it's not the last item
-                                child: Image.network(
-                                  widget
+                                child: CachedNetworkImage(
+                                  imageUrl: widget
                                       .albumPreview.previewImages[index].photo,
+                                  httpHeaders: HttpHeadersFactory
+                                      .getDefaultRequestHeaderForImage(
+                                          TokenManager().accessToken!),
                                   fit: BoxFit.cover,
                                   height: 120,
-                                  loadingBuilder: (BuildContext context,
-                                      Widget child,
-                                      ImageChunkEvent? loadingProgress) {
-                                    if (loadingProgress == null) {
-                                      return child;
-                                    } else {
-                                      return Container(
-                                        color: Colors.grey.shade800,
-                                        child: const Center(
-                                          child: CircularProgressIndicator(
-                                            color: Colors.blue,
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                  },
                                 ),
                               ),
                             ),
@@ -439,7 +419,12 @@ class _AlbumPreviewCardState extends State<AlbumPreviewCard> {
                   child: Row(
                     children: [
                       CircleAvatar(
-                        foregroundImage: NetworkImage(memory.uploader.pfpLink),
+                        foregroundImage: CachedNetworkImageProvider(
+                          memory.uploader.pfpLink,
+                          headers: HttpHeadersFactory
+                              .getDefaultRequestHeaderForImage(
+                                  TokenManager().accessToken!),
+                        ),
                       ),
                       const SizedBox(width: 10),
                       Text(
@@ -476,7 +461,12 @@ class _AlbumPreviewCardState extends State<AlbumPreviewCard> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       image: DecorationImage(
-                          image: NetworkImage(memory.photo),
+                          image: CachedNetworkImageProvider(
+                            memory.photo,
+                            headers: HttpHeadersFactory
+                                .getDefaultRequestHeaderForImage(
+                                    TokenManager().accessToken!),
+                          ),
                           fit: BoxFit.cover // Replace with your image
                           ),
                     ),

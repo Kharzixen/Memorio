@@ -15,6 +15,7 @@ import com.kharzixen.postservice.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -27,6 +28,7 @@ public class LikeService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
 
+    @Transactional
     public LikeDtoOut createNewLike(Long postId, LikeDtoIn likeDtoIn) {
         try{
         Post post = postRepository.findById(postId)
@@ -50,5 +52,11 @@ public class LikeService {
     public List<LikeDtoOut> getLikesOfAPost(Long postId) {
         List<Like> likes = likeRepository.findAllWherePostId(postId);
         return likes.stream().map(LikeMapper.INSTANCE::modelToDto).toList();
+    }
+
+    @Transactional
+    public void deleteLike(Long postId, String userId) {
+        likeRepository.deleteLikeOfPost(postId, userId);
+
     }
 }

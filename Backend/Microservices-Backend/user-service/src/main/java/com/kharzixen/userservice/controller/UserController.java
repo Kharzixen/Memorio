@@ -16,6 +16,7 @@ import com.kharzixen.userservice.service.UserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -32,6 +33,7 @@ import java.util.Map;
 
 @RestController
 @AllArgsConstructor
+@Slf4j
 public class UserController {
     private final UserService userService;
 
@@ -47,8 +49,11 @@ public class UserController {
     }
 
     @GetMapping("/api/users/{id}")
-    public ResponseEntity<UserDtoOut> getUserById(@PathVariable("id") Long userId) {
+    public ResponseEntity<UserDtoOut> getUserById(@PathVariable("id") Long userId,
+                                                  @RequestHeader("X-USER-ID") String userIdHeader,
+                                                  @RequestHeader("X-USERNAME") String username) {
         UserDtoOut user = userService.getUserById(userId);
+        log.info(userIdHeader + " " + username);
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 

@@ -11,4 +11,8 @@ import org.springframework.stereotype.Repository;
 public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("SELECT p FROM Post p WHERE p.owner.id = :userId")
     Page<Post> findPostsOfUserPaginated(Long userId, Pageable pageRequest);
+
+    @Query("SELECT CASE WHEN COUNT(l) > 0 THEN true ELSE false END " +
+            "FROM Like l WHERE l.post.id = :postId AND l.user.id = :userId")
+    Boolean isPostLikedByUser(Long postId, Long userId);
 }

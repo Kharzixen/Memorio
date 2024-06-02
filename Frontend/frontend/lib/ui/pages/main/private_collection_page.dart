@@ -1,11 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/bloc/auth_bloc/auth_bloc.dart';
 import 'package:frontend/bloc/timeline_bloc/timeline_bloc.dart';
 import 'package:frontend/cubit/collection_cubit/collection_cubit.dart';
+import 'package:frontend/data/data_provider/utils/http_headers.dart';
 import 'package:frontend/model/private-album_model.dart';
 import 'package:frontend/model/utils/action_types_for_pop_payload.dart';
 import 'package:frontend/model/utils/pop_payload.dart';
+import 'package:frontend/service/auth_service.dart';
 import 'package:frontend/service/storage_service.dart';
 import 'package:frontend/ui/widgets/create_memory_bottom_sheet.dart';
 import 'package:go_router/go_router.dart';
@@ -233,8 +236,13 @@ class _PrivateCollectionPageState extends State<PrivateCollectionPage> {
                                       color: Colors.grey.shade600,
                                       image: DecorationImage(
                                         fit: BoxFit.cover,
-                                        image: NetworkImage(state
-                                            .collectionPreview.creator.pfpLink),
+                                        image: CachedNetworkImageProvider(
+                                          state.collectionPreview.creator
+                                              .pfpLink,
+                                          headers: HttpHeadersFactory
+                                              .getDefaultRequestHeaderForImage(
+                                                  TokenManager().accessToken!),
+                                        ),
                                       ),
                                       borderRadius: BorderRadius.circular(100),
                                     ),
@@ -386,6 +394,10 @@ class _PrivateCollectionPageState extends State<PrivateCollectionPage> {
                                                     },
                                                     child: CachedNetworkImage(
                                                       imageUrl: memory.photo,
+                                                      httpHeaders: HttpHeadersFactory
+                                                          .getDefaultRequestHeaderForImage(
+                                                              TokenManager()
+                                                                  .accessToken!),
                                                       fadeInDuration:
                                                           Duration.zero,
                                                       fadeOutDuration:

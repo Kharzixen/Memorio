@@ -32,7 +32,8 @@ public class AuthFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
 
         // Allow access to the auth endpoints without JWT
-        if (path.equals("/home") || path.startsWith("/register")) {
+        if (path.equals("/api/auth/login") || path.startsWith("/api/auth/register")
+                || path.startsWith("/api/auth/refresh")) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -59,9 +60,13 @@ public class AuthFilter extends OncePerRequestFilter {
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
-
-            if (jwtUtil.validateToken(jwt)) {
+            User userDetails = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+            
+            if (jwtUtil.validateAccessToken(jwt)) {
+                if(!userDetails.getIsActive()){
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "User is suspended!");
+                    return;
+                }
                 UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 usernamePasswordAuthenticationToken

@@ -1,6 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:frontend/bloc/auth_bloc/auth_bloc.dart';
 import 'package:frontend/cubit/post_comments_cubit/post_comments_cubit.dart';
+import 'package:frontend/data/data_provider/utils/http_headers.dart';
+import 'package:frontend/service/auth_service.dart';
 import 'package:frontend/service/storage_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -51,8 +55,14 @@ class PostCommentsWidget extends StatelessWidget {
                                       children: [
                                         CircleAvatar(
                                           radius: 15,
-                                          foregroundImage: NetworkImage(state
-                                              .comments[index].user.pfpLink),
+                                          foregroundImage:
+                                              CachedNetworkImageProvider(
+                                            state.comments[index].user.pfpLink,
+                                            headers: HttpHeadersFactory
+                                                .getDefaultRequestHeaderForImage(
+                                                    TokenManager()
+                                                        .accessToken!),
+                                          ),
                                         ),
                                         const SizedBox(
                                           width: 10,
