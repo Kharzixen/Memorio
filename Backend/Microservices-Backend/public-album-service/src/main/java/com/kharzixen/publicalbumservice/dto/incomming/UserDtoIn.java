@@ -14,7 +14,7 @@ public class UserDtoIn {
     private Long id;
 
     private String username;
-
+    private String pfpId;
     private Boolean isAdmin;
     private Boolean isActive;
 

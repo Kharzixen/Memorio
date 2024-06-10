@@ -52,7 +52,7 @@ class MomentBloc extends Bloc<MemoryEvent, MomentState> {
 
   FutureOr<void> _likeMoment(
       MomentLikedByUser event, Emitter<MomentState> emit) async {
-    LikeModel like = await likeRepository.createNewLikeForMemory(
+    await likeRepository.createNewLikeForMemory(
         moment.album.albumId, event.userId, event.memoryId);
     moment.isLiked = true;
     moment.likeCount++;

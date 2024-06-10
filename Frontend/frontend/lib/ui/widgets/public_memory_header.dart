@@ -310,7 +310,7 @@ class PublicMemoryHeader extends StatelessWidget {
           children: [
             CircleAvatar(
               foregroundImage: CachedNetworkImageProvider(
-                "https://images.pexels.com/photos/25003282/pexels-photo-25003282/free-photo-of-portrait-of-man-in-hat-smoking.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+                memory.uploader.pfpLink,
                 headers: HttpHeadersFactory.getDefaultRequestHeaderForImage(
                     TokenManager().accessToken!),
               ),

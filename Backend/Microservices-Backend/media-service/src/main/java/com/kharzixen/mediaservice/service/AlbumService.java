@@ -22,7 +22,7 @@ public class AlbumService {
                 .orElseGet(() -> albumRepository.save(new Album(event.getAlbumId(), Set.of())));
 
         User user =  userRepository.findUserWithAlbums(event.getUserId())
-                .orElseGet(() -> userRepository.save(new User(event.getUserId(), event.getUsername(), Set.of())));
+                .orElseGet(() -> userRepository.save(new User(event.getUserId(), event.getUsername(), "default_pfp_id.jpg", Set.of())));
         Set<User> contributors = album.getContributors();
 
         switch( event.getMethod()) {

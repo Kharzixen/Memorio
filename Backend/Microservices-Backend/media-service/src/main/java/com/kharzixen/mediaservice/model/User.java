@@ -1,9 +1,6 @@
 package com.kharzixen.mediaservice.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,7 +17,9 @@ import java.util.Set;
 public class User {
     @Id
     private Long userId;
+    @Column(unique = true)
     private String username;
+    private String pfpId;
 
     @ManyToMany(mappedBy = "contributors", fetch = FetchType.LAZY)
     private Set<Album> albums;
