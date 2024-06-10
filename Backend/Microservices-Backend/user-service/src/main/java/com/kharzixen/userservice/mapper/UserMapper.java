@@ -25,7 +25,7 @@ public interface UserMapper {
 
     SimpleUserDtoOut projectionToDto(SimpleUserProjection projection);
 
-    @Mapping(target = "id", ignore = true)
+
     @Mapping(target = "pfpId", ignore = true)
     @Mapping(target = "accountCreationDate", ignore = true)
     User dtoToModel(UserDtoIn userDtoIn);

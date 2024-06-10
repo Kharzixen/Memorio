@@ -27,6 +27,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       LoginResponse response =
           await authRepository.login(event.username, event.password);
       if (response.accessToken != "") {
+        StorageService().userId = getUserIdFromJwt(response.accessToken);
         await StorageService().saveAccessToken(response.accessToken);
         await StorageService().saveRefreshToken(response.refreshToken);
         TokenManager().accessToken = response.accessToken;
@@ -43,16 +44,25 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     //create userRegistrationDto from event;
     emit(RegistrationLoading());
     try {
-      if (event.password != event.confirmPassword) {
-        return emit(RegistrationFailure(
-            error: "Password and confirm password doesn't match!"));
+      if (event.password == event.confirmPassword) {
+        Map<String, dynamic> registerRequestBody = {};
+        registerRequestBody['username'] = event.username;
+        registerRequestBody['name'] = "Noname";
+        registerRequestBody['email'] = event.email;
+        registerRequestBody['phoneNumber'] = event.phoneNumber;
+        registerRequestBody['password'] = event.password;
+        registerRequestBody['confirmPassword'] = event.confirmPassword;
+        registerRequestBody['birthday'] = new DateTime(2001, 8, 24);
+        await authRepository.register(registerRequestBody);
+        emit(RegistrationSuccess());
       }
-
-      await Future.delayed(const Duration(seconds: 2), () {
-        return emit(RegistrationSuccess(userId: '65afd4c1a82d224ef7c41fc8'));
-      });
     } catch (e) {
-      return emit(RegistrationFailure(error: e.toString()));
+      return emit(RegistrationFailure(
+          error: e.toString(),
+          username: event.username,
+          name: event.name,
+          email: event.email,
+          phoneNumber: event.phoneNumber));
     }
   }
 
@@ -75,6 +85,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           LoginResponse response =
               await authRepository.refreshToken(refreshToken);
           if (response.accessToken != "" && response.refreshToken != "") {
+            StorageService().userId = getUserIdFromJwt(response.accessToken);
             await StorageService().saveAccessToken(response.accessToken);
             await StorageService().saveRefreshToken(response.refreshToken);
             TokenManager().accessToken = response.accessToken;
@@ -85,8 +96,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         } else {
           emit(AuthInitialState());
         }
+        emit(AuthInitialState());
       } else {
-        await Future.delayed(Duration(milliseconds: 500));
+        StorageService().userId = getUserIdFromJwt(accessToken);
+
         TokenManager().accessToken = (await StorageService().getAccessToken())!;
         TokenManager().refreshToken =
             (await StorageService().getRefreshToken())!;
@@ -94,7 +107,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(AuthSuccess());
       }
     } catch (e) {
-      return emit(RegistrationFailure(error: e.toString()));
+      return emit(AuthFailure(error: e.toString()));
     }
   }
 
@@ -102,14 +115,24 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     return JwtDecoder.isExpired(token);
   }
 
+  String getUserIdFromJwt(String token) {
+    try {
+      final Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      return decodedToken['id'].toString();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   FutureOr<void> _logout(LogoutRequested event, Emitter<AuthState> emit) async {
     try {
       emit(AuthLoading());
       await StorageService().deleteAccessToken();
       await StorageService().deleteRefreshToken();
+      StorageService().userId = "";
       emit(AuthInitialState());
     } catch (e) {
-      return emit(RegistrationFailure(error: e.toString()));
+      return emit(AuthFailure(error: e.toString()));
     }
   }
 

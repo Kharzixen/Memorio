@@ -13,9 +13,17 @@ final class ProfileLoadedState extends ProfileState {
   final List<SimpleUser> following;
   bool followersHasMoreData;
   bool followingHasMoreData;
+  int postCount;
   List<Post> posts;
-  ProfileLoadedState(this.user, this.followers, this.isFollowed, this.following,
-      this.followersHasMoreData, this.followingHasMoreData, this.posts);
+  ProfileLoadedState(
+      this.user,
+      this.followers,
+      this.isFollowed,
+      this.following,
+      this.followersHasMoreData,
+      this.followingHasMoreData,
+      this.postCount,
+      this.posts);
 }
 
 final class ProfileErrorState extends ProfileState {

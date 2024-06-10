@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/data/repository/disposable_camera_memory_repository.dart';
 import 'package:frontend/data/repository/private_album_repository.dart';
 import 'package:frontend/model/disposable_camera_model.dart';
+import 'package:frontend/model/memory_model.dart';
 import 'package:frontend/model/private-album_model.dart';
 import 'package:frontend/model/utils/paginated_response_generic.dart';
 
@@ -82,10 +83,11 @@ class DisposableCameraCubit extends Cubit<DisposableCameraState> {
     }
   }
 
-  void activateDisposableCamera(String description) async {
+  void activateDisposableCamera(String description, String date) async {
     try {
-      DisposableCamera disposableCamera = await albumRepository
-          .activateDisposableCamera(albumInfo.albumId, description);
+      DisposableCamera disposableCamera =
+          await albumRepository.activateDisposableCamera(
+              albumInfo.albumId, DateTime.parse(date), description);
       if (disposableCamera.isActive == true) {
         albumInfo.disposableCamera = disposableCamera;
         emit(DisposableCameraLoadedState(

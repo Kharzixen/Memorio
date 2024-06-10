@@ -5,6 +5,7 @@ import com.kharzixen.publicalbumservice.dto.incomming.CommentDtoIn;
 import com.kharzixen.publicalbumservice.dto.outgoing.CommentDtoOut;
 import com.kharzixen.publicalbumservice.exception.MemoryLikeDuplicateException;
 import com.kharzixen.publicalbumservice.exception.NotFoundException;
+import com.kharzixen.publicalbumservice.exception.UnauthorizedRequestException;
 import com.kharzixen.publicalbumservice.mapper.CommentMapper;
 import com.kharzixen.publicalbumservice.model.Album;
 import com.kharzixen.publicalbumservice.model.Comment;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @AllArgsConstructor
@@ -60,7 +62,13 @@ public class CommentService {
         return commentRepository.findAllWhereMemoryId(memoryId).stream().map(CommentMapper.INSTANCE::modelToDto).toList();
     }
 
-    public void deleteCommentById(Long albumId, Long memoryId, Long commentId) {
-        commentRepository.deleteById(commentId);
+    public void deleteCommentById(Long albumId, Long memoryId, Long commentId, Long requesterId) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new NotFoundException("Comment", commentId));
+        if(Objects.equals(comment.getOwner().getId(), requesterId)){
+            commentRepository.deleteById(commentId);
+        } else {
+            throw new UnauthorizedRequestException("Unauthorized");
+        }
     }
 }

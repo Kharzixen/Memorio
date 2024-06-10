@@ -15,6 +15,7 @@ class UserCubit extends Cubit<UserPageState> {
   late User userData;
   late String userId;
   late List<Post> posts = [];
+  int postCount = 0;
   int page = 0;
   int pageSize = 10;
 
@@ -34,10 +35,12 @@ class UserCubit extends Cubit<UserPageState> {
       PaginatedResponse<Post> postsBatch = await postRepository
           .getPostsOfUserOrderedByDatePaginated(userId, page, pageSize);
       posts.addAll(postsBatch.content);
+      postCount = postsBatch.totalElements;
       isFollowed = await userRepository.isFollowed(userId);
       emit(UserPageLoadedState(
           user: userData,
           posts: posts,
+          postsCount: postCount,
           isFollowed: isFollowed,
           isFollowInitiated: isFollowInitiated));
     } catch (e) {
@@ -57,6 +60,7 @@ class UserCubit extends Cubit<UserPageState> {
     emit(UserPageLoadedState(
         user: userData,
         posts: posts,
+        postsCount: postCount,
         isFollowed: isFollowed,
         isFollowInitiated: isFollowInitiated));
   }
@@ -67,6 +71,7 @@ class UserCubit extends Cubit<UserPageState> {
       emit(UserPageLoadedState(
           user: userData,
           posts: posts,
+          postsCount: postCount,
           isFollowed: isFollowed,
           isFollowInitiated: isFollowInitiated));
       userRepository.followUser(StorageService().userId, userData.userId);
@@ -76,6 +81,7 @@ class UserCubit extends Cubit<UserPageState> {
       emit(UserPageLoadedState(
           user: userData,
           posts: posts,
+          postsCount: postCount,
           isFollowed: isFollowed,
           isFollowInitiated: isFollowInitiated));
     } catch (e) {
@@ -89,6 +95,7 @@ class UserCubit extends Cubit<UserPageState> {
       emit(UserPageLoadedState(
           user: userData,
           posts: posts,
+          postsCount: postCount,
           isFollowed: isFollowed,
           isFollowInitiated: isFollowInitiated));
       userRepository.unfollowUser(StorageService().userId, userData.userId);
@@ -98,6 +105,7 @@ class UserCubit extends Cubit<UserPageState> {
       emit(UserPageLoadedState(
           user: userData,
           posts: posts,
+          postsCount: postCount,
           isFollowed: isFollowed,
           isFollowInitiated: isFollowInitiated));
     } catch (e) {

@@ -21,6 +21,20 @@ class MemoryLikeRepository {
     }
   }
 
+  Future<void> deleteLikeFromMemory(String albumId, String memoryId) async {
+    try {
+      var response =
+          await LikeDataProvider.deleteLikeFromMemory(albumId, memoryId);
+      if (response.statusCode == 204) {
+        return;
+      } else {
+        throw Exception(response.body);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<List<LikeModel>> findAllLikesOfMemory(
       String albumId, String memoryId) async {
     try {

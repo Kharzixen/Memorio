@@ -20,25 +20,29 @@ import java.util.Date;
 @Builder
 public class UserDtoIn {
 
-    @NotBlank(message = "Username is mandatory")
-    @Size(max = 30, message = "Username cannot exceed 50 characters")
+    private Long id;
+
+//    @NotBlank(message = "Username is mandatory")
+//    @Size(max = 30, message = "Username cannot exceed 50 characters")
     private String username;
 
-    @NotBlank(message = "Email is mandatory")
+//    @NotBlank(message = "Email is mandatory")
     private String email;
 
     @Past
-    @NotNull(message = "AccountCreationDate is Mandatory")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date birthday;
 
-    @NotBlank(message = "Name is mandatory")
-    @Size(max = 50, message = "Name cannot exceed 50 characters")
+    private Boolean isActive;
+    private Boolean isAdmin;
+
+//    @NotBlank(message = "Name is mandatory")
+//    @Size(max = 50, message = "Name cannot exceed 50 characters")
     private String name;
 
-    private MultipartFile profileImage;
+//    private MultipartFile profileImage;
 
-    @Size(max = 200, message = "Bio cannot exceed 200 characters")
+   // @Size(max = 200, message = "Bio cannot exceed 200 characters")
     private String bio;
 
 }

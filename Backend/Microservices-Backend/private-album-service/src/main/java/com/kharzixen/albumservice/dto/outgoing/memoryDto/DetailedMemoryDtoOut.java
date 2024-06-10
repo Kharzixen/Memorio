@@ -24,5 +24,6 @@ public class DetailedMemoryDtoOut {
     private AlbumSimplifiedDtoOut album;
 //    List<MemoryCollectionSimplifiedDto> collections;
     private Date creationDate;
+    private Boolean isLiked;
     private int likeCount;
 }

@@ -11,6 +11,11 @@ final class FollowersNextPageFetched extends ProfileEvent {}
 
 final class FollowingNextPageFetched extends ProfileEvent {}
 
+final class RefreshProfileWithProvidedUser extends ProfileEvent {
+  User user;
+  RefreshProfileWithProvidedUser(this.user);
+}
+
 final class NewPostCreated extends ProfileEvent {
   Post post;
   NewPostCreated(this.post);
@@ -22,3 +27,8 @@ final class PostDeleted extends ProfileEvent {
 }
 
 final class RefreshProfile extends ProfileEvent {}
+
+final class NewProfilePicture extends ProfileEvent {
+  ImageSource source;
+  NewProfilePicture(this.source);
+}

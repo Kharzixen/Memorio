@@ -15,8 +15,11 @@ class LogoutRequested extends AuthEvent {}
 
 class TokenExpired extends AuthEvent {}
 
+class BothTokenExpired extends AuthEvent {}
+
 class RegistrationRequestedEvent extends AuthEvent {
   final String username;
+  final String name;
   final String email;
   final String phoneNumber;
   final String password;
@@ -26,6 +29,7 @@ class RegistrationRequestedEvent extends AuthEvent {
       {required this.username,
       required this.email,
       required this.phoneNumber,
+      required this.name,
       required this.password,
       required this.confirmPassword});
 }

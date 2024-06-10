@@ -3,9 +3,11 @@ package com.kharzixen.publicalbumservice.service;
 
 import com.kharzixen.publicalbumservice.dto.ImageCreatedResponseDto;
 import com.kharzixen.publicalbumservice.dto.incomming.MemoryDtoIn;
+import com.kharzixen.publicalbumservice.dto.incomming.PatchMemoryDtoIn;
 import com.kharzixen.publicalbumservice.dto.outgoing.memoryDto.DetailedMemoryDtoOut;
 import com.kharzixen.publicalbumservice.dto.outgoing.memoryDto.MemoryPreviewDtoOut;
 import com.kharzixen.publicalbumservice.exception.NotFoundException;
+import com.kharzixen.publicalbumservice.exception.UnauthorizedRequestException;
 import com.kharzixen.publicalbumservice.mapper.MemoryMapper;
 import com.kharzixen.publicalbumservice.model.Album;
 import com.kharzixen.publicalbumservice.model.Memory;
@@ -36,7 +38,7 @@ public class MemoryService {
     private ImageServiceClient imageServiceClient;
 
     @Transactional
-    public MemoryPreviewDtoOut createMemory(Long albumId, MemoryDtoIn memoryDtoIn) {
+    public MemoryPreviewDtoOut createMemory(Long albumId, MemoryDtoIn memoryDtoIn, Long requesterId) {
         try {
             if (!Objects.equals(albumId, memoryDtoIn.getAlbumId())) {
                 throw new RuntimeException("AlbumId in path must be equal to albumId in dto");
@@ -45,11 +47,6 @@ public class MemoryService {
             //verify if album exists
             Album album = albumRepository.findById(albumId).orElseThrow(() -> new NotFoundException("Album", albumId));
 
-            //should check via JWT token
-            // it is faster like this, the album.contributors is lazy loaded.
-            if (!albumRepository.isUserContributorOfAlbum(memoryDtoIn.getUploaderId(), albumId)) {
-                throw new RuntimeException("User is not contributor of the album");
-            }
 
             if (memoryDtoIn.getImage() == null ||
                     !Objects.requireNonNull(memoryDtoIn.getImage().getContentType()).startsWith("image/")) {
@@ -59,7 +56,7 @@ public class MemoryService {
 
             Memory memory = MemoryMapper.INSTANCE.dtoToModel(memoryDtoIn);
             //getting and checking user
-            User uploader = userRepository.findById(memoryDtoIn.getUploaderId())
+            User uploader = userRepository.findById(requesterId)
                     .orElseThrow(() -> new NotFoundException("User", memoryDtoIn.getUploaderId()));
 
             memory.setUploader(uploader);
@@ -68,7 +65,15 @@ public class MemoryService {
             ImageCreatedResponseDto response = imageServiceClient.postImageToMediaService(memoryDtoIn.getImage(),
                     album.getId());
             memory.setImageId(response.getImageId());
+            memory.setIsHighlighted(false);
             Memory saved = memoryRepository.save(memory);
+
+            if(!album.getContributors().contains(uploader)){
+                List<User> contributors = album.getContributors();
+                contributors.add(uploader);
+                album.setContributors(contributors);
+            }
+            albumRepository.save(album);
             return MemoryMapper.INSTANCE.modelToPreviewDto(saved);
 
         } catch (Exception ex) {
@@ -113,13 +118,15 @@ public class MemoryService {
     }
 
     @Transactional
-    public void deleteMemory(Long albumId, Long memoryId) {
-        //TODO authorization for this method;
+    public void deleteMemory(Long albumId, Long memoryId, Long requesterId) {
         Memory memory = memoryRepository.findById(memoryId).orElseThrow(() -> new NotFoundException("Memory", memoryId));
-
-        memoryEventOutboxRepository.save(new MemoryEventOutbox(null, "DELETE", memory.getImageId()));
-        memoryRepository.deleteById(memory.getId());
-        log.info("Memory deleted");
+        if(requesterId == memory.getUploader().getId()) {
+            memoryEventOutboxRepository.save(new MemoryEventOutbox(null, "DELETE", memory.getImageId()));
+            memoryRepository.deleteById(memory.getId());
+            log.info("Memory deleted");
+        } else {
+            throw new UnauthorizedRequestException("Unauthorized");
+        }
 
     }
 
@@ -144,4 +151,35 @@ public class MemoryService {
 
     }
 
+    public Page<MemoryPreviewDtoOut> getHighlightedMemoriesOfAlbumPaginated(Long albumId, int page, int pageSize) {
+        Sort sort = Sort.by(Sort.Direction.DESC, "creationDate");
+        Pageable pageRequest = PageRequest.of(page, pageSize, sort);
+        Optional<Album> album = albumRepository.findById(albumId);
+        if (album.isEmpty()) {
+            throw new NotFoundException("Album", albumId);
+        }
+        Page<MemoryProjection> pageResponse = memoryRepository
+                .findHighlightedMemoriesOfAlbumPaginated(album.get().getId(), pageRequest);
+        List<MemoryPreviewDtoOut> dtos = pageResponse.getContent()
+                .stream().map(MemoryMapper.INSTANCE::projectionToPreviewDto).toList();
+        return new PageImpl<>(dtos, pageRequest, pageResponse.getTotalElements());
+    }
+
+    public DetailedMemoryDtoOut patchMemoryDtoIn(Long albumId, Long memoryId, PatchMemoryDtoIn dtoIn, Long requesterId) {
+
+        Memory memory = memoryRepository.findById(memoryId).orElseThrow(() -> new NotFoundException("Memory", memoryId));
+        if (Objects.equals(memory.getAlbum().getId(), albumId) && Objects.equals(memory.getAlbum().getOwner().getId(), requesterId)) {
+            if(dtoIn.getIsHighlighted() != null){
+                memory.setIsHighlighted(dtoIn.getIsHighlighted());
+
+            }
+            Memory saved = memoryRepository.save(memory);
+            DetailedMemoryDtoOut memoryDtoOut = MemoryMapper.INSTANCE.modelToDetailedDto(saved);
+            memoryDtoOut.setLikeCount(likeRepository.findAllWhereMemoryId(memoryId).size());
+            return memoryDtoOut;
+
+        } else {
+            throw new RuntimeException("Unatuthorized");
+        }
+    }
 }

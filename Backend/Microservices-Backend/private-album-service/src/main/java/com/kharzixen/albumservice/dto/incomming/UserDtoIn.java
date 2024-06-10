@@ -11,10 +11,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class UserDtoIn {
-    @JsonProperty
     private Long id;
-    @JsonProperty
     private String username;
-    @JsonProperty("pfp_id")
-    private String pfpId;
+    private Boolean isAdmin;
+    private Boolean isActive;
 }

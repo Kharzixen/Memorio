@@ -24,5 +24,8 @@ public interface MemoryRepository extends JpaRepository<Memory, Long> {
     Page<MemoryProjection> findMemoriesOfAlbumByUploaderPaginated(Long albumId, Long uploaderId, Pageable pageRequest);
 
 
-
+    @Query(value = "SELECT m.id as id,  m.uploader as uploader," +
+            " m.caption as caption, m.imageId as imageId, m.creationDate as creationDate FROM Memory as m " +
+            "where m.album.id = :albumId and m.isHighlighted = true  ")
+    Page<MemoryProjection> findHighlightedMemoriesOfAlbumPaginated(Long albumId, Pageable pageRequest);
 }

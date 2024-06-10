@@ -20,6 +20,7 @@ class MomentBloc extends Bloc<MemoryEvent, MomentState> {
     on<MemoryRemoved>(_deleteMomentById);
     on<MemoryCollectionsChanged>(_changeMemoryCollections);
     on<MomentLikedByUser>(_likeMoment);
+    on<MomentDislikedByUser>(_dislikeMoment);
   }
 
   void _loadMomentById(MemoryFetched event, Emitter<MomentState> emit) async {
@@ -53,7 +54,17 @@ class MomentBloc extends Bloc<MemoryEvent, MomentState> {
       MomentLikedByUser event, Emitter<MomentState> emit) async {
     LikeModel like = await likeRepository.createNewLikeForMemory(
         moment.album.albumId, event.userId, event.memoryId);
-    print(like);
+    moment.isLiked = true;
+    moment.likeCount++;
+    emit(MomentLoadedState(moment, false));
+  }
+
+  FutureOr<void> _dislikeMoment(
+      MomentDislikedByUser event, Emitter<MomentState> emit) async {
+    await likeRepository.deleteLikeFromMemory(
+        moment.album.albumId, event.memoryId);
+    moment.isLiked = false;
+    moment.likeCount--;
     emit(MomentLoadedState(moment, false));
   }
 }

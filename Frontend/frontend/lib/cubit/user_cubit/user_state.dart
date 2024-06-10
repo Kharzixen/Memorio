@@ -11,9 +11,11 @@ class UserPageLoadedState extends UserPageState {
   List<Post> posts;
   bool isFollowInitiated;
   bool isFollowed;
+  int postsCount;
   UserPageLoadedState(
       {required this.user,
       required this.posts,
+      required this.postsCount,
       required this.isFollowed,
       required this.isFollowInitiated});
 }

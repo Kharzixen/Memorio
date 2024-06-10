@@ -8,6 +8,7 @@ import com.kharzixen.albumservice.dto.outgoing.UserDtoOut;
 import com.kharzixen.albumservice.error.ErrorResponse;
 import com.kharzixen.albumservice.exception.CollectionNameDuplicateException;
 import com.kharzixen.albumservice.exception.NotFoundException;
+import com.kharzixen.albumservice.exception.UnauthorizedRequestException;
 import com.kharzixen.albumservice.service.AlbumService;
 import com.kharzixen.albumservice.service.UserService;
 import lombok.AllArgsConstructor;
@@ -25,19 +26,14 @@ public class UserController {
     private final AlbumService albumService;
 
 
-    //temporary endpoint, user creation will be event driven
-    @GetMapping("/api/private-albums/users/{userId}")
-    ResponseEntity<UserDtoOut> getUser(@PathVariable Long userId){
-        UserDtoOut userDtoOut = userService.getUserById(userId);
-        return new ResponseEntity<>(userDtoOut, HttpStatus.OK);
-    }
-
     @GetMapping("/api/users/{userId}/private-albums")
     ResponseEntity<Page<AlbumPreviewDto>> getAlbumPreviewsForUser(@PathVariable Long userId,
-                                                           @RequestParam(defaultValue = "0") int page,
-                                                           @RequestParam(defaultValue = "10") int pageSize) {
+                                                                  @RequestParam(defaultValue = "0") int page,
+                                                                  @RequestParam(defaultValue = "10") int pageSize,
+                                                                  @RequestHeader("X-USER-ID") String requesterId,
+                                                                  @RequestHeader("X-USERNAME") String username) {
 
-        Page<AlbumPreviewDto> previews = albumService.getAlbumPreviews(userId, page, pageSize);
+        Page<AlbumPreviewDto> previews = albumService.getAlbumPreviews(userId, page, pageSize, Long.valueOf(requesterId));
         return new ResponseEntity<>(previews, HttpStatus.OK);
     }
 
@@ -46,4 +42,11 @@ public class UserController {
         ErrorResponse response = new ErrorResponse(HttpStatus.NOT_FOUND.value(), exception.getMessage());
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
+
+    @ExceptionHandler(UnauthorizedRequestException.class)
+    ResponseEntity<ErrorResponse> handleUnauthorizedException(UnauthorizedRequestException exception) {
+        ErrorResponse response = new ErrorResponse(HttpStatus.UNAUTHORIZED.value(), exception.getMessage());
+        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+    }
+
 }

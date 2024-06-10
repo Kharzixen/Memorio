@@ -5,6 +5,8 @@ import com.kharzixen.authenticationservice.dto.RegistrationDtoOut;
 import com.kharzixen.authenticationservice.dto.UserDtoOut;
 import com.kharzixen.authenticationservice.dto.UserPatchDtoIn;
 import com.kharzixen.authenticationservice.model.User;
+import com.kharzixen.authenticationservice.model.UserOutbox;
+import com.kharzixen.authenticationservice.repository.UserOutboxRepository;
 import com.kharzixen.authenticationservice.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.*;
@@ -21,6 +23,7 @@ import java.util.Objects;
 @AllArgsConstructor
 public class UserService  {
     private final UserRepository userRepository;
+    private final UserOutboxRepository userOutboxRepository;
     private final PasswordEncoder passwordEncoder;
 
 
@@ -31,9 +34,23 @@ public class UserService  {
 
     public RegistrationDtoOut registerUser(RegistrationDtoIn dtoIn){
         if(Objects.equals(dtoIn.getPassword(), dtoIn.getConfirmPassword())){
-            User user = new User(null, dtoIn.getUsername(), dtoIn.getPassword(), false, true);
+            User user = new User(null, dtoIn.getUsername(), dtoIn.getEmail(),
+                    dtoIn.getPassword(), dtoIn.getPhoneNumber(), false, true);
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             User saved = userRepository.save(user);
+
+            UserOutbox outbox = UserOutbox.builder()
+                    .id(null)
+                    .method("CREATE")
+                    .userId(saved.getId())
+                    .username(saved.getUsername())
+                    .email(saved.getEmail())
+                    .birthday(dtoIn.getBirthday())
+                    .isActive(saved.getIsActive())
+                    .isAdmin(saved.getIsAdmin())
+                    .name(dtoIn.getName())
+                    .build();
+            userOutboxRepository.save(outbox);
             return new RegistrationDtoOut(saved.getId(), saved.getUsername());
         } else {
             throw new RuntimeException("Passwords don't match");

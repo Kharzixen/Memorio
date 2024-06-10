@@ -27,15 +27,15 @@ public class UserService {
     private final MemoryRepository memoryRepository;
     private final AlbumRepository albumRepository;
 
-    //temporary, the user creation will be event driven
-    public UserDtoOut createUser(UserDtoIn userDtoIn) {
-        User user = UserMapper.INSTANCE.dtoToModel(userDtoIn);
+    public UserDtoOut createUser(UserDtoIn userDtoIn) throws DuplicateUserException{
         if(userRepository.findById(userDtoIn.getId()).isEmpty()){
-           User savedUser = userRepository.save(user);
+            User user = UserMapper.INSTANCE.dtoToModel(userDtoIn);
+            user.setIsDeleted(false);
+            User savedUser = userRepository.save(user);
             return UserMapper.INSTANCE.modelToDto(savedUser);
-        };
-
-        throw new DuplicateUserException(user.getId());
+        } else {
+            throw new DuplicateUserException(userDtoIn.getId());
+        }
     }
 
     //TODO refactor the findById to only get the data that is needed (no collections, albums, etc)

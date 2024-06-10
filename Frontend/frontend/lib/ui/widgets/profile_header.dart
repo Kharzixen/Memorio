@@ -1,17 +1,23 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/bloc/auth_bloc/auth_bloc.dart';
+import 'package:frontend/bloc/profile_bloc/profile_bloc.dart';
 import 'package:frontend/cubit/following_sheet_cubit.dart/following_sheet_cubit.dart';
 import 'package:frontend/data/data_provider/utils/http_headers.dart';
 import 'package:frontend/data/repository/user_repository.dart';
 import 'package:frontend/model/user_model.dart';
+import 'package:frontend/model/utils/action_types_for_pop_payload.dart';
+import 'package:frontend/model/utils/pop_payload.dart';
 import 'package:frontend/service/auth_service.dart';
 import 'package:frontend/ui/widgets/following_sheet_widget.dart';
+import 'package:go_router/go_router.dart';
+import 'package:widget_zoom/widget_zoom.dart';
 
 class ProfileHeader extends StatefulWidget {
   final User user;
-  const ProfileHeader({Key? key, required this.user}) : super(key: key);
+  final int postCount;
+  const ProfileHeader({Key? key, required this.user, required this.postCount})
+      : super(key: key);
 
   @override
   State<ProfileHeader> createState() => _ProfileHeaderState();
@@ -31,29 +37,34 @@ class _ProfileHeaderState extends State<ProfileHeader> {
               height: 80,
               child: ClipRRect(
                   borderRadius: BorderRadius.circular(120),
-                  child: CachedNetworkImage(
-                    imageUrl: widget.user.pfpLink,
-                    httpHeaders:
-                        HttpHeadersFactory.getDefaultRequestHeaderForImage(
-                            TokenManager().accessToken!),
-                    imageBuilder: (context, imageProvider) {
-                      return Container(
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                              image: imageProvider, fit: BoxFit.cover),
-                        ),
-                      );
-                    },
+                  child: WidgetZoom(
+                    heroAnimationTag: widget.user.pfpLink,
+                    zoomWidget: CachedNetworkImage(
+                      imageUrl: widget.user.pfpLink,
+                      errorWidget: (context, url, error) =>
+                          const Icon(Icons.error),
+                      httpHeaders:
+                          HttpHeadersFactory.getDefaultRequestHeaderForImage(
+                              TokenManager().accessToken!),
+                      imageBuilder: (context, imageProvider) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            image: DecorationImage(
+                                image: imageProvider, fit: BoxFit.cover),
+                          ),
+                        );
+                      },
+                    ),
                   )),
             ),
-            const Column(
+            Column(
               children: [
                 Text(
-                  "0",
-                  style: TextStyle(
+                  widget.postCount.toString(),
+                  style: const TextStyle(
                       color: Colors.white, fontWeight: FontWeight.w500),
                 ),
-                Text(
+                const Text(
                   "Posts",
                   style: TextStyle(
                       color: Colors.white,
@@ -172,7 +183,17 @@ class _ProfileHeaderState extends State<ProfileHeader> {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10)),
                       backgroundColor: Colors.grey.shade500),
-                  onPressed: () {},
+                  onPressed: () async {
+                    var response = await context.push("/profile/edit-profile");
+                    if (response != null && context.mounted) {
+                      var validResponse = response as PopPayload<User>;
+                      if (validResponse.actionType == ActionType.updated) {
+                        context.read<ProfileBloc>().add(
+                            RefreshProfileWithProvidedUser(
+                                validResponse.data!));
+                      }
+                    }
+                  },
                   child: const Text(
                     "Edit profile",
                     style: TextStyle(color: Colors.black),

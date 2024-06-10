@@ -14,8 +14,8 @@ public class UserEvent {
     @JsonProperty
     private Long id;
 
-    @JsonProperty("event_type")
-    private String eventType;
+    @JsonProperty("method")
+    private String method;
 
     @JsonProperty("user_id")
     private Long userId;
@@ -23,6 +23,8 @@ public class UserEvent {
     @JsonProperty
     private String username;
 
-    @JsonProperty("pfp_id")
-    private String pfpId;
+    @JsonProperty("is_active")
+    private Boolean isActive;
+    @JsonProperty("is_admin")
+    private Boolean isAdmin;
 }

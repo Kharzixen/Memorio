@@ -1,7 +1,6 @@
 import 'package:frontend/data/repository/auth_repository.dart';
 import 'package:frontend/model/utils/auth_response.dart';
 import 'package:frontend/service/storage_service.dart';
-import 'package:jwt_decoder/jwt_decoder.dart';
 
 class TokenManager {
   static final TokenManager _instance = TokenManager._internal();

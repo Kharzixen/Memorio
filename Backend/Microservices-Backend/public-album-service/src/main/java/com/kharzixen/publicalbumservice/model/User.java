@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Data
@@ -19,8 +20,9 @@ public class User {
     @Id
     private Long id;
     private String username;
-    private String pfpId;
-    private boolean isDeleted;
+    private Boolean isDeleted;
+    private Boolean isAdmin;
+    private Boolean isActive;
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.PERSIST, orphanRemoval = false)
     private List<Album> ownedAlbums;
@@ -37,4 +39,19 @@ public class User {
 
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     private List<Comment> comments;
+
+    // Override hashCode
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
+
+    // Override equals
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return Objects.equals(id, user.id);
+    }
 }

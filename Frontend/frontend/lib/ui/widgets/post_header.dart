@@ -1,8 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/bloc/auth_bloc/auth_bloc.dart';
 import 'package:frontend/cubit/post_comments_cubit/post_comments_cubit.dart';
 import 'package:frontend/cubit/post_cubit/post_cubit.dart';
 import 'package:frontend/cubit/post_likes_cubit/post_likes_cubit.dart';
@@ -220,7 +218,7 @@ class PostHeader extends StatelessWidget {
             );
           },
           child: Text(
-            '0 likes',
+            '3 likes',
             style: GoogleFonts.lato(
                 color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
           ),
@@ -232,7 +230,7 @@ class PostHeader extends StatelessWidget {
           children: [
             CircleAvatar(
               foregroundImage: CachedNetworkImageProvider(
-                post.owner.pfpLink,
+                "https://images.pexels.com/photos/20428827/pexels-photo-20428827/free-photo-of-portrait-of-woman-in-white-shirt.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
                 headers: HttpHeadersFactory.getDefaultRequestHeaderForImage(
                     TokenManager().accessToken!),
               ),
@@ -283,15 +281,15 @@ class PostHeader extends StatelessWidget {
             ),
             Column(
               children: [
+                // Text(
+                //   "",
+                //   style: GoogleFonts.lato(
+                //     color: Colors.white,
+                //     fontSize: 12,
+                //   ),
+                // ),
                 Text(
-                  "Leaning Tower of Pisa",
-                  style: GoogleFonts.lato(
-                    color: Colors.white,
-                    fontSize: 12,
-                  ),
-                ),
-                Text(
-                  "Pisa, Italy",
+                  "Venice, Italy",
                   style: GoogleFonts.lato(
                     color: Colors.white,
                     fontSize: 12,

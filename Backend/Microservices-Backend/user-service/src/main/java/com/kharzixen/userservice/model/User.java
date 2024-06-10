@@ -16,7 +16,6 @@ import java.util.Set;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(unique=true)
@@ -33,6 +32,9 @@ public class User {
     private String pfpId;
 
     private Date accountCreationDate;
+
+    private Boolean isAdmin;
+    private Boolean isActive;
 
 
     @ManyToMany

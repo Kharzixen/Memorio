@@ -12,7 +12,4 @@ import lombok.NoArgsConstructor;
 public class UserDtoOut {
     private Long id;
     private String username;
-
-    private String pfpId;
-
 }

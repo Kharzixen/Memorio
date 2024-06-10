@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/data/repository/public_album_repository.dart';
-import 'package:frontend/model/public_albums.dart';
+import 'package:frontend/model/album_model.dart';
+import 'package:frontend/model/memory_model.dart';
 
 part 'public_album_previews_state.dart';
 
@@ -23,46 +24,52 @@ class PublicAlbumPreviewsCubit extends Cubit<PublicAlbumPreviewsState> {
     }
   }
 
-  // FutureOr<void> _refreshAlbumsPage() async {
-  //   albumPreview = [];
-  //   albumPreview.addAll(await albumRepository.getAlbumPreviewOfUser(userId));
-  //   emit(AlbumsPreviewLoadedState(albumPreview, false));
-  // }
+  void addNewMemory(String albumId, PublicMemory publicMemory) {}
 
-  // FutureOr<void> _removeAlbumFromList() {
-  //   for (int i = 0; i < albumPreview.length; i++) {
-  //     if (albumPreview[i].albumId == event.albumId) {
-  //       albumPreview.removeAt(i);
-  //       break;
-  //     }
-  //   }
-  //   emit(AlbumsPreviewLoadedState(albumPreview, false));
-  // }
+  void refresh() async {
+    albumPreview = [];
+    try {
+      albumPreview.addAll(await albumRepository.getAlbumPreviewOfUser(userId));
+      emit(PublicAlbumPreviewsLoadedState(albumPreview));
+    } catch (e) {
+      emit(PublicAlbumPreviewsErrorState(e.toString()));
+    }
+  }
 
-  // FutureOr<void> _addToImagePreviewsNewImage() {
-  //   for (int i = 0; i < albumPreview.length; i++) {
-  //     if (albumPreview[i].albumId == event.albumId) {
-  //       if (albumPreview[i].previewImages.isEmpty) {
-  //         albumPreview[i].previewImages.add(event.memory);
-  //       } else {
-  //         albumPreview[i].previewImages.insert(0, event.memory);
-  //         albumPreview[i].previewImages.removeLast();
-  //       }
-  //       break;
-  //     }
-  //   }
-  //   emit(AlbumsPreviewLoadedState(albumPreview, false));
-  // }
+  void removeAlbumFromList(String albumId) {
+    for (int i = 0; i < albumPreview.length; i++) {
+      if (albumPreview[i].albumId == albumId) {
+        albumPreview.removeAt(i);
+        break;
+      }
+    }
+    emit(PublicAlbumPreviewsLoadedState(albumPreview));
+  }
 
-  // FutureOr<void> _leaveAlbum() async {
-  //   emit(AlbumsPreviewLoadedState(albumPreview, true));
-  //   await albumRepository.removeUserFromAlbum(event.albumId, userId);
-  //   for (int i = 0; i < albumPreview.length; i++) {
-  //     if (albumPreview[i].albumId == event.albumId) {
-  //       albumPreview.removeAt(i);
-  //       break;
-  //     }
-  //   }
-  //   emit(AlbumsPreviewLoadedState(albumPreview, false));
-  // }
+  void addToImagePreviewsNewImage(String albumId, PublicMemory memory) {
+    for (int i = 0; i < albumPreview.length; i++) {
+      if (albumPreview[i].albumId == albumId) {
+        if (albumPreview[i].previewImages.isEmpty) {
+          albumPreview[i].previewImages.add(memory);
+        } else {
+          albumPreview[i].previewImages.insert(0, memory);
+          albumPreview[i].previewImages.removeLast();
+        }
+        break;
+      }
+    }
+    emit(PublicAlbumPreviewsLoadedState(albumPreview));
+  }
+
+  void leaveAlbum(String albumId) async {
+    emit(PublicAlbumPreviewsLoadedState(albumPreview));
+    await albumRepository.removeUserFromAlbum(albumId, userId);
+    for (int i = 0; i < albumPreview.length; i++) {
+      if (albumPreview[i].albumId == albumId) {
+        albumPreview.removeAt(i);
+        break;
+      }
+    }
+    emit(PublicAlbumPreviewsLoadedState(albumPreview));
+  }
 }

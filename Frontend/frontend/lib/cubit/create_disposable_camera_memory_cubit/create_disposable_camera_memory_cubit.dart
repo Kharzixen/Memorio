@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:frontend/data/repository/disposable_camera_memory_repository.dart';
-import 'package:frontend/model/private-album_model.dart';
+import 'package:frontend/model/memory_model.dart';
 import 'package:frontend/model/utils/memory_creation_details.dart';
 import 'package:frontend/service/storage_service.dart';
 import 'package:gal/gal.dart';

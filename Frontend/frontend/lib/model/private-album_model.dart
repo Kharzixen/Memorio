@@ -1,4 +1,6 @@
+import 'package:frontend/model/album_model.dart';
 import 'package:frontend/model/disposable_camera_model.dart';
+import 'package:frontend/model/memory_model.dart';
 import 'package:frontend/model/user_model.dart';
 import 'package:frontend/service/storage_service.dart';
 
@@ -41,37 +43,6 @@ class PrivateAlbumInfo {
   }
 }
 
-class PrivateAlbumPreview {
-  String albumId;
-  String name;
-  String albumPicture;
-  String caption;
-  DisposableCamera disposableCamera;
-  List<PrivateMemory> previewImages;
-
-  PrivateAlbumPreview({
-    required this.albumId,
-    required this.name,
-    required this.caption,
-    required this.disposableCamera,
-    required this.albumPicture,
-    required this.previewImages,
-  });
-
-  factory PrivateAlbumPreview.fromJson(Map<String, dynamic> json) {
-    return PrivateAlbumPreview(
-      albumId: json['id'].toString(),
-      name: json['albumName'] as String,
-      albumPicture: (json['albumImageLink'] as String).contains("https")
-          ? json['albumImageLink']
-          : "${StorageService.connectionString}/private-album-images/${json['albumImageLink']}",
-      caption: json['caption'] as String,
-      disposableCamera: DisposableCamera.fromJson(json['disposableCamera']),
-      previewImages: [],
-    );
-  }
-}
-
 class SimplePrivateAlbum {
   String albumId;
   String albumName;
@@ -91,8 +62,7 @@ class SimplePrivateAlbum {
     );
   }
 
-  factory SimplePrivateAlbum.fromAlbumPreview(
-      PrivateAlbumPreview albumPreview) {
+  factory SimplePrivateAlbum.fromAlbumPreview(AlbumPreview albumPreview) {
     return SimplePrivateAlbum(
         albumId: albumPreview.albumId,
         albumName: albumPreview.name,

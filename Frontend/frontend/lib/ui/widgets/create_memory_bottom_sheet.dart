@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/model/memory_model.dart';
 import 'package:frontend/model/private-album_model.dart';
 import 'package:frontend/model/utils/memory_creation_details.dart';
 import 'package:frontend/model/utils/pop_payload.dart';
@@ -149,64 +150,4 @@ class _CreateMemoryBottomSheetState extends State<CreateMemoryBottomSheet> {
       ),
     );
   }
-
-  // OverlayEntry _createAddMemoryPopupDialog(File selectedImage, String source) {
-  //   return OverlayEntry(
-  //     builder: (context) => BackButtonListener(
-  //       onBackButtonPressed: () {
-  //         createPostOverlay.remove();
-  //         return Future.value(true);
-  //       },
-  //       child: AnimatedDialog(
-  //         child: Container(
-  //           height: double.infinity,
-  //           width: double.infinity,
-  //           color: Colors.amber,
-  //           child: ListView(
-  //             children: [
-  //               ConstrainedBox(
-  //                 constraints: BoxConstraints(
-  //                     minWidth: double.infinity,
-  //                     maxHeight: MediaQuery.of(context).size.height * 0.82),
-  //                 child: Container(
-  //                   decoration: BoxDecoration(
-  //                       border:
-  //                           Border.all(color: Colors.grey.shade900, width: 3)),
-  //                   child: Image.file(
-  //                     selectedImage,
-  //                     fit: BoxFit.cover,
-  //                   ),
-  //                 ),
-  //               ),
-  //               MaterialButton(
-  //                 child: Text("Exit"),
-  //                 color: Colors.blue,
-  //                 onPressed: () {
-  //                   _removePopupDialog();
-  //                 },
-  //               ),
-  //               MaterialButton(
-  //                 child: Text("Change image"),
-  //                 color: Colors.blue,
-  //                 onPressed: () {
-  //                   _removePopupDialog();
-  //                   if (source == "camera") {
-  //                     _pickImageFromCamera();
-  //                   } else {
-  //                     _pickImageFromGallery();
-  //                   }
-  //                 },
-  //               ),
-  //             ],
-  //           ),
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  // void _removePopupDialog() {
-  //   createPostOverlay.remove();
-  //   selectedImage = null;
-  // }
 }

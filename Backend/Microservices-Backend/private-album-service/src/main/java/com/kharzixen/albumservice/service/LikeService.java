@@ -2,9 +2,9 @@ package com.kharzixen.albumservice.service;
 
 import com.kharzixen.albumservice.dto.incomming.LikeDtoIn;
 import com.kharzixen.albumservice.dto.outgoing.LikeDtoOut;
-import com.kharzixen.albumservice.exception.CollectionNameDuplicateException;
 import com.kharzixen.albumservice.exception.MemoryLikeDuplicateException;
 import com.kharzixen.albumservice.exception.NotFoundException;
+import com.kharzixen.albumservice.exception.UnauthorizedRequestException;
 import com.kharzixen.albumservice.mapper.LikeMapper;
 import com.kharzixen.albumservice.model.Album;
 import com.kharzixen.albumservice.model.Like;
@@ -18,9 +18,11 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @AllArgsConstructor
@@ -32,18 +34,22 @@ public class LikeService {
     private final LikeRepository likeRepository;
     private final UserRepository userRepository;
 
-    public LikeDtoOut createLike(Long albumId, Long memoryId, LikeDtoIn dtoIn) {
+    public LikeDtoOut createLike(Long albumId, Long memoryId, LikeDtoIn dtoIn, Long requesterId) {
 
         try{
-            Album album = albumRepository.findById(albumId)
-                    .orElseThrow(() -> new NotFoundException("Album", albumId));
-            Memory memory = memoryRepository.findById(memoryId)
-                    .orElseThrow(() -> new NotFoundException("Memory", albumId));
-            User user = userRepository.findById(dtoIn.getUserId())
-                    .orElseThrow(() -> new NotFoundException("User", dtoIn.getUserId()));
-            Like like = new Like(null, user, memory, new Date());
-            Like saved = likeRepository.save(like);
-            return LikeMapper.INSTANCE.modelToDto(saved);
+           if(albumRepository.isUserContributorOfAlbum(requesterId, albumId)){
+               Album album = albumRepository.findById(albumId)
+                       .orElseThrow(() -> new NotFoundException("Album", albumId));
+               Memory memory = memoryRepository.findById(memoryId)
+                       .orElseThrow(() -> new NotFoundException("Memory", albumId));
+               User user = userRepository.findById(requesterId)
+                       .orElseThrow(() -> new NotFoundException("User", requesterId));
+               Like like = new Like(null, user, memory, new Date());
+               Like saved = likeRepository.save(like);
+               return LikeMapper.INSTANCE.modelToDto(saved);
+           } else {
+               throw new UnauthorizedRequestException("Unauthorized");
+           }
         } catch (DataIntegrityViolationException ex) {
 
             if (ex.getMessage().contains("Duplicate entry")) {
@@ -62,11 +68,20 @@ public class LikeService {
         }
     }
 
-    public List<LikeDtoOut> getAllLikesOfMemory(Long albumId, Long memoryId) {
-        return likeRepository.findAllWhereMemoryId(memoryId).stream().map(LikeMapper.INSTANCE::modelToDto).toList();
+    public List<LikeDtoOut> getAllLikesOfMemory(Long albumId, Long memoryId, Long requesterId) {
+        if(albumRepository.isUserContributorOfAlbum(requesterId, albumId)){
+            return likeRepository.findAllWhereMemoryId(memoryId).stream().map(LikeMapper.INSTANCE::modelToDto).toList();
+        } else {
+            throw new UnauthorizedRequestException("Unauthorized");
+        }
     }
 
-    public void deleteLikeById(Long albumId, Long memoryId, Long likeId) {
-        likeRepository.deleteById(likeId);
+    @Transactional
+    public void deleteLikeById(Long albumId, Long memoryId, Long userId, Long requesterId) {
+        if(Objects.equals(userId, requesterId)) {
+            likeRepository.deleteLikeOfMemory(memoryId, requesterId);
+        } else {
+            throw new UnauthorizedRequestException("Unauthorized");
+        }
     }
 }

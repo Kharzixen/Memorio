@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:frontend/data/data_provider/public_album_data_provider.dart';
-import 'package:frontend/model/public_albums.dart';
-import 'package:frontend/model/public_memory.dart';
+import 'package:frontend/model/album_model.dart';
+import 'package:frontend/model/memory_model.dart';
+import 'package:frontend/model/user_model.dart';
 
 class PublicAlbumRepository {
   Future<List<PublicAlbumPreview>> getAlbumPreviewOfUser(String userId) async {
@@ -31,60 +33,60 @@ class PublicAlbumRepository {
     }
   }
 
-  // Future<PrivateAlbumInfo> getAlbumHeaderInfo(String albumId) async {
-  //   try {
-  //     var response = await PrivateAlbumDataProvider.getAlbumInfo(albumId);
-  //     Map<String, dynamic> responseJson = json.decode(response.body);
-  //     PrivateAlbumInfo albumInfo = PrivateAlbumInfo.fromJson(responseJson);
-  //     return albumInfo;
-  //   } catch (e) {
-  //     rethrow;
-  //   }
-  // }
+  Future<PublicAlbumInfo> getAlbumHeaderInfo(String albumId) async {
+    try {
+      var response = await PublicAlbumDataProvider.getAlbumInfo(albumId);
+      Map<String, dynamic> responseJson = json.decode(response.body);
+      PublicAlbumInfo albumInfo = PublicAlbumInfo.fromJson(responseJson);
+      return albumInfo;
+    } catch (e) {
+      rethrow;
+    }
+  }
 
-  // Future<PrivateAlbumPreview> createAlbum(
-  //   String ownerId,
-  //   String albumName,
-  //   String caption,
-  //   List<SimpleUser> contributors,
-  //   Uint8List image,
-  // ) async {
-  //   try {
-  //     var response = await PrivateAlbumDataProvider.createAlbum(
-  //         ownerId: ownerId,
-  //         albumName: albumName,
-  //         caption: caption,
-  //         invitedUserIds: contributors.map((e) => e.userId).toList(),
-  //         albumImage: image);
+  Future<PublicAlbumPreview> createAlbum(
+    String ownerId,
+    String albumName,
+    String caption,
+    List<SimpleUser> contributors,
+    Uint8List image,
+  ) async {
+    try {
+      var response = await PublicAlbumDataProvider.createAlbum(
+          ownerId: ownerId,
+          albumName: albumName,
+          caption: caption,
+          invitedUserIds: contributors.map((e) => e.userId).toList(),
+          albumImage: image);
 
-  //     Map<String, dynamic> jsonResponse =
-  //         json.decode(await response.stream.bytesToString());
-  //     PrivateAlbumPreview album = PrivateAlbumPreview.fromJson(jsonResponse);
-  //     return album;
-  //   } catch (e) {
-  //     rethrow;
-  //   }
-  // }
+      Map<String, dynamic> jsonResponse =
+          json.decode(await response.stream.bytesToString());
+      PublicAlbumPreview album = PublicAlbumPreview.fromJson(jsonResponse);
+      return album;
+    } catch (e) {
+      rethrow;
+    }
+  }
 
-  // Future<List<SimpleUser>> getContributorsOfAlbum(String albumId) async {
-  //   try {
-  //     final response =
-  //         await PrivateAlbumDataProvider.getContributorsOfAlbum(albumId);
-  //     if (response.statusCode == 200) {
-  //       List<dynamic> contributorJsonList = json.decode(response.body);
-  //       List<SimpleUser> contributors = [];
-  //       for (var contributorJson in contributorJsonList) {
-  //         SimpleUser user = SimpleUser.fromMap(contributorJson);
-  //         contributors.add(user);
-  //       }
-  //       return contributors;
-  //     } else {
-  //       throw Exception(response.body);
-  //     }
-  //   } catch (e) {
-  //     rethrow;
-  //   }
-  // }
+  Future<List<SimpleUser>> getContributorsOfAlbum(String albumId) async {
+    try {
+      final response =
+          await PublicAlbumDataProvider.getContributorsOfAlbum(albumId);
+      if (response.statusCode == 200) {
+        List<dynamic> contributorJsonList = json.decode(response.body);
+        List<SimpleUser> contributors = [];
+        for (var contributorJson in contributorJsonList) {
+          SimpleUser user = SimpleUser.fromMap(contributorJson);
+          contributors.add(user);
+        }
+        return contributors;
+      } else {
+        throw Exception(response.body);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
 
   // Future<int> addUsersToAlbum(
   //     String albumId, Set<SimpleUser> selectedUsers) async {
@@ -101,17 +103,43 @@ class PublicAlbumRepository {
   //   }
   // }
 
-  // Future<void> removeUserFromAlbum(String albumId, String userId) async {
-  //   try {
-  //     final response =
-  //         await PrivateAlbumDataProvider.removeUserFromAlbum(albumId, userId);
-  //     if (!(response.statusCode == 204)) {
-  //       throw Exception(response.body);
-  //     }
-  //   } catch (e) {
-  //     rethrow;
-  //   }
-  // }
+  Future<void> removeUserFromAlbum(String albumId, String userId) async {
+    try {
+      final response =
+          await PublicAlbumDataProvider.removeUserFromAlbum(albumId, userId);
+      if (!(response.statusCode == 204)) {
+        throw Exception(response.body);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  getAlbumSuggestionsForUser(String userId, int page, int pageSize) async {
+    try {
+      final response = await PublicAlbumDataProvider.getAlbumSuggestionsForUser(
+          userId, page, pageSize);
+      if (response.statusCode == 200) {
+        Map<String, dynamic> responseJson = json.decode(response.body);
+        List<PublicAlbumPreview> previews = [];
+        for (var content in responseJson["content"]) {
+          List<PublicMemory> recentMemories = [];
+          for (var memoryMap in content["recentMemories"]) {
+            PublicMemory memory = PublicMemory.fromJson(memoryMap);
+            recentMemories.add(memory);
+          }
+          PublicAlbumPreview preview = PublicAlbumPreview.fromJson(content);
+          preview.previewImages = recentMemories;
+          previews.add(preview);
+        }
+        return previews;
+      } else {
+        throw Exception(response.body);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
 
   // Future<SimpleUser> getContributorOfAlbumById(
   //     String albumId, String contributorId) async {

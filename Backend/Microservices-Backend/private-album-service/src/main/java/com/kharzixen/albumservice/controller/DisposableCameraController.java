@@ -24,54 +24,65 @@ public class DisposableCameraController {
 
 
     @PatchMapping("/{albumId}/disposable-camera")
-    ResponseEntity<DisposableCameraDtoOut> getDisposableCameraOfAlbum(@PathVariable Long albumId, @RequestBody DisposableCameraPatchDtoIn patchDtoIn) {
-        DisposableCameraDtoOut dtoOut = disposableCameraService.patchDisposableCameraOfAlbum(albumId, patchDtoIn);
+    ResponseEntity<DisposableCameraDtoOut> getDisposableCameraOfAlbum(@PathVariable Long albumId,
+                                                                      @RequestBody DisposableCameraPatchDtoIn patchDtoIn,
+                                                                      @RequestHeader("X-USER-ID") String requesterId,
+                                                                      @RequestHeader("X-USERNAME") String username) {
+        DisposableCameraDtoOut dtoOut = disposableCameraService
+                .patchDisposableCameraOfAlbum(albumId, patchDtoIn, Long.valueOf(requesterId));
         return ResponseEntity.ok(dtoOut);
     }
 
-//    @GetMapping("/{albumId}/disposable-camera")
-//    ResponseEntity<AlbumDtoOut> getDisposableCameraOfAlbum(@PathVariable Long albumId) {
-//        AlbumDtoOut albumDtoOut = disposableCameraService.getDisposableCameraOfAlbum(albumId);
-//        return ResponseEntity.ok(albumDtoOut);
-//    }
 
     @GetMapping("/{albumId}/disposable-camera/memories")
     ResponseEntity<Page<DisposableCameraMemoryDtoOut>> getDisposableCameraMemoriesOfAlbum(
             @PathVariable Long albumId,
             @RequestParam(required = false) Long uploaderId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int pageSize) {
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestHeader("X-USER-ID") String requesterId,
+            @RequestHeader("X-USERNAME") String username) {
 
         if (uploaderId != null) {
             Page<DisposableCameraMemoryDtoOut> pageOfMemories = disposableCameraMemoryService
-                    .getDisposableCameraMemoriesByUploaderPaginated(albumId, uploaderId, page, pageSize);
+                    .getDisposableCameraMemoriesByUploaderPaginated(albumId, uploaderId, page, pageSize, Long.valueOf(requesterId));
             return ResponseEntity.ok(pageOfMemories);
         }
 
         Page<DisposableCameraMemoryDtoOut> pageOfMemories = disposableCameraMemoryService
-                .getDisposableCameraMemoriesPaginated(albumId, page, pageSize);
+                .getDisposableCameraMemoriesPaginated(albumId, page, pageSize, Long.valueOf(requesterId));
         return ResponseEntity.ok(pageOfMemories);
     }
 
     @GetMapping("/{albumId}/disposable-camera/memories/{memoryId}")
     ResponseEntity<DisposableCameraMemoryDtoOut> getDisposableMemoryOfAlbumById(
             @PathVariable Long albumId,
-            @PathVariable(value = "memoryId") Long disposableCameraMemoryId){
-        DisposableCameraMemoryDtoOut dtoOut = disposableCameraMemoryService.getDisposableCameraMemoryOfAlbumById(albumId, disposableCameraMemoryId);
+            @PathVariable(value = "memoryId") Long disposableCameraMemoryId,
+            @RequestHeader("X-USER-ID") String requesterId,
+            @RequestHeader("X-USERNAME") String username) {
+        DisposableCameraMemoryDtoOut dtoOut = disposableCameraMemoryService
+                .getDisposableCameraMemoryOfAlbumById(albumId, disposableCameraMemoryId, Long.valueOf(requesterId));
         return ResponseEntity.ok(dtoOut);
     }
 
     @DeleteMapping("/{albumId}/disposable-camera/memories/{memoryId}")
     ResponseEntity<Void> deleteDisposableMemoryById(
             @PathVariable Long albumId,
-            @PathVariable(value = "memoryId") Long disposableCameraMemoryId){
-        disposableCameraMemoryService.deleteDisposableMemoryById(albumId, disposableCameraMemoryId);
+            @PathVariable(value = "memoryId") Long disposableCameraMemoryId,
+            @RequestHeader("X-USER-ID") String requesterId,
+            @RequestHeader("X-USERNAME") String username) {
+        disposableCameraMemoryService
+                .deleteDisposableMemoryById(albumId, disposableCameraMemoryId, Long.valueOf(requesterId));
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @PostMapping(path = "/{albumId}/disposable-camera/memories", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    ResponseEntity<DisposableCameraMemoryDtoOut> createMemory(@PathVariable Long albumId, @ModelAttribute DisposableCameraMemoryDtoIn memoryDtoIn) {
-        DisposableCameraMemoryDtoOut dtoOut = disposableCameraMemoryService.createDisposableCameraMemory(albumId, memoryDtoIn);
+    ResponseEntity<DisposableCameraMemoryDtoOut> createMemory(@PathVariable Long albumId,
+                                                              @ModelAttribute DisposableCameraMemoryDtoIn memoryDtoIn,
+                                                              @RequestHeader("X-USER-ID") String requesterId,
+                                                              @RequestHeader("X-USERNAME") String username) {
+        DisposableCameraMemoryDtoOut dtoOut = disposableCameraMemoryService
+                .createDisposableCameraMemory(albumId, memoryDtoIn, Long.valueOf(requesterId));
         return new ResponseEntity<>(dtoOut, HttpStatus.CREATED);
     }
 

@@ -88,6 +88,7 @@ class UserProfilePage extends StatelessWidget {
                     UserHeader(
                       user: state.user,
                       isFollowed: state.isFollowed,
+                      postCount: state.postsCount,
                       isFollowInitiated: state.isFollowInitiated,
                     ),
                     const Divider(

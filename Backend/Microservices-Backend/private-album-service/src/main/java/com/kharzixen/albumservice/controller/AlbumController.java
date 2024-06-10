@@ -16,6 +16,7 @@ import com.kharzixen.albumservice.error.ErrorResponse;
 import com.kharzixen.albumservice.exception.CollectionNameDuplicateException;
 import com.kharzixen.albumservice.exception.MemoryLikeDuplicateException;
 import com.kharzixen.albumservice.exception.NotFoundException;
+import com.kharzixen.albumservice.exception.UnauthorizedRequestException;
 import com.kharzixen.albumservice.service.*;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -38,47 +39,65 @@ public class AlbumController {
     private final CommentService commentService;
 
     @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    ResponseEntity<AlbumDtoOut> createAlbum(@ModelAttribute AlbumDtoIn albumDtoIn) {
-        AlbumDtoOut responseBody = albumService.createAlbum(albumDtoIn);
+    ResponseEntity<AlbumDtoOut> createAlbum(@ModelAttribute AlbumDtoIn albumDtoIn,
+                                            @RequestHeader("X-USER-ID") String requesterId,
+                                            @RequestHeader("X-USERNAME") String username) {
+        AlbumDtoOut responseBody = albumService.createAlbum(albumDtoIn, Long.valueOf(requesterId));
         return new ResponseEntity<>(responseBody, HttpStatus.OK);
     }
 
     @PostMapping("/{albumId}/collections")
-    ResponseEntity<MemoryCollectionDtoOut> createCollection(@PathVariable Long albumId, @RequestBody MemoryCollectionDtoIn collectionDtoIn) {
-        MemoryCollectionDtoOut dtoOut = collectionService.createCollection(albumId, collectionDtoIn);
+    ResponseEntity<MemoryCollectionDtoOut> createCollection(@PathVariable Long albumId,
+                                                            @RequestBody MemoryCollectionDtoIn collectionDtoIn,
+                                                            @RequestHeader("X-USER-ID") String requesterId,
+                                                            @RequestHeader("X-USERNAME") String username) {
+        MemoryCollectionDtoOut dtoOut = collectionService.createCollection(albumId, collectionDtoIn, Long.valueOf(requesterId));
         return new ResponseEntity<>(dtoOut, HttpStatus.CREATED);
     }
 
     @PostMapping(path = "/{albumId}/memories", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    ResponseEntity<MemoryPreviewDtoOut> createMemory(@PathVariable Long albumId, @ModelAttribute MemoryDtoIn memoryDtoIn) {
-        MemoryPreviewDtoOut dtoOut = memoryService.createMemory(albumId, memoryDtoIn);
+    ResponseEntity<MemoryPreviewDtoOut> createMemory(@PathVariable Long albumId,
+                                                     @ModelAttribute MemoryDtoIn memoryDtoIn,
+                                                     @RequestHeader("X-USER-ID") String requesterId,
+                                                     @RequestHeader("X-USERNAME") String username) {
+        MemoryPreviewDtoOut dtoOut = memoryService.createMemory(albumId, memoryDtoIn, Long.valueOf(requesterId));
         return new ResponseEntity<>(dtoOut, HttpStatus.CREATED);
     }
 
     @GetMapping("/{albumId}")
-    ResponseEntity<AlbumDtoOut> getAlbumInfo(@PathVariable Long albumId) {
-        AlbumDtoOut albumDtoOut = albumService.getAlbumById(albumId);
+    ResponseEntity<AlbumDtoOut> getAlbumInfo(@PathVariable Long albumId,
+                                             @RequestHeader("X-USER-ID") String requesterId,
+                                             @RequestHeader("X-USERNAME") String username) {
+        AlbumDtoOut albumDtoOut = albumService.getAlbumById(albumId, Long.valueOf(requesterId));
         return ResponseEntity.ok(albumDtoOut);
     }
 
     @GetMapping("/{albumId}/contributors")
-    ResponseEntity<List<UserDtoOut>> getContributorsOfAlbum(@PathVariable Long albumId) {
-        List<UserDtoOut> contributors = albumService.getContributorsOfAlbum(albumId);
+    ResponseEntity<List<UserDtoOut>> getContributorsOfAlbum(@PathVariable Long albumId,
+                                                            @RequestHeader("X-USER-ID") String requesterId,
+                                                            @RequestHeader("X-USERNAME") String username) {
+        List<UserDtoOut> contributors = albumService.getContributorsOfAlbum(albumId, Long.valueOf(requesterId));
         return ResponseEntity.ok(contributors);
     }
 
     @GetMapping("/{albumId}/contributors/{contributorId}")
-    ResponseEntity<UserDtoOut> getContributorOfAlbumById(@PathVariable Long albumId, @PathVariable Long contributorId) {
-        UserDtoOut contributor = albumService.getContributorByIdOfAlbum(albumId, contributorId);
+    ResponseEntity<UserDtoOut> getContributorOfAlbumById(@PathVariable Long albumId,
+                                                         @PathVariable Long contributorId,
+                                                         @RequestHeader("X-USER-ID") String requesterId,
+                                                         @RequestHeader("X-USERNAME") String username) {
+        UserDtoOut contributor = albumService.getContributorByIdOfAlbum(albumId, contributorId, Long.valueOf(requesterId));
         return ResponseEntity.ok(contributor);
     }
 
     @PatchMapping("/{albumId}/contributors")
-    ResponseEntity<AlbumContributorsPatchedDtoOut> patchContributorsOfAlbum(@PathVariable Long albumId, @RequestBody PatchAlbumContributorsDtoIn patchDto) {
+    ResponseEntity<AlbumContributorsPatchedDtoOut> patchContributorsOfAlbum(@PathVariable Long albumId,
+                                                                            @RequestBody PatchAlbumContributorsDtoIn patchDto,
+                                                                            @RequestHeader("X-USER-ID") String requesterId,
+                                                                            @RequestHeader("X-USERNAME") String username) {
         switch (patchDto.getMethod()) {
             case "ADD":
                 AlbumContributorsPatchedDtoOut response = albumService
-                        .addContributors(albumId, patchDto);
+                        .addContributors(albumId, patchDto, Long.valueOf(requesterId));
                 return new ResponseEntity<>(response, HttpStatus.OK);
             default:
                 throw new RuntimeException("Unknown method");
@@ -89,15 +108,21 @@ public class AlbumController {
     ResponseEntity<Page<MemoryCollectionPreviewDtoOut>> getCollectionPreviewsOfAlbum(
             @PathVariable Long albumId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int pageSize) {
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestHeader("X-USER-ID") String requesterId,
+            @RequestHeader("X-USERNAME") String username) {
         Page<MemoryCollectionPreviewDtoOut> pageOfCollections = collectionService
-                .getCollectionPreviewsPaginated(albumId, page, pageSize);
+                .getCollectionPreviewsPaginated(albumId, page, pageSize, Long.valueOf(requesterId));
         return ResponseEntity.ok(pageOfCollections);
     }
 
     @GetMapping("/{albumId}/collections/{collectionId}")
-    ResponseEntity<MemoryCollectionPreviewDtoOut> getCollectionPreviewById(@PathVariable Long albumId, @PathVariable Long collectionId) {
-        MemoryCollectionPreviewDtoOut responseObject = collectionService.getCollectionPreviewById(albumId, collectionId);
+    ResponseEntity<MemoryCollectionPreviewDtoOut> getCollectionPreviewById(@PathVariable Long albumId,
+                                                                           @PathVariable Long collectionId,
+                                                                           @RequestHeader("X-USER-ID") String requesterId,
+                                                                           @RequestHeader("X-USERNAME") String username) {
+        MemoryCollectionPreviewDtoOut responseObject = collectionService
+                .getCollectionPreviewById(albumId, collectionId, Long.valueOf(requesterId));
         return ResponseEntity.ok(responseObject);
     }
 
@@ -106,9 +131,12 @@ public class AlbumController {
             @PathVariable Long albumId,
             @PathVariable Long collectionId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int pageSize) {
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestHeader("X-USER-ID") String requesterId,
+            @RequestHeader("X-USERNAME") String username) {
         Page<MemoryPreviewOfCollectionDtoOut> pageOfMemories =
-                memoryService.getMemoriesOfCollectionPaginated(albumId, collectionId, page, pageSize);
+                memoryService.getMemoriesOfCollectionPaginated(albumId, collectionId, page,
+                        pageSize, Long.valueOf(requesterId));
         return ResponseEntity.ok(pageOfMemories);
 
     }
@@ -129,38 +157,52 @@ public class AlbumController {
             @RequestParam(required = false) Long uploaderId,
             @RequestParam(required = false, name = "notIncludedInCollectionId") Long collectionId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int pageSize) {
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestHeader("X-USER-ID") String requesterId,
+            @RequestHeader("X-USERNAME") String username) {
         if (uploaderId != null && collectionId != null) {
-            Page<MemoryPreviewDtoOut> pageOfMemories = memoryService.getMemoriesOfAlbumByUploaderWhichNotIncludedInCollectionPaginated(albumId, uploaderId, collectionId, page, pageSize);
+            Page<MemoryPreviewDtoOut> pageOfMemories =
+                    memoryService.getMemoriesOfAlbumByUploaderWhichNotIncludedInCollectionPaginated(albumId,
+                            uploaderId, collectionId, page, pageSize, Long.valueOf(requesterId));
             return ResponseEntity.ok(pageOfMemories);
         }
 
         if (uploaderId != null) {
-            Page<MemoryPreviewDtoOut> pageOfMemories = memoryService.getMemoriesOfAlbumByUploaderPaginated(albumId, uploaderId, page, pageSize);
+            Page<MemoryPreviewDtoOut> pageOfMemories = memoryService.getMemoriesOfAlbumByUploaderPaginated(albumId,
+                    uploaderId, page, pageSize, Long.valueOf(requesterId));
             return ResponseEntity.ok(pageOfMemories);
         }
 
-        Page<MemoryPreviewDtoOut> pageOfMemories = memoryService.getMemoriesOfAlbumPaginated(albumId, page, pageSize);
+        Page<MemoryPreviewDtoOut> pageOfMemories = memoryService.getMemoriesOfAlbumPaginated(albumId, page, pageSize,
+                Long.valueOf(requesterId));
         return ResponseEntity.ok(pageOfMemories);
     }
 
     @GetMapping("/{albumId}/memories/{memoryId}")
     ResponseEntity<DetailedMemoryDtoOut> getMemoryById(
             @PathVariable Long albumId,
-            @PathVariable Long memoryId) {
-        DetailedMemoryDtoOut responseDto = memoryService.getMemoryById(albumId, memoryId);
+            @PathVariable Long memoryId,
+            @RequestHeader("X-USER-ID") String requesterId,
+            @RequestHeader("X-USERNAME") String username) {
+        DetailedMemoryDtoOut responseDto = memoryService
+                .getMemoryById(albumId, memoryId, Long.valueOf(requesterId));
         return ResponseEntity.ok(responseDto);
     }
 
     @DeleteMapping("/{albumId}/memories/{memoryId}")
-    ResponseEntity<Void> deleteMemoryById(@PathVariable Long albumId, @PathVariable Long memoryId) {
-        memoryService.deleteMemory(albumId, memoryId);
+    ResponseEntity<Void> deleteMemoryById(@PathVariable Long albumId,
+                                          @PathVariable Long memoryId,
+                                          @RequestHeader("X-USER-ID") String requesterId,
+                                          @RequestHeader("X-USERNAME") String username) {
+        memoryService.deleteMemory(albumId, memoryId, Long.valueOf(requesterId));
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{albumId}")
-    ResponseEntity<Void> deleteAlbumWithEverything(@PathVariable Long albumId) {
-        albumService.removeAlbum(albumId);
+    ResponseEntity<Void> deleteAlbumWithEverything(@PathVariable Long albumId,
+                                                   @RequestHeader("X-USER-ID") String requesterId,
+                                                   @RequestHeader("X-USERNAME") String username) {
+        albumService.removeAlbum(albumId, Long.valueOf(requesterId));
         return ResponseEntity.noContent().build();
     }
 
@@ -168,11 +210,14 @@ public class AlbumController {
     ResponseEntity<MemoryCollectionPatchedDtoOut> patchMemoriesOfCollection(
             @PathVariable Long albumId,
             @PathVariable Long collectionId,
-            @RequestBody PatchCollectionMemoriesDtoIn patchCollectionMemoriesDtoIn) {
+            @RequestBody PatchCollectionMemoriesDtoIn patchCollectionMemoriesDtoIn,
+            @RequestHeader("X-USER-ID") String requesterId,
+            @RequestHeader("X-USERNAME") String username) {
         switch (patchCollectionMemoriesDtoIn.getMethod()) {
             case "ADD":
                 MemoryCollectionPatchedDtoOut resp = collectionService
-                        .addMemoriesToCollection(albumId, collectionId, patchCollectionMemoriesDtoIn);
+                        .addMemoriesToCollection(albumId, collectionId,
+                                patchCollectionMemoriesDtoIn, Long.valueOf(requesterId));
                 return new ResponseEntity<>(resp, HttpStatus.OK);
             default:
                 throw new RuntimeException("Unknown method");
@@ -181,30 +226,38 @@ public class AlbumController {
 
     @DeleteMapping("/{albumId}/collections/{collectionId}")
     ResponseEntity<Void> deleteCollection(@PathVariable Long albumId,
-                                          @PathVariable Long collectionId) {
-        collectionService.deleteCollection(albumId, collectionId);
+                                          @PathVariable Long collectionId,
+                                          @RequestHeader("X-USER-ID") String requesterId,
+                                          @RequestHeader("X-USERNAME") String username) {
+        collectionService.deleteCollection(albumId, collectionId, Long.valueOf(requesterId));
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{albumId}/contributors/{userId}")
-    ResponseEntity<Void> patchUserAlbums(@PathVariable Long userId, @PathVariable Long albumId) {
-        albumService.removeUserFromAlbum(userId, albumId);
+    ResponseEntity<Void> patchUserAlbums(@PathVariable Long userId,
+                                         @PathVariable Long albumId,
+                                         @RequestHeader("X-USER-ID") String requesterId,
+                                         @RequestHeader("X-USERNAME") String username) {
+        albumService.removeUserFromAlbum(userId, albumId, Long.valueOf(requesterId));
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{albumId}/memories/{memoryId}/likes")
     ResponseEntity<LikeDtoOut> createLike(@PathVariable Long albumId,
                                           @PathVariable Long memoryId,
-                                          @RequestBody LikeDtoIn dtoIn) {
-        LikeDtoOut likeDtoOut = likeService.createLike(albumId, memoryId, dtoIn);
+                                          @RequestBody LikeDtoIn dtoIn,
+                                          @RequestHeader("X-USER-ID") String requesterId,
+                                          @RequestHeader("X-USERNAME") String username) {
+        LikeDtoOut likeDtoOut = likeService.createLike(albumId, memoryId, dtoIn, Long.valueOf(requesterId));
         return ResponseEntity.ok(likeDtoOut);
     }
 
     @GetMapping("/{albumId}/memories/{memoryId}/likes")
     ResponseEntity<List<LikeDtoOut>> getAllLikesOfMemory(@PathVariable Long albumId,
-                                                         @PathVariable Long memoryId
-    ) {
-        List<LikeDtoOut> likes = likeService.getAllLikesOfMemory(albumId, memoryId);
+                                                         @PathVariable Long memoryId,
+                                                         @RequestHeader("X-USER-ID") String requesterId,
+                                                         @RequestHeader("X-USERNAME") String username) {
+        List<LikeDtoOut> likes = likeService.getAllLikesOfMemory(albumId, memoryId, Long.valueOf(requesterId));
         return ResponseEntity.ok(likes);
     }
 
@@ -212,34 +265,41 @@ public class AlbumController {
     @PostMapping("/{albumId}/memories/{memoryId}/comments")
     ResponseEntity<CommentDtoOut> createComment(@PathVariable Long albumId,
                                                 @PathVariable Long memoryId,
-                                                @RequestBody CommentDtoIn dtoIn) {
-        CommentDtoOut commentDtoOut = commentService.createComment(albumId, memoryId, dtoIn);
+                                                @RequestBody CommentDtoIn dtoIn,
+                                                @RequestHeader("X-USER-ID") String requesterId,
+                                                @RequestHeader("X-USERNAME") String username) {
+        CommentDtoOut commentDtoOut = commentService.createComment(albumId, memoryId, dtoIn, Long.valueOf(requesterId));
         return ResponseEntity.ok(commentDtoOut);
     }
 
     @GetMapping("/{albumId}/memories/{memoryId}/comments")
     ResponseEntity<List<CommentDtoOut>> getAllCommentsOfMemory(@PathVariable Long albumId,
-                                                               @PathVariable Long memoryId
-    ) {
-        List<CommentDtoOut> comments = commentService.getAllCommentsOfMemory(albumId, memoryId);
+                                                               @PathVariable Long memoryId,
+                                                               @RequestHeader("X-USER-ID") String requesterId,
+                                                               @RequestHeader("X-USERNAME") String username) {
+        List<CommentDtoOut> comments = commentService.getAllCommentsOfMemory(albumId, memoryId, Long.valueOf(requesterId));
         return ResponseEntity.ok(comments);
     }
 
     @DeleteMapping("/{albumId}/memories/{memoryId}/comments/{commentId}")
     ResponseEntity<Void> deleteCommentById(@PathVariable Long albumId,
                                            @PathVariable Long memoryId,
-                                           @PathVariable Long commentId) {
+                                           @PathVariable Long commentId,
+                                           @RequestHeader("X-USER-ID") String requesterId,
+                                           @RequestHeader("X-USERNAME") String username) {
 
-        commentService.deleteCommentById(albumId, memoryId, commentId);
+        commentService.deleteCommentById(albumId, memoryId, commentId, Long.valueOf(requesterId));
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @DeleteMapping("/{albumId}/memories/{memoryId}/likes/{likeId}")
+    @DeleteMapping("/{albumId}/memories/{memoryId}/likes")
     ResponseEntity<Void> deleteLikeById(@PathVariable Long albumId,
                                         @PathVariable Long memoryId,
-                                        @PathVariable Long likeId) {
+                                        @RequestParam Long userId,
+                                        @RequestHeader("X-USER-ID") String requesterId,
+                                        @RequestHeader("X-USERNAME") String username) {
 
-        likeService.deleteLikeById(albumId, memoryId, likeId);
+        likeService.deleteLikeById(albumId, memoryId, userId, Long.valueOf(requesterId));
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
@@ -259,6 +319,12 @@ public class AlbumController {
     ResponseEntity<ErrorResponse> handleDuplicateCollectionNameException(NotFoundException exception) {
         ErrorResponse response = new ErrorResponse(HttpStatus.NOT_FOUND.value(), exception.getMessage());
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(UnauthorizedRequestException.class)
+    ResponseEntity<ErrorResponse> handleUnauthorizedException(UnauthorizedRequestException exception) {
+        ErrorResponse response = new ErrorResponse(HttpStatus.UNAUTHORIZED.value(), exception.getMessage());
+        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
     }
 
 }

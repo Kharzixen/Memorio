@@ -8,6 +8,7 @@ import com.kharzixen.albumservice.dto.outgoing.collectionDto.MemoryCollectionPre
 import com.kharzixen.albumservice.dto.outgoing.memoryDto.MemoryPreviewOfCollectionDtoOut;
 import com.kharzixen.albumservice.exception.CollectionNameDuplicateException;
 import com.kharzixen.albumservice.exception.NotFoundException;
+import com.kharzixen.albumservice.exception.UnauthorizedRequestException;
 import com.kharzixen.albumservice.mapper.MemoryCollectionMapper;
 import com.kharzixen.albumservice.mapper.MemoryMapper;
 import com.kharzixen.albumservice.model.*;
@@ -37,24 +38,23 @@ public class MemoryCollectionService {
     private final MemoryCollectionRelationshipRepository memoryCollectionRelationshipRepository;
 
     @Transactional
-    public MemoryCollectionDtoOut createCollection(Long albumId, MemoryCollectionDtoIn dtoIn)
+    public MemoryCollectionDtoOut createCollection(Long albumId, MemoryCollectionDtoIn dtoIn, Long requesterId)
             throws EntityNotFoundException {
         try {
             if (!Objects.equals(dtoIn.getAlbumId(), albumId)) {
-                //TODO same with userID and jwt id
                 throw new RuntimeException("albumId in body and path must be equal");
             }
 
-            if (!albumRepository.isUserContributorOfAlbum(dtoIn.getCreatorId(), dtoIn.getAlbumId())) {
+            if (!albumRepository.isUserContributorOfAlbum(requesterId, dtoIn.getAlbumId())) {
                 throw new RuntimeException("User not a contributor of the album");
             }
 
-            //move to mapper logic
+            Album album = albumRepository.findById(albumId).orElseThrow(() -> new NotFoundException("Album", albumId));
+            User user = userRepository.findById(requesterId).orElseThrow(() -> new NotFoundException("User", dtoIn.getCreatorId()));
+
             MemoryCollection memoryCollection = new MemoryCollection();
             memoryCollection.setCollectionName(dtoIn.getCollectionName());
             memoryCollection.setMemories(new ArrayList<>());
-            Album album = albumRepository.findById(albumId).orElseThrow(() -> new NotFoundException("Album", albumId));
-            User user = userRepository.findById(dtoIn.getCreatorId()).orElseThrow(() -> new NotFoundException("User", dtoIn.getCreatorId()));
             memoryCollection.setCreator(user);
             memoryCollection.setAlbum(album);
             memoryCollection.setCreationDate(new Date());
@@ -78,86 +78,104 @@ public class MemoryCollectionService {
         }
     }
 
-    public Page<MemoryCollectionPreviewDtoOut> getCollectionPreviewsPaginated(Long albumId, int page, int pageSize) {
-        Sort sort = Sort.by(Sort.Direction.DESC, "creationDate");
-        Pageable collectionPageRequest = PageRequest.of(page, pageSize, sort);
+    public Page<MemoryCollectionPreviewDtoOut> getCollectionPreviewsPaginated(Long albumId, int page, int pageSize, Long requesterId) {
+        if (albumRepository.isUserContributorOfAlbum(requesterId, albumId)) {
+            Sort sort = Sort.by(Sort.Direction.DESC, "creationDate");
+            Pageable collectionPageRequest = PageRequest.of(page, pageSize, sort);
 
-        Sort memoriesSort = Sort.by(Sort.Direction.DESC, "addedDate");
-        Pageable memoryPageRequest = PageRequest.of(0, 4, memoriesSort);
+            Sort memoriesSort = Sort.by(Sort.Direction.DESC, "addedDate");
+            Pageable memoryPageRequest = PageRequest.of(0, 4, memoriesSort);
 
-        Page<MemoryCollectionPreviewProjection> pageResponse = memoryCollectionRepository
-                .findAllCollectionsOfAlbumPaginated(albumId, collectionPageRequest);
-        List<MemoryCollectionPreviewDtoOut> collectionDtos = pageResponse.getContent().stream()
-                .map(projection -> {
-                    MemoryCollectionPreviewDtoOut dtoOut = MemoryCollectionMapper.INSTANCE.projectionToDto(projection);
-                    List<MemoryPreviewOfCollectionDtoOut> latestMemories =
-                            memoryRepository.findMemoriesOfCollectionPaginated(projection.getId(), memoryPageRequest).stream()
-                                    .map((memoryCollectionProjection) ->
-                                            new MemoryPreviewOfCollectionDtoOut(
-                                                    MemoryMapper.INSTANCE.modelToPreviewDto(memoryCollectionProjection.getMemory()), memoryCollectionProjection.getAddedDate()
-                                            )).toList();
-                    dtoOut.setLatestMemories(latestMemories);
-                    return dtoOut;
-                })
-                .toList();
-        return new PageImpl<>(collectionDtos, collectionPageRequest, pageResponse.getTotalElements());
+            Page<MemoryCollectionPreviewProjection> pageResponse = memoryCollectionRepository
+                    .findAllCollectionsOfAlbumPaginated(albumId, collectionPageRequest);
+            List<MemoryCollectionPreviewDtoOut> collectionDtos = pageResponse.getContent().stream()
+                    .map(projection -> {
+                        MemoryCollectionPreviewDtoOut dtoOut = MemoryCollectionMapper.INSTANCE.projectionToDto(projection);
+                        List<MemoryPreviewOfCollectionDtoOut> latestMemories =
+                                memoryRepository.findMemoriesOfCollectionPaginated(projection.getId(), memoryPageRequest).stream()
+                                        .map((memoryCollectionProjection) ->
+                                                new MemoryPreviewOfCollectionDtoOut(
+                                                        MemoryMapper.INSTANCE.modelToPreviewDto(memoryCollectionProjection.getMemory()), memoryCollectionProjection.getAddedDate()
+                                                )).toList();
+                        dtoOut.setLatestMemories(latestMemories);
+                        return dtoOut;
+                    })
+                    .toList();
+            return new PageImpl<>(collectionDtos, collectionPageRequest, pageResponse.getTotalElements());
+        } else {
+            throw new UnauthorizedRequestException("Unauthorized");
+        }
     }
 
-    public MemoryCollectionPreviewDtoOut getCollectionPreviewById(Long albumId, Long collectionId) {
-        MemoryCollection collection = memoryCollectionRepository.findById(collectionId)
-                .orElseThrow(() -> new NotFoundException("Collection", collectionId));
-        MemoryCollectionPreviewDtoOut responseDto = MemoryCollectionMapper.INSTANCE.modelToPreviewDto(collection);
-        Sort sort = Sort.by(Sort.Direction.DESC, "addedDate");
-        Pageable memoryPageRequestForLatestMemories = PageRequest.of(0, 4, sort);
-        List<MemoryPreviewOfCollectionDtoOut> latestMemories =
-                memoryRepository.
-                        findMemoriesOfCollectionPaginated(collection.getId(), memoryPageRequestForLatestMemories)
-                        .stream()
-                        .map((projection) ->
-                                new MemoryPreviewOfCollectionDtoOut(MemoryMapper.INSTANCE.modelToPreviewDto(projection.getMemory()), projection.getAddedDate())).toList();
-        responseDto.setLatestMemories(latestMemories);
-        return responseDto;
+    public MemoryCollectionPreviewDtoOut getCollectionPreviewById(Long albumId, Long collectionId, Long requesterId) {
+        if (albumRepository.isUserContributorOfAlbum(requesterId, albumId)) {
+            MemoryCollection collection = memoryCollectionRepository.findById(collectionId)
+                    .orElseThrow(() -> new NotFoundException("Collection", collectionId));
+            MemoryCollectionPreviewDtoOut responseDto = MemoryCollectionMapper.INSTANCE.modelToPreviewDto(collection);
+            Sort sort = Sort.by(Sort.Direction.DESC, "addedDate");
+            Pageable memoryPageRequestForLatestMemories = PageRequest.of(0, 4, sort);
+            List<MemoryPreviewOfCollectionDtoOut> latestMemories =
+                    memoryRepository.
+                            findMemoriesOfCollectionPaginated(collection.getId(), memoryPageRequestForLatestMemories)
+                            .stream()
+                            .map((projection) ->
+                                    new MemoryPreviewOfCollectionDtoOut(MemoryMapper.INSTANCE.modelToPreviewDto(projection.getMemory()), projection.getAddedDate())).toList();
+            responseDto.setLatestMemories(latestMemories);
+            return responseDto;
+        } else {
+            throw new UnauthorizedRequestException("Unauthorized");
+        }
     }
 
 
-    public MemoryCollectionPatchedDtoOut addMemoriesToCollection(Long albumId, Long collectionId, PatchCollectionMemoriesDtoIn dtoIn) {
-        MemoryCollection collection = memoryCollectionRepository.findById(collectionId)
-                .orElseThrow(() -> new NotFoundException("Collection", collectionId));
-        List<Memory> memoriesInContext = new ArrayList<>();
-        for (Long id : dtoIn.getMemoryIds()) {
-            Memory memory = memoryRepository.findById(id)
-                    .orElseThrow(() -> new NotFoundException("Memory", id));
-            //check if memory already included in a collection
-            boolean isCollectionOfMemory = false;
-            for (MemoryCollectionRelationship collectionOfMemory : memory.getCollections()) {
-                if (Objects.equals(collectionOfMemory.getCollection().getId(), collection.getId())) {
-                    isCollectionOfMemory = true;
-                    break;
+    public MemoryCollectionPatchedDtoOut addMemoriesToCollection(Long albumId, Long collectionId, PatchCollectionMemoriesDtoIn dtoIn, Long requesterId) {
+        if (albumRepository.isUserContributorOfAlbum(requesterId, albumId)) {
+            MemoryCollection collection = memoryCollectionRepository.findById(collectionId)
+                    .orElseThrow(() -> new NotFoundException("Collection", collectionId));
+            List<Memory> memoriesInContext = new ArrayList<>();
+            for (Long id : dtoIn.getMemoryIds()) {
+                Memory memory = memoryRepository.findById(id)
+                        .orElseThrow(() -> new NotFoundException("Memory", id));
+                if(!Objects.equals(memory.getUploader().getId(), requesterId)){
+                    throw new UnauthorizedRequestException("Unauthorized");
+                }
+                boolean isCollectionOfMemory = false;
+                for (MemoryCollectionRelationship collectionOfMemory : memory.getCollections()) {
+                    if (Objects.equals(collectionOfMemory.getCollection().getId(), collection.getId())) {
+                        isCollectionOfMemory = true;
+                        break;
+                    }
+                }
+                //if not
+                if (!isCollectionOfMemory) {
+                    MemoryCollectionRelationship memoryCollectionRelation = new MemoryCollectionRelationship(null, memory, collection, new Date());
+                    memoryCollectionRelation = memoryCollectionRelationshipRepository.save(memoryCollectionRelation);
+                    memory.getCollections().add(memoryCollectionRelation);
+                    collection.getMemories().add(memoryCollectionRelation);
+                    memoriesInContext.add(memory);
                 }
             }
-            //if not
-            if (!isCollectionOfMemory) {
-                MemoryCollectionRelationship memoryCollectionRelation = new MemoryCollectionRelationship(null, memory, collection, new Date());
-                memoryCollectionRelation = memoryCollectionRelationshipRepository.save(memoryCollectionRelation);
-                memory.getCollections().add(memoryCollectionRelation);
-                collection.getMemories().add(memoryCollectionRelation);
-                memoriesInContext.add(memory);
-            }
+            memoryCollectionRepository.save(collection);
+            memoryRepository.saveAll(memoriesInContext);
+            return new MemoryCollectionPatchedDtoOut(dtoIn.getMethod(), collection.getId(),
+                    memoriesInContext.stream().map(MemoryMapper.INSTANCE::modelToPreviewDto).toList());
+        } else {
+            throw new UnauthorizedRequestException("Unauthorized");
         }
-        memoryCollectionRepository.save(collection);
-        memoryRepository.saveAll(memoriesInContext);
-        return new MemoryCollectionPatchedDtoOut(dtoIn.getMethod(), collection.getId(),
-                memoriesInContext.stream().map(MemoryMapper.INSTANCE::modelToPreviewDto).toList());
     }
 
     @Transactional
-    public void deleteCollection(Long albumId, Long collectionId) {
+    public void deleteCollection(Long albumId, Long collectionId, Long requesterId) {
         Album album = albumRepository.findById(albumId).orElseThrow(() -> new NotFoundException("ALBUM", albumId));
         MemoryCollection collection = memoryCollectionRepository.findById(collectionId)
                 .orElseThrow(() -> new NotFoundException("COLLECTION", collectionId));
-        //optimize with query, much faster;
-        memoryCollectionRelationshipRepository.deleteAllMemoryCollectionRelationshipWhereCollectionId(collectionId);
-        memoryCollectionRepository.delete(collection);
-        albumRepository.save(album);
+        if(Objects.equals(album.getOwner().getId(), requesterId)
+                || Objects.equals(collection.getCreator().getId(), requesterId)) {
+            memoryCollectionRelationshipRepository.deleteAllMemoryCollectionRelationshipWhereCollectionId(collectionId);
+            memoryCollectionRepository.delete(collection);
+            albumRepository.save(album);
+        } else {
+            throw new UnauthorizedRequestException("Unauthorized");
+        }
     }
 }

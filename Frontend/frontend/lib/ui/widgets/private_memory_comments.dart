@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/bloc/auth_bloc/auth_bloc.dart';
 import 'package:frontend/cubit/private_memory_comments_cubit/private_memory_comments_cubit.dart';
 import 'package:frontend/data/data_provider/utils/http_headers.dart';
 import 'package:frontend/service/auth_service.dart';

@@ -31,8 +31,6 @@ public class ImageServiceClient {
     private String mediaServiceApiSecretName;
 
 
-    //TODO change to more reactive subscribe thing etc
-
     public ImageCreatedResponseDto postImageToMediaService(MultipartFile image, Long userId){
         MultipartBodyBuilder builder = new MultipartBodyBuilder();
         builder.part("image", image.getResource());

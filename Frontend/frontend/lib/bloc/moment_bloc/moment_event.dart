@@ -23,3 +23,9 @@ final class MomentLikedByUser extends MemoryEvent {
   String userId;
   MomentLikedByUser(this.memoryId, this.userId);
 }
+
+final class MomentDislikedByUser extends MemoryEvent {
+  String memoryId;
+  String userId;
+  MomentDislikedByUser(this.memoryId, this.userId);
+}

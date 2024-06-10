@@ -5,6 +5,7 @@ import com.kharzixen.publicalbumservice.dto.incomming.LikeDtoIn;
 import com.kharzixen.publicalbumservice.dto.outgoing.LikeDtoOut;
 import com.kharzixen.publicalbumservice.exception.MemoryLikeDuplicateException;
 import com.kharzixen.publicalbumservice.exception.NotFoundException;
+import com.kharzixen.publicalbumservice.exception.UnauthorizedRequestException;
 import com.kharzixen.publicalbumservice.mapper.LikeMapper;
 import com.kharzixen.publicalbumservice.model.Album;
 import com.kharzixen.publicalbumservice.model.Like;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @AllArgsConstructor
@@ -66,7 +68,12 @@ public class LikeService {
         return likeRepository.findAllWhereMemoryId(memoryId).stream().map(LikeMapper.INSTANCE::modelToDto).toList();
     }
 
-    public void deleteLikeById(Long albumId, Long memoryId, Long likeId) {
-        likeRepository.deleteById(likeId);
+    public void deleteLikeById(Long albumId, Long memoryId, Long likeId, Long requesterId) {
+        Like like = likeRepository.findById(likeId).orElseThrow(() -> new NotFoundException("Like", likeId));
+        if(Objects.equals(like.getUser().getId(), requesterId)){
+            likeRepository.deleteById(likeId);
+        } else {
+            throw new UnauthorizedRequestException("Unauthorized");
+        }
     }
 }

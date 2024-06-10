@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:frontend/data/data_provider/private_album_data_provider.dart';
+import 'package:frontend/model/album_model.dart';
 import 'package:frontend/model/disposable_camera_model.dart';
+import 'package:frontend/model/memory_model.dart';
 import 'package:frontend/model/private-album_model.dart';
 import 'package:frontend/model/user_model.dart';
 
@@ -133,10 +135,10 @@ class PrivateAlbumRepository {
   }
 
   Future<DisposableCamera> activateDisposableCamera(
-      String albumId, String description) async {
+      String albumId, DateTime closeTime, String description) async {
     try {
       final response = await PrivateAlbumDataProvider.activateDisposableCamera(
-          albumId, description);
+          albumId, description, closeTime);
       if (response.statusCode == 200) {
         Map<String, dynamic> responseJson = json.decode(response.body);
         DisposableCamera disposableCamera =

@@ -1,11 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/bloc/auth_bloc/auth_bloc.dart';
 import 'package:frontend/bloc/collection_preview_bloc/collections_preview_bloc.dart';
 import 'package:frontend/bloc/timeline_bloc/timeline_bloc.dart';
 import 'package:frontend/cubit/disposable_camera_cubit/disposable_camera_cubit.dart';
 import 'package:frontend/data/data_provider/utils/http_headers.dart';
+import 'package:frontend/model/album_model.dart';
+import 'package:frontend/model/memory_model.dart';
 import 'package:frontend/model/private-album_model.dart';
 import 'package:frontend/model/utils/action_types_for_pop_payload.dart';
 import 'package:frontend/model/utils/pop_payload.dart';
@@ -21,7 +22,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 class PrivateAlbumPage extends StatefulWidget {
   final String albumId;
-  final PrivateAlbumPreview albumPreview;
+  final AlbumPreview albumPreview;
   const PrivateAlbumPage(
       {Key? key, required this.albumId, required this.albumPreview})
       : super(key: key);
@@ -200,15 +201,20 @@ class _PrivateAlbumPageState extends State<PrivateAlbumPage> {
                         const SizedBox(
                           width: 25,
                         ),
-                        Text(
-                          widget.albumPreview.name,
-                          maxLines: 2,
-                          softWrap: true,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.lato(
-                              fontSize: 20,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold),
+                        Flexible(
+                          child: Container(
+                            padding: EdgeInsets.only(right: 13.0),
+                            child: Text(
+                              widget.albumPreview.name,
+                              maxLines: 1,
+                              softWrap: true,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.lato(
+                                  fontSize: 20,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ),
                         ),
                       ],
                     ),

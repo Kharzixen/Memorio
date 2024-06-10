@@ -21,7 +21,9 @@ public class User {
     private Long id;
     private String username;
     private String pfpId;
-    private boolean isDeleted;
+    private Boolean isDeleted;
+    private Boolean isActive;
+    private Boolean isAdmin;
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.PERSIST, orphanRemoval = true)
     private List<Post> posts;

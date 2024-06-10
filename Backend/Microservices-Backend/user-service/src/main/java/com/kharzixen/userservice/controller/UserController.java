@@ -37,11 +37,6 @@ import java.util.Map;
 public class UserController {
     private final UserService userService;
 
-    @PostMapping(path = "/api/users", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<UserDtoOut> createUser(@ModelAttribute @Valid @NotNull UserDtoIn userDtoIn) throws FileUploadException {
-        UserDtoOut response = userService.createUser(userDtoIn);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
-    }
 
     @GetMapping("/api/users")
     public ResponseEntity<List<UserDtoOut>> getUsers(@RequestParam(required = false, name = "ids") List<Long> idList) {
@@ -49,47 +44,45 @@ public class UserController {
     }
 
     @GetMapping("/api/users/{id}")
-    public ResponseEntity<UserDtoOut> getUserById(@PathVariable("id") Long userId,
-                                                  @RequestHeader("X-USER-ID") String userIdHeader,
-                                                  @RequestHeader("X-USERNAME") String username) {
+    public ResponseEntity<UserDtoOut> getUserById(@PathVariable("id") Long userId) {
+        //find user by id and return
         UserDtoOut user = userService.getUserById(userId);
-        log.info(userIdHeader + " " + username);
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
     @DeleteMapping("/api/users/{id}")
-    public ResponseEntity<Void> deleteUserById(@PathVariable("id") Long userId) {
-        userService.deleteUserById(userId);
+    public ResponseEntity<Void> deleteUserById(@PathVariable("id") Long userId, @RequestHeader("X-USER-ID") String requesterId,
+                                               @RequestHeader("X-USERNAME") String username) {
+        userService.deleteUserById(userId, Long.valueOf(requesterId));
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/api/users/{id}")
+    @PatchMapping(path = "/api/users/{id}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<UserDtoOut> pathUserById(@PathVariable("id") Long userId,
-                                                   @RequestBody UserPatchDtoIn patchDtoIn) {
-        UserDtoOut response = userService.patchUser(userId, patchDtoIn);
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
-    @PutMapping("/api/users/{id}")
-    public ResponseEntity<UserDtoOut> putUserById(@PathVariable("id") Long userId,
-                                                  @RequestBody UserDtoIn userDtoIn) {
-        UserDtoOut response = userService.putUser(userId, userDtoIn);
+                                                   @ModelAttribute @RequestBody UserPatchDtoIn patchDtoIn,
+                                                   @RequestHeader("X-USER-ID") String requesterId,
+                                                   @RequestHeader("X-USERNAME") String username) {
+        UserDtoOut response = userService.patchUser(userId, patchDtoIn, userId);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
 
     @PostMapping("/api/users/{id}/following")
     public ResponseEntity<FollowDtoOut> addUserToFollowing(@PathVariable("id") Long userId,
-                                                           @RequestBody FollowDtoIn followDtoIn) {
-        FollowDtoOut followDtoOut = userService.addFollowing(userId, followDtoIn);
+                                                           @RequestBody FollowDtoIn followDtoIn,
+                                                           @RequestHeader("X-USER-ID") String requesterId,
+                                                           @RequestHeader("X-USERNAME") String username) {
+        FollowDtoOut followDtoOut = userService.addFollowing(userId, followDtoIn, Long.valueOf(requesterId));
 
         return new ResponseEntity<>(followDtoOut, HttpStatus.CREATED);
     }
 
     @DeleteMapping("/api/users/{followerId}/following/{userId}")
     public ResponseEntity<Void> removeUserFromFollowing(@PathVariable("followerId") Long followerId,
-                                                                @PathVariable("userId") Long userId) {
-        userService.removeUserFromFollowing(followerId, userId);
+                                                        @PathVariable("userId") Long userId,
+                                                        @RequestHeader("X-USER-ID") String requesterId,
+                                                        @RequestHeader("X-USERNAME") String username) {
+        userService.removeUserFromFollowing(followerId, userId, Long.valueOf(requesterId));
         return  ResponseEntity.noContent().build();
     }
 
@@ -97,8 +90,10 @@ public class UserController {
     ResponseEntity<Page<SimpleUserDtoOut>> getFollowersOfUser(
             @PathVariable("id") Long userId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int pageSize) {
-        Page<SimpleUserDtoOut> outPage = userService.getFollowersOfUser(userId, page, pageSize);
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestHeader("X-USER-ID") String requesterId,
+            @RequestHeader("X-USERNAME") String username) {
+        Page<SimpleUserDtoOut> outPage = userService.getFollowersOfUser(userId, page, pageSize, Long.valueOf(requesterId));
         return ResponseEntity.ok(outPage);
     }
 
@@ -107,8 +102,10 @@ public class UserController {
     ResponseEntity<Page<SimpleUserDtoOut>> getSuggestionsOfUSer(
             @PathVariable("id") Long userId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int pageSize) {
-        Page<SimpleUserDtoOut> outPage = userService.getSuggestionsOfUser(userId, page, pageSize);
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestHeader("X-USER-ID") String requesterId,
+            @RequestHeader("X-USERNAME") String username) {
+        Page<SimpleUserDtoOut> outPage = userService.getSuggestionsOfUser(userId, page, pageSize, Long.valueOf(requesterId));
         return ResponseEntity.ok(outPage);
     }
 
@@ -116,21 +113,28 @@ public class UserController {
     ResponseEntity<Page<SimpleUserDtoOut>> getFollowingOfUser(
             @PathVariable("id") Long userId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int pageSize) {
-        Page<SimpleUserDtoOut> outPage = userService.getFollowingOfUser(userId, page, pageSize);
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestHeader("X-USER-ID") String requesterId,
+            @RequestHeader("X-USERNAME") String username) {
+        Page<SimpleUserDtoOut> outPage = userService.getFollowingOfUser(userId, page, pageSize, Long.valueOf(requesterId));
         return ResponseEntity.ok(outPage);
     }
 
     @GetMapping("/api/users/{id}/following/{followingId}")
     ResponseEntity<SimpleUserDtoOut> getFollowingByIdOfUser(
-            @PathVariable("id") Long userId, @PathVariable("followingId") Long followingId) {
-       SimpleUserDtoOut userDtoOut = userService.getFollowingByIdOfUser(userId, followingId);
+            @PathVariable("id") Long userId,
+            @PathVariable("followingId") Long followingId,
+            @RequestHeader("X-USER-ID") String requesterId,
+            @RequestHeader("X-USERNAME") String username) {
+       SimpleUserDtoOut userDtoOut = userService.getFollowingByIdOfUser(userId, followingId, Long.valueOf(requesterId));
         return ResponseEntity.ok(userDtoOut);
     }
     @GetMapping("/api/users/{userId}/friends")
     ResponseEntity<Page<SimpleUserDtoOut>> getFriendsOfUser(@PathVariable("userId") Long userId, @RequestParam(defaultValue = "0") int page,
-                                                            @RequestParam(defaultValue = "10") int pageSize) {
-        Page<SimpleUserDtoOut> friendsPage = userService.getFriendsOfUser(userId, page, pageSize);
+                                                            @RequestParam(defaultValue = "10") int pageSize,
+                                                            @RequestHeader("X-USER-ID") String requesterId,
+                                                            @RequestHeader("X-USERNAME") String username) {
+        Page<SimpleUserDtoOut> friendsPage = userService.getFriendsOfUser(userId, page, pageSize, Long.valueOf(requesterId));
         return ResponseEntity.ok(friendsPage);
     }
 

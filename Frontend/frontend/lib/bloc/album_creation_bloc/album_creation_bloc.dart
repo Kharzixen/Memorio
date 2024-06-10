@@ -6,7 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:frontend/data/repository/private_album_repository.dart';
 import 'package:frontend/data/repository/user_repository.dart';
-import 'package:frontend/model/private-album_model.dart';
+import 'package:frontend/model/album_model.dart';
 import 'package:frontend/model/user_model.dart';
 import 'package:frontend/model/utils/paginated_response_generic.dart';
 import 'package:frontend/service/storage_service.dart';

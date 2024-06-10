@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/bloc/auth_bloc/auth_bloc.dart';
 import 'package:frontend/cubit/user_cubit/user_cubit.dart';
 import 'package:frontend/data/data_provider/utils/http_headers.dart';
 import 'package:frontend/model/user_model.dart';
@@ -11,10 +10,12 @@ import 'package:google_fonts/google_fonts.dart';
 
 class UserHeader extends StatefulWidget {
   final User user;
+  final int postCount;
   final bool isFollowed;
   final bool isFollowInitiated;
   const UserHeader(
       {Key? key,
+      required this.postCount,
       required this.user,
       required this.isFollowed,
       required this.isFollowInitiated})
@@ -56,14 +57,14 @@ class _UserHeaderState extends State<UserHeader> {
                     },
                   )),
             ),
-            const Column(
+            Column(
               children: [
                 Text(
-                  "0",
-                  style: TextStyle(
+                  widget.postCount.toString(),
+                  style: const TextStyle(
                       color: Colors.white, fontWeight: FontWeight.w500),
                 ),
-                Text(
+                const Text(
                   "Posts",
                   style: TextStyle(
                       color: Colors.white,

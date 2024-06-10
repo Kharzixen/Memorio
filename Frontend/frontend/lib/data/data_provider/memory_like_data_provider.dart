@@ -44,4 +44,23 @@ class LikeDataProvider {
       },
     );
   }
+
+  static deleteLikeFromMemory(String albumId, String memoryId) async {
+    Map<String, String> headers =
+        await HttpHeadersFactory.getDefaultRequestHeader();
+    return http
+        .delete(
+            Uri.parse(
+                "${StorageService.connectionString}/api/private-albums/$albumId/memories/$memoryId/likes?userId=${StorageService().userId}"),
+            headers: headers)
+        .then(
+      (value) {
+        return value;
+      },
+    ).catchError(
+      (error) {
+        throw Exception(error);
+      },
+    );
+  }
 }

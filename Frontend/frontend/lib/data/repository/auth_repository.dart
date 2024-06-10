@@ -34,4 +34,20 @@ class AuthRepository {
       rethrow;
     }
   }
+
+  register(Map<String, dynamic> authRequestBody) async {
+    try {
+      final response = await AuthDataProvider.register(authRequestBody);
+      if (response.statusCode == 200) {
+        var jsonResponse = json.decode(response.body);
+        RegisterResponse registerResponse =
+            RegisterResponse.fromJson(jsonResponse);
+        return registerResponse;
+      } else {
+        throw Exception(response.body);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

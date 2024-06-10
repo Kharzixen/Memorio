@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/bloc/album_bloc/private-album_bloc.dart';
 import 'package:frontend/bloc/album_creation_bloc/album_creation_bloc.dart';
-import 'package:frontend/bloc/album_preview_bloc/private_albums_preview_bloc.dart';
 import 'package:frontend/bloc/auth_bloc/auth_bloc.dart';
 import 'package:frontend/bloc/collection_preview_bloc/collections_preview_bloc.dart';
 import 'package:frontend/bloc/memory_creation_bloc/memory_creation_bloc.dart';
@@ -18,9 +17,17 @@ import 'package:frontend/cubit/create_disposable_camera_memory_cubit/create_disp
 import 'package:frontend/cubit/create_post_cubit/create_post_cubit.dart';
 import 'package:frontend/cubit/disposable_camera_cubit/disposable_camera_cubit.dart';
 import 'package:frontend/cubit/disposable_camera_memory_cubit/disposable_camera_memory_cubit.dart';
+import 'package:frontend/cubit/edit_profile_cubit/edit_profile_cubit.dart';
 import 'package:frontend/cubit/following_suggestion_cubit/following_suggestion_cubit.dart';
+import 'package:frontend/cubit/highlighted_memories_cubit/highlighted_memories_cubit.dart';
+import 'package:frontend/cubit/home_cubit/home_cubit.dart';
 import 'package:frontend/cubit/invitation_cubit/invitation_cubit.dart';
 import 'package:frontend/cubit/post_cubit/post_cubit.dart';
+import 'package:frontend/cubit/public_album_creation_cubit/public_album_creation_cubit.dart';
+import 'package:frontend/cubit/public_album_cubit.dart/public_album_cubit.dart';
+import 'package:frontend/cubit/public_memories_cubit/public_memories_cubit.dart';
+import 'package:frontend/cubit/public_memory_creation_cubit/public_memory_creation_cubit.dart';
+import 'package:frontend/cubit/public_memory_cubit/public_memory_cubit.dart';
 import 'package:frontend/cubit/user_cubit/user_cubit.dart';
 import 'package:frontend/data/repository/disposable_camera_memory_repository.dart';
 import 'package:frontend/data/repository/memory_like_repository.dart';
@@ -29,19 +36,26 @@ import 'package:frontend/data/repository/private_album_repository.dart';
 import 'package:frontend/data/repository/private_collection_repository.dart';
 import 'package:frontend/data/repository/private_memory_repository.dart';
 import 'package:frontend/data/repository/post_repository.dart';
+import 'package:frontend/data/repository/public_album_repository.dart';
+import 'package:frontend/data/repository/public_memory_repository.dart';
 import 'package:frontend/data/repository/user_repository.dart';
+import 'package:frontend/model/album_model.dart';
 import 'package:frontend/model/private-album_model.dart';
 import 'package:frontend/model/utils/memory_creation_details.dart';
 import 'package:frontend/model/utils/post_creation_details.dart';
+import 'package:frontend/service/storage_service.dart';
 import 'package:frontend/ui/pages/auth/auth_page.dart';
 import 'package:frontend/ui/pages/auth/login_page.dart';
 import 'package:frontend/ui/pages/auth/registration_page.dart';
+import 'package:frontend/ui/pages/main/albums_preview_page.dart';
 import 'package:frontend/ui/pages/main/create_disposable_camera_memory_page.dart';
+import 'package:frontend/ui/pages/main/create_public_album_page.dart';
+import 'package:frontend/ui/pages/main/create_public_memory_page.dart';
 import 'package:frontend/ui/pages/main/disposable_camera_memory_page.dart';
+import 'package:frontend/ui/pages/main/edit_profille_page.dart';
 import 'package:frontend/ui/pages/main/private_album_add_memories_to_collection_page.dart';
 import 'package:frontend/ui/pages/main/private_album_info_page.dart';
 import 'package:frontend/ui/pages/main/private_album_invitation_page.dart';
-import 'package:frontend/ui/pages/main/private_albums_page.dart';
 import 'package:frontend/ui/pages/main/private_album_contributor_page.dart';
 import 'package:frontend/ui/pages/main/create_private_album_page.dart';
 import 'package:frontend/ui/pages/main/create_private_collection_page.dart';
@@ -55,10 +69,14 @@ import 'package:frontend/ui/pages/main/profile_page.dart';
 import 'package:frontend/ui/pages/main/private_album_page.dart';
 import 'package:frontend/ui/pages/main/private_collection_page.dart';
 import 'package:frontend/ui/pages/main/private_memory_page.dart';
+import 'package:frontend/ui/pages/main/public_album_info_page.dart';
+import 'package:frontend/ui/pages/main/public_album_page.dart';
+import 'package:frontend/ui/pages/main/public_memory_page.dart';
 import 'package:frontend/ui/pages/main/single_post_page.dart';
 import 'package:frontend/ui/pages/main/user_page.dart';
 import 'package:frontend/ui/widgets/navbar.dart';
 import 'package:go_router/go_router.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellKey = GlobalKey<NavigatorState>();
@@ -107,21 +125,66 @@ class AppRouter {
                         child: const DiscoverPage());
                   })),
               GoRoute(
+                  path: "/public-albums/:albumId",
+                  builder: (context, state) {
+                    final String id = state.pathParameters['albumId']!;
+                    AlbumPreview albumPreview = state.extra as AlbumPreview;
+                    return BlocProvider(
+                      create: (context) => PublicMemoriesCubit(
+                          context.read<PublicMemoryRepository>()),
+                      child: BlocProvider(
+                        create: (context) => HighlightedMemoriesCubit(
+                            context.read<PublicMemoryRepository>()),
+                        child: PublicAlbumPage(
+                          albumId: id,
+                          albumPreview: albumPreview,
+                        ),
+                      ),
+                    );
+                  },
+                  routes: [
+                    GoRoute(
+                      path: "memories/:memoryId",
+                      builder: (context, state) {
+                        final String albumId = state.pathParameters['albumId']!;
+                        final String memoryId =
+                            state.pathParameters['memoryId']!;
+                        return BlocProvider(
+                          create: (context) => PublicMemoryCubit(
+                              context.read<PublicMemoryRepository>())
+                            ..fetchMemory(albumId, memoryId),
+                          child: PublicMemoryPage(
+                            albumId: albumId,
+                            memoryId: memoryId,
+                          ),
+                        );
+                      },
+                    ),
+                    GoRoute(
+                      path: "details",
+                      builder: (context, state) {
+                        final String id = state.pathParameters['albumId']!;
+                        return BlocProvider(
+                            create: (context) => PublicAlbumCubit(
+                                albumRepository:
+                                    context.read<PublicAlbumRepository>())
+                              ..getAlbumInitialLoad(id),
+                            child: PublicAlbumInfoPage(albumId: id));
+                      },
+                    ),
+                  ]),
+              GoRoute(
                   path: "/albums",
                   builder: ((context, state) {
                     //return GalleryPage();
-                    return BlocProvider(
-                        create: (context) => PrivateAlbumsPreviewBloc(
-                            context.read<PrivateAlbumRepository>()),
-                        child: const PrivateAlbumsPreviewPage());
+                    return const AlbumPreviewsPage();
                   }),
                   routes: [
                     GoRoute(
                       path: ':albumId',
                       builder: (context, state) {
                         final String id = state.pathParameters['albumId']!;
-                        PrivateAlbumPreview albumPreview =
-                            state.extra as PrivateAlbumPreview;
+                        AlbumPreview albumPreview = state.extra as AlbumPreview;
                         return BlocProvider(
                           create: (context) => TimelineBloc(
                               memoryRepository:
@@ -321,6 +384,21 @@ class AppRouter {
                 },
               ),
               GoRoute(
+                path: "/create-public-memory",
+                builder: (context, state) {
+                  print(state.extra);
+                  PublicMemoryCreationDetails memoryCreationDetails =
+                      state.extra as PublicMemoryCreationDetails;
+                  return BlocProvider(
+                    create: (context) => PublicMemoryCreationCubit(
+                        context.read<PublicMemoryRepository>()),
+                    child: CreatePublicMemoryPage(
+                      memoryCreationDetails: memoryCreationDetails,
+                    ),
+                  );
+                },
+              ),
+              GoRoute(
                 path: "/createAlbum",
                 builder: (context, state) {
                   return BlocProvider(
@@ -328,6 +406,17 @@ class AppRouter {
                         albumRepository: context.read<PrivateAlbumRepository>(),
                         userRepository: context.read<UserRepository>()),
                     child: CreatePrivateAlbumPage(),
+                  );
+                },
+              ),
+              GoRoute(
+                path: "/createPublicAlbum",
+                builder: (context, state) {
+                  return BlocProvider(
+                    create: (context) => PublicAlbumCreationCubit(
+                        context.read<PublicAlbumRepository>(),
+                        context.read<UserRepository>()),
+                    child: const CreatePublicAlbumPage(),
                   );
                 },
               ),
@@ -359,7 +448,20 @@ class AppRouter {
                           context.read<PostRepository>()),
                       child: const ProfilePage(),
                     );
-                  })),
+                  }),
+                  routes: [
+                    GoRoute(
+                      path: "edit-profile",
+                      builder: ((context, state) {
+                        //return ProfilePage();
+                        return BlocProvider(
+                            create: (context) =>
+                                EditProfileCubit(context.read<UserRepository>())
+                                  ..loadEditProfile(StorageService().userId),
+                            child: EditProfilePage());
+                      }),
+                    ),
+                  ]),
               GoRoute(
                 path: '/users/:userID',
                 builder: (BuildContext context, GoRouterState state) {
@@ -385,18 +487,15 @@ class AppRouter {
                 },
               ),
               GoRoute(
-                path: '/locations/:locationID',
-                builder: (BuildContext context, GoRouterState state) {
-                  //final id = state.pathParameters['locationID']!;
-                  //return LocationPage(id: id);
-                  return const Placeholder();
-                },
-              ),
-              GoRoute(
                 path: "/home",
                 builder: (context, state) {
                   //return HomePage();
-                  return const HomePage();
+                  return BlocProvider(
+                      create: (context) => HomeCubit(
+                          context.read<UserRepository>(),
+                          context.read<PostRepository>())
+                        ..loadHomePageContent(StorageService().userId),
+                      child: const HomePage());
                 },
                 routes: [
                   GoRoute(
@@ -421,8 +520,18 @@ class AppRouter {
               ),
             ])
       ],
-      redirect: (context, state) {
+      redirect: (context, state) async {
         AuthState authState = context.read<AuthBloc>().state;
+
+        if (authState is AuthSuccess &&
+            JwtDecoder.isExpired((await StorageService().getAccessToken())!) &&
+            JwtDecoder.isExpired((await StorageService().getRefreshToken())!) &&
+            context.mounted) {
+          context.read<AuthBloc>().add(LogoutRequested());
+
+          return "/";
+        }
+
         if (authState is AuthSuccess) {
           if (state.uri.toString() == "/" ||
               state.uri.toString() == "/login" ||

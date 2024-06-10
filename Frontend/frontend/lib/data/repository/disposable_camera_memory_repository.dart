@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:frontend/data/data_provider/disposable_camera_memory_data_provider.dart';
 import 'package:frontend/model/disposable_camera_memory_model.dart';
-import 'package:frontend/model/private-album_model.dart';
+import 'package:frontend/model/memory_model.dart';
 import 'package:frontend/model/utils/paginated_response_generic.dart';
 
 class DisposableCameraMemoryRepository {

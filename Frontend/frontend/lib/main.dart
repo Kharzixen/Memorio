@@ -14,10 +14,12 @@ import 'package:frontend/data/repository/private_collection_repository.dart';
 import 'package:frontend/data/repository/private_memory_repository.dart';
 import 'package:frontend/data/repository/post_repository.dart';
 import 'package:frontend/data/repository/public_album_repository.dart';
+import 'package:frontend/data/repository/public_memory_repository.dart';
 import 'package:frontend/data/repository/user_repository.dart';
 import 'package:frontend/router/router.dart';
 import 'package:frontend/service/auth_service.dart';
 import 'package:frontend/service/storage_service.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 void main() {
@@ -37,7 +39,8 @@ void main() {
       Provider<PostCommentRepository>.value(value: PostCommentRepository()),
       Provider<PostLikeRepository>.value(value: PostLikeRepository()),
       Provider<AuthRepository>.value(value: AuthRepository()),
-      Provider<PublicAlbumRepository>.value(value: PublicAlbumRepository())
+      Provider<PublicAlbumRepository>.value(value: PublicAlbumRepository()),
+      Provider<PublicMemoryRepository>.value(value: PublicMemoryRepository())
     ],
     //the bloc provider might go down on the widget tree to the auth path later
     // check this

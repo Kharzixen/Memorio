@@ -2,8 +2,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/bloc/album_preview_bloc/private_albums_preview_bloc.dart';
-import 'package:frontend/bloc/auth_bloc/auth_bloc.dart';
 import 'package:frontend/data/data_provider/utils/http_headers.dart';
+import 'package:frontend/model/album_model.dart';
+import 'package:frontend/model/memory_model.dart';
 import 'package:frontend/model/private-album_model.dart';
 import 'package:frontend/model/utils/action_types_for_pop_payload.dart';
 import 'package:frontend/model/utils/pop_payload.dart';
@@ -14,8 +15,9 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AlbumPreviewCard extends StatefulWidget {
-  final PrivateAlbumPreview albumPreview;
-  AlbumPreviewCard({Key? key, required this.albumPreview}) : super(key: key);
+  final AlbumPreview albumPreview;
+  const AlbumPreviewCard({Key? key, required this.albumPreview})
+      : super(key: key);
 
   @override
   State<AlbumPreviewCard> createState() => _AlbumPreviewCardState();
@@ -403,7 +405,7 @@ class _AlbumPreviewCardState extends State<AlbumPreviewCard> {
     );
   }
 
-  OverlayEntry _createPopupDialog(PrivateMemory memory) {
+  OverlayEntry _createPopupDialog(Memory memory) {
     return OverlayEntry(
       builder: (context) => AnimatedDialog(
         child: Padding(

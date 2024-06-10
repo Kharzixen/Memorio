@@ -289,7 +289,8 @@ class UserList extends StatelessWidget {
                       context.read<UsersPanelCubit>().previousPage();
                     },
                   ),
-                  Text('Page ${state.currentPage} of ${state.totalPages}'),
+                  Text(
+                      'Page ${state.currentPage + 1} of ${state.totalPages + 1}'),
                   IconButton(
                     icon: Icon(Icons.arrow_forward),
                     onPressed: () {

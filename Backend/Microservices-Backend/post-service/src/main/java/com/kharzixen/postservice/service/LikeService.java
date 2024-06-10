@@ -29,12 +29,12 @@ public class LikeService {
     private final UserRepository userRepository;
 
     @Transactional
-    public LikeDtoOut createNewLike(Long postId, LikeDtoIn likeDtoIn) {
+    public LikeDtoOut createNewLike(Long postId, LikeDtoIn likeDtoIn, Long requesterId) {
         try{
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new PostNotFoundException(postId));
-        User user = userRepository.findById(likeDtoIn.getUserId())
-                .orElseThrow(() -> new UserNotFoundException(likeDtoIn.getUserId()));
+        User user = userRepository.findById(requesterId)
+                .orElseThrow(() -> new UserNotFoundException(requesterId));
         Like like = new Like(null, user, post, new Date());
         Like saved = likeRepository.save(like);
         return LikeMapper.INSTANCE.modelToDto(saved);
@@ -55,8 +55,8 @@ public class LikeService {
     }
 
     @Transactional
-    public void deleteLike(Long postId, String userId) {
-        likeRepository.deleteLikeOfPost(postId, userId);
+    public void deleteLike(Long postId, String userId, Long requesterId) {
+        likeRepository.deleteLikeOfPost(postId, String.valueOf(requesterId));
 
     }
 }

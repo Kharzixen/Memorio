@@ -25,6 +25,8 @@ public class Memory {
     @Column(name = "image_id")
     private String imageId;
 
+    private Boolean isHighlighted;
+
     private Date creationDate;
 
     @ManyToOne(cascade = CascadeType.PERSIST)

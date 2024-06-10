@@ -37,7 +37,7 @@ public class ImageServiceClient {
         MultipartBodyBuilder builder = new MultipartBodyBuilder();
         builder.part("image", image.getResource());
         builder.part("albumId", albumId);
-        Mono<ImageCreatedResponseDto> status = webClientBuilder.build().post().uri("http://media-service/album-images")
+        Mono<ImageCreatedResponseDto> status = webClientBuilder.build().post().uri("http://media-service/public-album-images")
                 .header(mediaServiceApiKeyName, mediaServiceApiKeyValue)
                 .header(mediaServiceApiSecretName, mediaServiceApiSecretValue)
                 .contentType(MediaType.MULTIPART_FORM_DATA)

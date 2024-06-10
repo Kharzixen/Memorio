@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/model/memory_model.dart';
 import 'package:frontend/model/private-album_model.dart';
 import 'package:frontend/model/utils/memory_creation_details.dart';
 import 'package:frontend/model/utils/pop_payload.dart';

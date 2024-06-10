@@ -1,9 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/bloc/auth_bloc/auth_bloc.dart';
 import 'package:frontend/bloc/moment_bloc/moment_bloc.dart';
 import 'package:frontend/cubit/private_memory_comments_cubit/private_memory_comments_cubit.dart';
 import 'package:frontend/cubit/private_memory_likes_cubit/private_memory_likes_cubit.dart';
@@ -34,8 +31,11 @@ class PrivateMemoryHeader extends StatelessWidget {
           children: [
             IconButton(
               onPressed: () {
-                context.read<MomentBloc>().add(MomentLikedByUser(
-                    moment.memoryId, StorageService().userId));
+                moment.isLiked
+                    ? context.read<MomentBloc>().add(MomentDislikedByUser(
+                        moment.memoryId, StorageService().userId))
+                    : context.read<MomentBloc>().add(MomentLikedByUser(
+                        moment.memoryId, StorageService().userId));
               },
               style: const ButtonStyle(
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -43,10 +43,15 @@ class PrivateMemoryHeader extends StatelessWidget {
               iconSize: 28.0, // desired size
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
-              icon: const Icon(
-                Icons.favorite_outline,
-                color: Colors.white,
-              ),
+              icon: moment.isLiked
+                  ? const Icon(
+                      Icons.favorite,
+                      color: Colors.red,
+                    )
+                  : const Icon(
+                      Icons.favorite,
+                      color: Colors.white,
+                    ),
             ),
             const SizedBox(
               width: 15,

@@ -46,7 +46,7 @@ class PrivateAlbumDataProvider {
       required Uint8List albumImage}) async {
     try {
       var request = http.MultipartRequest('POST',
-          Uri.parse("${StorageService.connectionString}/api/public-albums"));
+          Uri.parse("${StorageService.connectionString}/api/private-albums"));
       request.files.add(
         http.MultipartFile.fromBytes('image', albumImage,
             filename: "albumImage", contentType: MediaType('image', 'jpg')),
@@ -144,9 +144,11 @@ class PrivateAlbumDataProvider {
     });
   }
 
-  static activateDisposableCamera(String albumId, String description) async {
+  static activateDisposableCamera(
+      String albumId, String description, DateTime closeTime) async {
     Map<String, dynamic> requestBody = {
       'description': description,
+      'closeTime': closeTime.toIso8601String(),
       'isActive': true,
     };
 

@@ -95,7 +95,10 @@ class _ProfilePageState extends State<ProfilePage> {
               child: ListView(
                 scrollDirection: Axis.vertical,
                 children: [
-                  ProfileHeader(user: state.user),
+                  ProfileHeader(
+                    user: state.user,
+                    postCount: state.postCount,
+                  ),
                   const Divider(
                     height: 30,
                     thickness: 0.5,
@@ -114,7 +117,18 @@ class _ProfilePageState extends State<ProfilePage> {
           );
         }
 
-        return const Text("Something went wrong");
+        if (state is ProfileErrorState) {
+          return Center(
+              child: Text(
+            state.errorMessage,
+            style: const TextStyle(color: Colors.white),
+          ));
+        }
+
+        return const Text(
+          "Something went wrong",
+          style: TextStyle(color: Colors.white),
+        );
       },
     );
   }

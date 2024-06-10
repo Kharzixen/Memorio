@@ -1,17 +1,16 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_timer_countdown/flutter_timer_countdown.dart';
-import 'package:frontend/bloc/auth_bloc/auth_bloc.dart';
 import 'package:frontend/cubit/disposable_camera_cubit/disposable_camera_cubit.dart';
 import 'package:frontend/data/data_provider/utils/http_headers.dart';
+import 'package:frontend/model/memory_model.dart';
 import 'package:frontend/model/private-album_model.dart';
 import 'package:frontend/model/utils/action_types_for_pop_payload.dart';
 import 'package:frontend/model/utils/pop_payload.dart';
 import 'package:frontend/service/auth_service.dart';
 import 'package:frontend/service/storage_service.dart';
+import 'package:frontend/ui/pages/main/date_picker_widget.dart';
 import 'package:frontend/ui/widgets/create_disposable_camera_memory_bottom_sheet.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -208,10 +207,8 @@ class _DisposableCameraWidgetState extends State<DisposableCameraWidget>
                         descriptionTextStyle:
                             const TextStyle(color: Colors.white),
                         endTime: DateTime.now().add(
-                          const Duration(
-                            minutes: 10,
-                            seconds: 00,
-                          ),
+                          state.albumInfo.disposableCamera.closeTime
+                              .difference(DateTime.now()),
                         ),
                         onEnd: () {},
                       ),
@@ -517,7 +514,9 @@ class _DisposableCameraWidgetState extends State<DisposableCameraWidget>
                               builder: (context1) {
                                 final _descriptionController =
                                     TextEditingController();
-                                context.read<DisposableCameraCubit>();
+                                TextEditingController textEditingController =
+                                    TextEditingController(text: "");
+
                                 return Container(
                                   color: Colors.grey.shade900,
                                   width: double.infinity,
@@ -579,6 +578,32 @@ class _DisposableCameraWidgetState extends State<DisposableCameraWidget>
                                               color: Colors.white),
                                         ),
                                       ),
+                                      SizedBox(
+                                        height: 15,
+                                      ),
+                                      Text(
+                                          "Choose date when disposable camera will close",
+                                          style: GoogleFonts.lato(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18)),
+                                      Center(
+                                        child: TextFormField(
+                                            textAlign: TextAlign.center,
+                                            controller: textEditingController,
+                                            decoration: InputDecoration(
+                                                border: OutlineInputBorder(
+                                                    borderSide:
+                                                        BorderSide.none)),
+                                            style: GoogleFonts.lato(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 18)),
+                                      ),
+                                      DateTimePicker(
+                                          textEditingController:
+                                              textEditingController,
+                                          title: ""),
                                       const SizedBox(
                                         height: 35,
                                       ),
@@ -614,7 +639,7 @@ class _DisposableCameraWidgetState extends State<DisposableCameraWidget>
                                                 ),
                                               ),
                                             ),
-                                            Spacer(),
+                                            const Spacer(),
                                             TextButton(
                                               style: TextButton.styleFrom(
                                                   backgroundColor:
@@ -625,6 +650,8 @@ class _DisposableCameraWidgetState extends State<DisposableCameraWidget>
                                                         DisposableCameraCubit>()
                                                     .activateDisposableCamera(
                                                         _descriptionController
+                                                            .text,
+                                                        textEditingController
                                                             .text);
                                                 if (Navigator.of(context)
                                                     .canPop()) {

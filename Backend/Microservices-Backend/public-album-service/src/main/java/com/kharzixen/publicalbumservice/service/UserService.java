@@ -24,6 +24,7 @@ public class UserService {
     public UserDtoOut createUser(UserDtoIn userDtoIn) {
         User user = UserMapper.INSTANCE.dtoToModel(userDtoIn);
         if(userRepository.findById(userDtoIn.getId()).isEmpty()){
+            user.setIsDeleted(false);
            User savedUser = userRepository.save(user);
             return UserMapper.INSTANCE.modelToDto(savedUser);
         };

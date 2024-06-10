@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:frontend/data/data_provider/private_collection_data_provider.dart';
+import 'package:frontend/model/memory_model.dart';
 import 'package:frontend/model/private-album_model.dart';
 import 'package:frontend/model/utils/paginated_response_generic.dart';
 

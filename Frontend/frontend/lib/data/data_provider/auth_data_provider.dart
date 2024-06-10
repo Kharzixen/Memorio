@@ -40,4 +40,21 @@ class AuthDataProvider {
       throw Exception(error);
     });
   }
+
+  static register(Map<String, dynamic> authRequestBody) {
+    Map<String, dynamic> requestBody = authRequestBody;
+    requestBody['birthday'] =
+        (requestBody['birthday'] as DateTime).toIso8601String();
+    return http
+        .post(Uri.parse("${StorageService.connectionString}/api/auth/register"),
+            headers: <String, String>{
+              'Content-Type': 'application/json; charset=UTF-8',
+            },
+            body: jsonEncode(requestBody))
+        .then((value) {
+      return value;
+    }).catchError((error) {
+      throw Exception(error);
+    });
+  }
 }

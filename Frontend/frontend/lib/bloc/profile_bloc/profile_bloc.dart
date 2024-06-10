@@ -6,6 +6,8 @@ import 'package:frontend/data/repository/user_repository.dart';
 import 'package:frontend/model/post_model.dart';
 import 'package:frontend/model/utils/paginated_response_generic.dart';
 import 'package:frontend/model/user_model.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:image_picker_platform_interface/src/types/image_source.dart';
 
 part 'profile_event.dart';
 part 'profile_state.dart';
@@ -27,6 +29,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   late User user;
 
   List<Post> posts = [];
+  int postCount = 0;
   int page = 0;
   int pageSize = 10;
 
@@ -38,6 +41,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<NewPostCreated>(_addNewPost);
     on<PostDeleted>(_removePost);
     on<RefreshProfile>(_refreshProfile);
+    on<RefreshProfileWithProvidedUser>(_refreshProfileWithProvidedUser);
   }
 
   void _getProfileUser(ProfileFetched event, Emitter<ProfileState> emit) async {
@@ -46,10 +50,12 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     userId = user.userId;
     PaginatedResponse<Post> postsBatch = await postRepository
         .getPostsOfUserOrderedByDatePaginated(userId, page, pageSize);
+
+    postCount = postsBatch.totalElements;
     posts.addAll(postsBatch.content);
     page++;
     emit(ProfileLoadedState(user, followers, isFollowed, following,
-        followersHasMoreData, followingHasMoreData, posts));
+        followersHasMoreData, followingHasMoreData, postCount, posts));
   }
 
   void _getFollowers(
@@ -61,7 +67,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       followers.addAll(paginatedResponse.content);
       followersHasMoreData = !paginatedResponse.last;
       emit(ProfileLoadedState(user, followers, isFollowed, following,
-          followersHasMoreData, followingHasMoreData, posts));
+          followersHasMoreData, followingHasMoreData, postCount, posts));
     }
   }
 
@@ -78,20 +84,20 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       }
       followingHasMoreData = !paginatedResponse.last;
       emit(ProfileLoadedState(user, followers, isFollowed, following,
-          followersHasMoreData, followingHasMoreData, posts));
+          followersHasMoreData, followingHasMoreData, postCount, posts));
     }
   }
 
   void _addNewPost(NewPostCreated event, Emitter<ProfileState> emit) async {
     posts.insert(0, event.post);
     emit(ProfileLoadedState(user, followers, isFollowed, following,
-        followersHasMoreData, followingHasMoreData, posts));
+        followersHasMoreData, followingHasMoreData, postCount, posts));
   }
 
   void _removePost(PostDeleted event, Emitter<ProfileState> emit) async {
     posts.removeWhere((element) => element.postId == event.postId);
     emit(ProfileLoadedState(user, followers, isFollowed, following,
-        followersHasMoreData, followingHasMoreData, posts));
+        followersHasMoreData, followingHasMoreData, postCount, posts));
   }
 
   FutureOr<void> _refreshProfile(
@@ -113,6 +119,13 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     posts.addAll(postsBatch.content);
     page++;
     emit(ProfileLoadedState(user, followers, isFollowed, following,
-        followersHasMoreData, followingHasMoreData, posts));
+        followersHasMoreData, followingHasMoreData, postCount, posts));
+  }
+
+  FutureOr<void> _refreshProfileWithProvidedUser(
+      RefreshProfileWithProvidedUser event, Emitter<ProfileState> emit) {
+    user = event.user;
+    emit(ProfileLoadedState(user, followers, isFollowed, following,
+        followersHasMoreData, followingHasMoreData, postCount, posts));
   }
 }

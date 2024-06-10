@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/data/repository/private_album_repository.dart';
+import 'package:frontend/model/album_model.dart';
 import 'package:frontend/model/private-album_model.dart';
 
 part 'select_albums_sheet_state.dart';

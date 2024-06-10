@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:frontend/data/data_provider/utils/http_headers.dart';
-import 'package:frontend/model/private-album_model.dart';
+import 'package:frontend/model/memory_model.dart';
 import 'package:frontend/service/storage_service.dart';
 import 'package:http/http.dart' as http;
 

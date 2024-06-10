@@ -1,11 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/bloc/auth_bloc/auth_bloc.dart';
 import 'package:frontend/cubit/create_disposable_camera_memory_cubit/create_disposable_camera_memory_cubit.dart';
 import 'package:frontend/data/data_provider/utils/http_headers.dart';
+import 'package:frontend/model/memory_model.dart';
 import 'package:frontend/model/post_model.dart';
-import 'package:frontend/model/private-album_model.dart';
 import 'package:frontend/model/utils/action_types_for_pop_payload.dart';
 import 'package:frontend/model/utils/memory_creation_details.dart';
 import 'package:frontend/model/utils/pop_payload.dart';

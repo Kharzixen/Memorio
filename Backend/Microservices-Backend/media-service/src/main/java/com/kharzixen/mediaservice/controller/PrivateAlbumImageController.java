@@ -2,6 +2,11 @@ package com.kharzixen.mediaservice.controller;
 
 import com.kharzixen.mediaservice.dto.ImageCreatedResponseDto;
 import com.kharzixen.mediaservice.dto.AlbumImageDtoIn;
+import com.kharzixen.mediaservice.exception.UnauthorizedRequestException;
+import com.kharzixen.mediaservice.model.Album;
+import com.kharzixen.mediaservice.model.User;
+import com.kharzixen.mediaservice.repository.AlbumRepository;
+import com.kharzixen.mediaservice.repository.UserRepository;
 import io.minio.*;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.InputStream;
+import java.util.Objects;
 import java.util.UUID;
 
 
@@ -21,18 +27,38 @@ import java.util.UUID;
 @Slf4j
 public class PrivateAlbumImageController {
     private final MinioClient minioClient;
+    private final AlbumRepository albumRepository;
+    private final UserRepository userRepository;
+
     @GetMapping(path = "/{id}", produces = "image/jpg")
-    ResponseEntity<?> getImageById(@PathVariable("id") String pathImageId) {
-        String imageId = pathImageId.replace("-", "/");
+    ResponseEntity<?> getImageById(@PathVariable("id") String pathImageId, @RequestHeader("X-USER-ID") String requesterId,
+                                   @RequestHeader("X-USERNAME") String username) {
         try {
-            InputStream stream =
-                    minioClient.getObject(GetObjectArgs
-                            .builder()
-                            .bucket("default")
-                            .object(imageId)
-                            .build());
-            byte[] imageData = IOUtils.toByteArray(stream);
-            return ResponseEntity.status(HttpStatus.OK).contentType(MediaType.IMAGE_PNG).body(imageData);
+            String imageId;
+            if(Objects.equals(pathImageId, "default_album_image.jpg")){
+                imageId = pathImageId;
+            } else {
+                imageId = pathImageId.replace("-", "/");
+                String[] parts = pathImageId.split("-");
+                String albumId = parts[0].split("_")[1];
+                Album album = albumRepository.findAlbumWithContributors(Long.valueOf(albumId))
+                        .orElseThrow(() -> new RuntimeException("Album not found"));
+                User requester = userRepository.findById(Long.valueOf(requesterId))
+                        .orElseThrow(() -> new RuntimeException("Album not found"));
+                if (!album.getContributors().contains(requester)){
+                    throw new UnauthorizedRequestException("Unauthorized");
+                }
+            }
+                InputStream stream =
+                        minioClient.getObject(GetObjectArgs
+                                .builder()
+                                .bucket("private-album-bucket")
+                                .object(imageId)
+                                .build());
+                byte[] imageData = IOUtils.toByteArray(stream);
+                return ResponseEntity.status(HttpStatus.OK).contentType(MediaType.IMAGE_PNG).body(imageData);
+
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -45,7 +71,7 @@ public class PrivateAlbumImageController {
             InputStream inputStream = albumImageDtoIn.getImage().getInputStream();
             String imageName = UUID.randomUUID().toString().replace("-", "");
             PutObjectArgs args = PutObjectArgs.builder()
-                    .bucket("default")
+                    .bucket("private-album-bucket")
                     .object("album_" + albumImageDtoIn.getAlbumId() + "/" + imageName + ".jpg")
                     .stream(inputStream, albumImageDtoIn.getImage().getSize(), -1)
                     .contentType("image/jpeg")

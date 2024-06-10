@@ -42,6 +42,10 @@ public class GatewayConfig {
                         .filters(f -> f.filter(authenticationFilter.apply(new AuthenticationFilter.Config())))
                         .uri("lb://media-service"))
 
+                .route("profile-image-service-route", r -> r.path("/profile-images/**")
+                        .filters(f -> f.filter(authenticationFilter.apply(new AuthenticationFilter.Config())))
+                        .uri("lb://media-service"))
+
                 .route("post-image-service-route", r -> r.path("/post-images/**")
                         .filters(f -> f.filter(authenticationFilter.apply(new AuthenticationFilter.Config())))
 

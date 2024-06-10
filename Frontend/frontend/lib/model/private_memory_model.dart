@@ -1,32 +1,5 @@
 part of 'private-album_model.dart';
 
-class PrivateMemory {
-  String memoryId;
-  String caption;
-  DateTime date;
-  String photo;
-
-  SimpleUser uploader;
-
-  PrivateMemory({
-    required this.memoryId,
-    required this.uploader,
-    required this.date,
-    required this.caption,
-    required this.photo,
-  });
-
-  factory PrivateMemory.fromJson(Map<String, dynamic> json) {
-    return PrivateMemory(
-        memoryId: json['id'].toString(),
-        caption: json['caption'] as String,
-        photo:
-            "${StorageService.connectionString}/private-album-images/${json['imageId']}",
-        date: DateTime.parse(json['creationDate']),
-        uploader: SimpleUser.fromMap(json["uploader"]));
-  }
-}
-
 class DetailedPrivateMemory {
   String memoryId;
   SimpleUser uploader;
@@ -38,6 +11,7 @@ class DetailedPrivateMemory {
   int collectionsCount;
   List<SimplePrivateCollection> collections;
   SimplePrivateAlbumWithOwner album;
+  bool isLiked;
 
   DetailedPrivateMemory({
     required this.memoryId,
@@ -49,6 +23,7 @@ class DetailedPrivateMemory {
     required this.collections,
     required this.date,
     required this.album,
+    required this.isLiked,
     required this.photo,
   });
 
@@ -62,6 +37,7 @@ class DetailedPrivateMemory {
         commentsCount: 0,
         collectionsCount: 2,
         collections: [],
+        isLiked: json['isLiked'] as bool,
         // collections: (json['collections'] as List<dynamic>)
         //     .map((collection) =>
         //         SimpleCollection.fromJson(collection as Map<String, dynamic>))

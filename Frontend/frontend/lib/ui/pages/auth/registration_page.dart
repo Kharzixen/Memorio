@@ -14,16 +14,26 @@ class RegistrationPage extends StatefulWidget {
 class _RegistrationFormState extends State<RegistrationPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  String username = "";
-  String name = "";
-  String email = "";
-  String phoneNumber = "";
-  String password = "";
-  String confirmPassword = "";
+  TextEditingController usernameController = TextEditingController();
+  TextEditingController nameController = TextEditingController();
+  TextEditingController emailController = TextEditingController();
+  TextEditingController phoneNumberController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
+  TextEditingController confirmPasswordController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    usernameController.dispose();
+    nameController.dispose();
+    phoneNumberController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -66,11 +76,26 @@ class _RegistrationFormState extends State<RegistrationPage> {
                 backgroundColor: Colors.transparent,
               ),
               body: BlocConsumer<AuthBloc, AuthState>(
-                listener: (context, state) {
-                  if (state is RegistrationFailure) {}
+                listener: (context, state) async {
+                  if (state is RegistrationFailure) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text("Something went wrong.."),
+                    ));
+                    usernameController.text = state.username;
+                    nameController.text = state.name;
+                    emailController.text = state.email;
+                    phoneNumberController.text = state.phoneNumber;
+                    passwordController.clear();
+                    confirmPasswordController.clear();
+                  }
 
                   if (state is RegistrationSuccess) {
-                    return context.go("/home");
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text("Registration successful! Redirecting.."),
+                    ));
+                    if (context.mounted) {
+                      context.go("/login");
+                    }
                   }
                 },
                 builder: (context, state) {
@@ -91,6 +116,7 @@ class _RegistrationFormState extends State<RegistrationPage> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   TextFormField(
+                                    controller: usernameController,
                                     autovalidateMode:
                                         AutovalidateMode.onUserInteraction,
                                     style: const TextStyle(color: Colors.white),
@@ -101,7 +127,8 @@ class _RegistrationFormState extends State<RegistrationPage> {
                                         return "Username must be at least 6 characters long";
                                       } else if (value.length > 30) {
                                         return "Username must be at most 30 characters long";
-                                      } else if (username.contains(" ")) {
+                                      } else if (usernameController.text
+                                          .contains(" ")) {
                                         return "Username must be a continuous word, please use \"_\" instead ";
                                       } else {
                                         return null;
@@ -118,12 +145,10 @@ class _RegistrationFormState extends State<RegistrationPage> {
                                         enabledBorder: UnderlineInputBorder(
                                             borderSide: BorderSide(
                                                 color: Colors.grey))),
-                                    onChanged: (val) {
-                                      username = val;
-                                    },
                                   ),
                                   const SizedBox(height: 20.0),
                                   TextFormField(
+                                    controller: nameController,
                                     autovalidateMode:
                                         AutovalidateMode.onUserInteraction,
                                     style: const TextStyle(color: Colors.white),
@@ -138,9 +163,6 @@ class _RegistrationFormState extends State<RegistrationPage> {
                                         enabledBorder: UnderlineInputBorder(
                                             borderSide: BorderSide(
                                                 color: Colors.grey))),
-                                    onChanged: (val) {
-                                      name = val;
-                                    },
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
                                         return "Name field can not be empty";
@@ -155,6 +177,7 @@ class _RegistrationFormState extends State<RegistrationPage> {
                                   ),
                                   const SizedBox(height: 20.0),
                                   TextFormField(
+                                    controller: emailController,
                                     autovalidateMode:
                                         AutovalidateMode.onUserInteraction,
                                     style: const TextStyle(color: Colors.white),
@@ -169,9 +192,6 @@ class _RegistrationFormState extends State<RegistrationPage> {
                                         enabledBorder: UnderlineInputBorder(
                                             borderSide: BorderSide(
                                                 color: Colors.grey))),
-                                    onChanged: (val) {
-                                      email = val;
-                                    },
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
                                         return "Email Address field can not be empty";
@@ -186,6 +206,7 @@ class _RegistrationFormState extends State<RegistrationPage> {
                                   ),
                                   const SizedBox(height: 20.0),
                                   TextFormField(
+                                    controller: phoneNumberController,
                                     autovalidateMode:
                                         AutovalidateMode.onUserInteraction,
                                     style: const TextStyle(color: Colors.white),
@@ -202,9 +223,6 @@ class _RegistrationFormState extends State<RegistrationPage> {
                                         ),
                                       ),
                                     ),
-                                    onChanged: (val) {
-                                      phoneNumber = val;
-                                    },
                                     validator: (value) {
                                       final RegExp phoneNumberRegex =
                                           RegExp(r'^\+?[0-9]{1,4}-?[0-9]+$');
@@ -220,8 +238,11 @@ class _RegistrationFormState extends State<RegistrationPage> {
                                       }
                                     },
                                   ),
+                                  // const SizedBox(height: 20.0),
+                                  // const DatePicker(title: "pickdate"),
                                   const SizedBox(height: 20.0),
                                   TextFormField(
+                                    controller: passwordController,
                                     autovalidateMode:
                                         AutovalidateMode.onUserInteraction,
                                     style: const TextStyle(color: Colors.white),
@@ -288,12 +309,10 @@ class _RegistrationFormState extends State<RegistrationPage> {
                                         ),
                                       ),
                                     ),
-                                    onChanged: (val) {
-                                      password = val;
-                                    },
                                   ),
                                   const SizedBox(height: 20.0),
                                   TextFormField(
+                                    controller: confirmPasswordController,
                                     style: const TextStyle(color: Colors.white),
                                     autovalidateMode:
                                         AutovalidateMode.onUserInteraction,
@@ -309,13 +328,12 @@ class _RegistrationFormState extends State<RegistrationPage> {
                                         enabledBorder: UnderlineInputBorder(
                                             borderSide: BorderSide(
                                                 color: Colors.grey))),
-                                    onChanged: (val) {
-                                      confirmPassword = val;
-                                    },
                                     validator: (value) {
+                                      print("${passwordController.text}");
                                       if (value == null || value.isEmpty) {
                                         return "Password field can not be empty";
-                                      } else if (!(value == password)) {
+                                      } else if (!(value ==
+                                          passwordController.text)) {
                                         return "Passwords do not match";
                                       } else {
                                         return null;
@@ -341,12 +359,18 @@ class _RegistrationFormState extends State<RegistrationPage> {
                                         if (_formKey.currentState!.validate()) {
                                           context.read<AuthBloc>().add(
                                               RegistrationRequestedEvent(
-                                                  username: username,
-                                                  email: email,
-                                                  phoneNumber: phoneNumber,
-                                                  password: password,
+                                                  username:
+                                                      usernameController.text,
+                                                  email: emailController.text,
+                                                  name: nameController.text,
+                                                  phoneNumber:
+                                                      phoneNumberController
+                                                          .text,
+                                                  password:
+                                                      passwordController.text,
                                                   confirmPassword:
-                                                      confirmPassword));
+                                                      confirmPasswordController
+                                                          .text));
                                         }
                                       },
                                     ),

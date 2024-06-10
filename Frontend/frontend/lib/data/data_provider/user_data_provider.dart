@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:frontend/data/data_provider/utils/http_headers.dart';
 import 'package:frontend/service/storage_service.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 
 class UserDataProvider {
   static Future<http.Response> getProfileUser(String userId) async {
@@ -131,5 +133,38 @@ class UserDataProvider {
     }).catchError((error) {
       throw Exception(error);
     });
+  }
+
+  static patchUserProfileImage(
+      String userId, Uint8List image, String? newBio) async {
+    try {
+      var request = http.MultipartRequest('PATCH',
+          Uri.parse("${StorageService.connectionString}/api/users/$userId"));
+      if (image.isNotEmpty) {
+        request.files.add(
+          http.MultipartFile.fromBytes('image', image,
+              filename: "asd", contentType: MediaType('image', 'jpg')),
+        );
+      }
+
+      if (newBio != null) {
+        request.fields["bio"] = newBio;
+      }
+
+      Map<String, String> headers =
+          await HttpHeadersFactory.getDefaultRequestHeader();
+
+      request.headers.addAll(headers);
+
+      return await request.send().then((value) {
+        return value;
+      }).catchError((error) {
+        throw Exception(error);
+      });
+    } catch (e) {
+      // Handle errors
+      print('Error uploading file: $e');
+      rethrow;
+    }
   }
 }

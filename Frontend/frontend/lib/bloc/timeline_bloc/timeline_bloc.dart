@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/data/repository/private_memory_repository.dart';
-import 'package:frontend/model/private-album_model.dart';
+import 'package:frontend/model/memory_model.dart';
 import 'package:frontend/model/utils/paginated_response_generic.dart';
 
 part 'timeline_event.dart';

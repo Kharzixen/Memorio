@@ -9,6 +9,7 @@ import com.kharzixen.publicalbumservice.dto.outgoing.albumDto.AlbumContributorsP
 import com.kharzixen.publicalbumservice.dto.outgoing.albumDto.AlbumDtoOut;
 import com.kharzixen.publicalbumservice.dto.outgoing.albumDto.AlbumPreviewDto;
 import com.kharzixen.publicalbumservice.exception.NotFoundException;
+import com.kharzixen.publicalbumservice.exception.UnauthorizedRequestException;
 import com.kharzixen.publicalbumservice.mapper.AlbumMapper;
 import com.kharzixen.publicalbumservice.mapper.MemoryMapper;
 import com.kharzixen.publicalbumservice.mapper.UserMapper;
@@ -28,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @AllArgsConstructor
@@ -38,9 +40,9 @@ public class AlbumService {
     private final ImageServiceClient imageServiceClient;
 
     @Transactional
-    public AlbumDtoOut createAlbum(AlbumDtoIn albumDtoIn) {
+    public AlbumDtoOut createAlbum(AlbumDtoIn albumDtoIn, Long requesterId) {
         Album album = AlbumMapper.INSTANCE.dtoToModel(albumDtoIn);
-        User owner = userRepository.findById(albumDtoIn.getOwnerId())
+        User owner = userRepository.findById(requesterId)
                 .orElseThrow(() -> new RuntimeException("user does not exists with id: " + albumDtoIn.getOwnerId()));
         List<User> contributors = new ArrayList<>(albumDtoIn.getInvitedUserIds().stream().
                 map(userId -> userRepository.findById(userId).
@@ -90,11 +92,14 @@ public class AlbumService {
     }
 
     @Transactional
-    public void removeAlbum(Long albumId) {
+    public void removeAlbum(Long albumId, Long requesterId) {
         Album album = albumRepository.findById(albumId).orElseThrow(()-> new NotFoundException("ALBUM", albumId));
-
-        memoryRepository.deleteAllById(album.getMemories().stream().map(Memory::getId).toList());
-        albumRepository.deleteById(albumId);
+        if(Objects.equals(album.getOwner().getId(), requesterId)) {
+            memoryRepository.deleteAllById(album.getMemories().stream().map(Memory::getId).toList());
+            albumRepository.deleteById(albumId);
+        } else {
+            throw new UnauthorizedRequestException("Unauthorized");
+        }
     }
 
     public List<UserDtoOut> getContributorsOfAlbum(Long albumId) {
@@ -103,39 +108,46 @@ public class AlbumService {
     }
 
     @Transactional
-    public AlbumContributorsPatchedDtoOut addContributors(Long albumId, PatchAlbumContributorsDtoIn patchDto) {
+    public AlbumContributorsPatchedDtoOut addContributors(Long albumId, PatchAlbumContributorsDtoIn patchDto, Long requesterId) {
         Album album = albumRepository.findById(albumId).orElseThrow(() -> new NotFoundException("Album", albumId));
-        List<UserDtoOut> changedUsers = new ArrayList<>();
-        for (Long userId : patchDto.getUserIds()) {
+        if(Objects.equals(album.getOwner().getId(), requesterId)){
 
-            User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User", userId));
-            if (! album.getContributors().contains(user)) {
-                album.getContributors().add(user);
-                user.getAlbums().add(album);
-                changedUsers.add(UserMapper.INSTANCE.modelToDto(user));
+            List<UserDtoOut> changedUsers = new ArrayList<>();
+            for (Long userId : patchDto.getUserIds()) {
+
+                User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User", userId));
+                if (! album.getContributors().contains(user)) {
+                    album.getContributors().add(user);
+                    user.getAlbums().add(album);
+                    changedUsers.add(UserMapper.INSTANCE.modelToDto(user));
+                }
             }
+            Album savedAlbum = albumRepository.save(album);
+            return new AlbumContributorsPatchedDtoOut(patchDto.getMethod(), savedAlbum.getId().toString(), changedUsers);
+        } else {
+            throw new UnauthorizedRequestException("Unauthorized");
         }
-        Album savedAlbum = albumRepository.save(album);
-        return new AlbumContributorsPatchedDtoOut(patchDto.getMethod(), savedAlbum.getId().toString(), changedUsers);
     }
     @Transactional
-    public void removeUserFromAlbum(Long userId, Long albumId) {
-        //check if user who we want to remove is the same user who made the request jwt token
-        //or proceed if the user
-        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("USER", userId));
-        Album album = albumRepository.findById(albumId).orElseThrow(()-> new NotFoundException("ALBUM", albumId));
-        user.getAlbums().remove(album);
-        album.getContributors().remove(user);
+    public void removeUserFromAlbum(Long userId, Long albumId, Long requesterId) {
+       if(Objects.equals(requesterId, userId)) {
+           User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("USER", userId));
+           Album album = albumRepository.findById(albumId).orElseThrow(() -> new NotFoundException("ALBUM", albumId));
+           user.getAlbums().remove(album);
+           album.getContributors().remove(user);
 
-        if(album.getContributors().isEmpty()){
-            //if no more contributors, delete the album
-            this.removeAlbum(album.getId());
-        } else if(album.getOwner() == user){
-            //if there are contributors, set another owner
-            album.setOwner(album.getContributors().get(0));
-        }
+           if (album.getContributors().isEmpty()) {
+               //if no more contributors, delete the album
+               this.removeAlbum(album.getId(), requesterId);
+           } else if (album.getOwner() == user) {
+               //if there are contributors, set another owner
+               album.setOwner(album.getContributors().get(0));
+           }
 
-        userRepository.save(user);
+           userRepository.save(user);
+       } else {
+           throw new UnauthorizedRequestException("Unauthorized");
+       }
     }
 
     public UserDtoOut getContributorByIdOfAlbum(Long albumId, Long contributorId) {
@@ -147,5 +159,25 @@ public class AlbumService {
         }
 
         throw new RuntimeException("user not contributor of album");
+    }
+
+    public Page<AlbumPreviewDto> getAllAlbumPreviews(int page, int pageSize) {
+        Sort memorySort = Sort.by(Sort.Direction.DESC, "creationDate");
+        Sort albumSort = Sort.by(Sort.Direction.DESC, "albumName");
+        Pageable albumPageRequest = PageRequest.of(page, pageSize, albumSort);
+        Pageable memoryPageRequest = PageRequest.of(0, 4, memorySort);
+        Page<Album> albums = albumRepository.findAll(albumPageRequest);
+
+        List<AlbumPreviewDto> previews = albums.stream().map(album -> {
+            AlbumPreviewDto albumDto = AlbumMapper.INSTANCE.modelToPreviewDto(album);
+            List<MemoryProjection> recentMemoriesProjection = memoryRepository
+                    .findMemoriesOfAlbumPaginated(album.getId(), memoryPageRequest).getContent();
+
+            albumDto.setRecentMemories(recentMemoriesProjection.stream()
+                    .map(MemoryMapper.INSTANCE::projectionToPreviewDto).toList());
+            return albumDto;
+        }).toList();
+
+        return new PageImpl<>(previews, albumPageRequest, albums.getTotalElements());
     }
 }

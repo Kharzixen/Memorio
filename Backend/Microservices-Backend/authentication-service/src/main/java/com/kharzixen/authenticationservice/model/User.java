@@ -10,6 +10,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -23,10 +24,14 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(unique = true)
     private String username;
-    //private String name;
-    //private String email;
+    @Column(unique = true)
+    private String email;
     private String password;
+    @Column(unique = true)
+    private String phoneNumber;
+    //-----
     private Boolean isAdmin;
     private Boolean isActive;
 

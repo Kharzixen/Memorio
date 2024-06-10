@@ -30,7 +30,7 @@ public class PostImageController {
             InputStream stream =
                     minioClient.getObject(GetObjectArgs
                             .builder()
-                            .bucket("posts-bucket")
+                            .bucket("post-bucket")
                             .object(imageId)
                             .build());
             byte[] imageData = IOUtils.toByteArray(stream);
@@ -47,7 +47,7 @@ public class PostImageController {
             InputStream inputStream = albumImageDtoIn.getImage().getInputStream();
             String imageName = UUID.randomUUID().toString().replace("-", "");
             PutObjectArgs args = PutObjectArgs.builder()
-                    .bucket("posts-bucket")
+                    .bucket("post-bucket")
                     .object("user_" + albumImageDtoIn.getUserId() + "/" + imageName + ".jpg")
                     .stream(inputStream, albumImageDtoIn.getImage().getSize(), -1)
                     .contentType("image/jpeg")

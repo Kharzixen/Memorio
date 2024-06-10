@@ -1,11 +1,9 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:frontend/cubit/public_album_previews_cubit/public_album_previews_cubit.dart';
-import 'package:frontend/cubit/public_album_previews_cubit/public_album_previews_cubit.dart';
+import 'package:frontend/cubit/discover_public_albums_cubit/discover_public_albums_cubit.dart';
 import 'package:frontend/data/repository/public_album_repository.dart';
-import 'package:frontend/ui/widgets/album_hub_widget.dart';
+import 'package:frontend/service/storage_service.dart';
+import 'package:frontend/ui/widgets/discover_album_preview_card_widget.dart';
 import 'package:frontend/ui/widgets/follow_suggestions_widget.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -20,7 +18,7 @@ class _DiscoverPageState extends State<DiscoverPage> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-        length: 3,
+        length: 2,
         child: SafeArea(
           child: Scaffold(
             backgroundColor: Colors.black,
@@ -49,9 +47,6 @@ class _DiscoverPageState extends State<DiscoverPage> {
                   Tab(
                     text: "Album Hub",
                   ),
-                  Tab(
-                    text: "Notes",
-                  )
                 ],
               ),
               iconTheme: const IconThemeData(
@@ -63,11 +58,40 @@ class _DiscoverPageState extends State<DiscoverPage> {
                 const FollowingSuggestionWidget(),
                 //second tab
                 BlocProvider(
-                    create: (context) => PublicAlbumPreviewsCubit(
-                        context.read<PublicAlbumRepository>()),
-                    child: AlbumHub()),
-                Container(
-                  color: Colors.green,
+                  create: (context) => DiscoverPublicAlbumPreviewsCubit(
+                    context.read<PublicAlbumRepository>(),
+                  )..loadAlbumPreview(StorageService().userId),
+                  child: Builder(
+                    builder: (context) {
+                      return BlocBuilder<DiscoverPublicAlbumPreviewsCubit,
+                          DiscoverPublicAlbumPreviewsState>(
+                        builder: (context, state) {
+                          if (state is DiscoverPublicAlbumPreviewsLoadedState) {
+                            return RefreshIndicator.adaptive(
+                              onRefresh: () async {
+                                var cubit = context
+                                    .read<DiscoverPublicAlbumPreviewsCubit>()
+                                    .stream
+                                    .first;
+                                context
+                                    .read<DiscoverPublicAlbumPreviewsCubit>()
+                                    .refresh();
+                                await cubit;
+                              },
+                              child: ListView.builder(
+                                itemCount: state.publicAlbums.length,
+                                itemBuilder: (context, index) {
+                                  return DiscoverPublicALbumPreviewCard(
+                                      albumPreview: state.publicAlbums[index]);
+                                },
+                              ),
+                            );
+                          }
+                          return Center(child: CircularProgressIndicator());
+                        },
+                      );
+                    },
+                  ),
                 ),
               ],
             ),

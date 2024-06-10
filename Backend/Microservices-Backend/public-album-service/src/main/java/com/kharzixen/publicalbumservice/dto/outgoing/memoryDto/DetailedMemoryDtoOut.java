@@ -21,5 +21,6 @@ public class DetailedMemoryDtoOut {
     private UserDtoOut uploader;
     private AlbumSimplifiedDtoOut album;
     private Date creationDate;
+    private Boolean isHighlighted;
     private int likeCount;
 }

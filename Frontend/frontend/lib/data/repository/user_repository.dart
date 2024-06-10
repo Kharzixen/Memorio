@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:frontend/data/data_provider/user_data_provider.dart';
 import 'package:frontend/model/utils/paginated_response_generic.dart';
@@ -123,6 +124,24 @@ class UserRepository {
       }
     } catch (e) {
       rethrow;
+    }
+  }
+
+  changeProfileOfUser(String userId, Uint8List image, String? newBio) async {
+    try {
+      final response =
+          await UserDataProvider.patchUserProfileImage(userId, image, newBio);
+
+      String jsonBody = await response.stream.bytesToString();
+      if (response.statusCode == 200) {
+        Map<String, dynamic> responseJson = json.decode(jsonBody);
+        User user = User.fromMap(responseJson);
+        return user;
+      } else {
+        throw Exception(jsonBody);
+      }
+    } catch (e) {
+      throw e.toString();
     }
   }
 }

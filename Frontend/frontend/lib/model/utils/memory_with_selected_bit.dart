@@ -1,4 +1,4 @@
-import 'package:frontend/model/private-album_model.dart';
+import 'package:frontend/model/memory_model.dart';
 
 class MemoryWithSelectedBit {
   PrivateMemory memory;
