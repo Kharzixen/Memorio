@@ -63,8 +63,8 @@ public class JwtUtil {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         claims.put("id", user.getId());
         claims.put("type", "refreshToken");
-        Date expirationDate = new Date(System.currentTimeMillis() + 1000 * 60 * 60);
-        return createToken(claims, username, expirationDate); // 7 days
+        Date expirationDate = new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24);
+        return createToken(claims, username, expirationDate);
     }
 
 

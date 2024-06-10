@@ -27,7 +27,7 @@ class User {
       name: map["name"],
       bio: map["bio"],
       pfpLink:
-          "${StorageService.connectionString}/profile-images/${map["username"]}",
+          "${StorageService.connectionString}/profile-images/${map["username"]}?dateTime=${DateTime.now().toIso8601String()}",
       followersCount: map["followersCount"].toString(),
       followingCount: map["followingCount"].toString(),
     );
@@ -52,7 +52,7 @@ class SimpleUser {
       userId: (map["id"] as int).toString(),
       username: map["username"] as String,
       pfpLink:
-          "${StorageService.connectionString}/profile-images/${map["username"]}",
+          "${StorageService.connectionString}/profile-images/${map["username"]}?dateTime=${DateTime.now().toIso8601String()}",
     );
   }
 

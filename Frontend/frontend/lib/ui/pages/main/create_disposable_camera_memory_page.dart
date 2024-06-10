@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/cubit/create_disposable_camera_memory_cubit/create_disposable_camera_memory_cubit.dart';
@@ -138,7 +137,7 @@ class _CreateDisposableCameraMemoryPageState
                             child: Row(
                               children: [
                                 CircleAvatar(
-                                  foregroundImage: CachedNetworkImageProvider(
+                                  foregroundImage: NetworkImage(
                                       headers: HttpHeadersFactory
                                           .getDefaultRequestHeaderForImage(
                                               TokenManager().accessToken!),

@@ -98,12 +98,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         }
         emit(AuthInitialState());
       } else {
-        StorageService().userId = getUserIdFromJwt(accessToken);
-
         TokenManager().accessToken = (await StorageService().getAccessToken())!;
         TokenManager().refreshToken =
             (await StorageService().getRefreshToken())!;
-
+        StorageService().initStorageService(TokenManager().accessToken!);
         emit(AuthSuccess());
       }
     } catch (e) {

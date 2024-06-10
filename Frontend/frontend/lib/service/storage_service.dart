@@ -2,12 +2,11 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 
 class StorageService {
-  String _username = "kharzixen";
+  String _username = "";
   String _userId = "";
+  String _pfp = "";
 
   static const String _connectionString = "http://192.168.1.103:8080";
-  String _pfp =
-      "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2";
 
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
@@ -39,7 +38,7 @@ class StorageService {
   // Save access token
   Future<void> saveAccessToken(String token) async {
     await _secureStorage.write(key: _accessTokenKey, value: token);
-    _extractUserIdFromToken(token);
+    initStorageService(token);
   }
 
   // Retrieve access token
@@ -72,11 +71,14 @@ class StorageService {
     await _secureStorage.deleteAll();
   }
 
-  void _extractUserIdFromToken(String token) {
+  void initStorageService(String token) {
     try {
       final Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
       if (decodedToken.containsKey('id')) {
-        _userId = decodedToken['id'];
+        _userId = decodedToken['id'].toString();
+        _username = decodedToken['sub'];
+        _pfp =
+            "$_connectionString/profile-images/$_username?date=${DateTime.now()}";
       }
     } catch (e) {
       print('Error decoding JWT: $e');
