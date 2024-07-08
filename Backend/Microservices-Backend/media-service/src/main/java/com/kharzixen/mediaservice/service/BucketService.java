@@ -38,7 +38,7 @@ public class BucketService {
                     assert image1Stream != null;
                     PutObjectArgs args = PutObjectArgs.builder()
                             .bucket(bucketName)
-                            .object("default.album_image.jpg")
+                            .object("default_album_image.jpg")
                             .stream(image1Stream, image1Stream.available(), -1)
                             .contentType("image/jpeg")
                             .build();
