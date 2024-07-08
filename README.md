@@ -1,7 +1,7 @@
 # Memorio - An application for sharing memories
 
 > [!WARNING]
->  Due to the strict deadline this software is yet unfinished.
+>  Due to the tight deadline this software is yet unfinished.
 > <details>
 > <br>
 > Please be aware that this project is currently in an unfinished state and may have incomplete features or issues. While we are actively working on it, there might be bugs, missing functionality, or unpolished areas. 
