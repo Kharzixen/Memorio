@@ -1,0 +1,19 @@
+for(i=0;n)
+    for(j=i+1;n-1)
+        for(k=j+1,n-2){
+            for
+        }
+
+---------------------------------------------------
+
+Versenyzok(*versenyzokod, vezeteknev, keresztnev, szul.datum); 
+Versenyszamok(*versenyszamKod, megnevezes, leiras, datum); 
+VersenyzokVersenyszamok(*(versenyzokod, versenyszamkod));
+Versenybirok(*versenyBiroKod, vezeteknev, keresztnev); 
+Pontszamok(#*(versenyzokod, versenyBiroKod, versenyszamKod), pont); 
+
+
+select * from Cikkek C
+inner join Kategoriak K on C.KategoriaKod = K.KategoriaKod
+where Megnevez="Gazdasag" AND C.UjsagiroKod IN
+(Select UjsagiroKod from Ujsagirok I join Ujsagok U where I.UjsagiroKod = U.UjsagiroKod where UjsagNev = "Universul"); 

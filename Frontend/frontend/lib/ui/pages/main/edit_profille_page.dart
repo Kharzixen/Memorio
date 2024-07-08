@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:frontend/cubit/edit_profile_cubit/edit_profile_cubit.dart';
+import 'package:frontend/data/data_provider/utils/http_headers.dart';
 import 'package:frontend/model/user_model.dart';
 import 'package:frontend/model/utils/action_types_for_pop_payload.dart';
 import 'package:frontend/model/utils/pop_payload.dart';
+import 'package:frontend/service/auth_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -87,6 +89,10 @@ class EditProfilePage extends StatelessWidget {
                                         color: Colors.pink.shade100,
                                         image: DecorationImage(
                                             image: CachedNetworkImageProvider(
+                                              headers: HttpHeadersFactory
+                                                  .getDefaultRequestHeaderForImage(
+                                                      TokenManager()
+                                                          .accessToken!),
                                               state.user.pfpLink,
                                             ),
                                             fit: BoxFit.cover)),

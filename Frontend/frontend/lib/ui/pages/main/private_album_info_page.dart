@@ -46,6 +46,7 @@ class _PrivateAlbumInfoPageState extends State<PrivateAlbumInfoPage> {
             }
 
             if (state is AlbumLoadedState) {
+              print(state.contributors[0].pfpLink);
               return Stack(
                 children: [
                   RefreshIndicator.adaptive(

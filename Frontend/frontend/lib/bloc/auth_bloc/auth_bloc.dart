@@ -47,7 +47,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (event.password == event.confirmPassword) {
         Map<String, dynamic> registerRequestBody = {};
         registerRequestBody['username'] = event.username;
-        registerRequestBody['name'] = "Noname";
+        registerRequestBody['name'] = event.name;
         registerRequestBody['email'] = event.email;
         registerRequestBody['phoneNumber'] = event.phoneNumber;
         registerRequestBody['password'] = event.password;
