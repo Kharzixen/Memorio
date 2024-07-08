@@ -1,5 +1,15 @@
 # Memorio - An application for sharing memories
 
+> [!WARNING]
+>  Due to the strict deadline this software is yet unfinished.
+> <details>
+> <br>
+> Please be aware that this project is currently in an unfinished state and may have incomplete features or issues. While we are actively working on it, there might be bugs, missing functionality, or unpolished areas. 
+> <br><br>
+> If you encounter any issues, have feedback, or want to provide tips or suggestions for improvement, we welcome your input. Feel free to reach out to us at `mellau.mark12@gmail.com` with your feedback and concerns. Your input will be greatly appreciated in helping us improve this project.
+> </details>
+
+
 Memorio is a social media-like application where users can create posts, follow other users, and check their posts. The main feature of Memorio is to enable users to create public and private shared galleries, where they can add other users and upload common memories like hiking trips and more.
 
 ## Features
