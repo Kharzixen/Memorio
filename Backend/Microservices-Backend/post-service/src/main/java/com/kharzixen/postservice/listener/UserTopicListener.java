@@ -26,7 +26,6 @@ public class UserTopicListener {
 
     private final ObjectMapper objectMapper;
     private final UserService userService;
-    private final UserMapper userMapper;
 
     @KafkaListener(topics = "memorio.authentication_db.user_outbox")
     public void listen(@Payload(required = false) String message, @Header(KafkaHeaders.RECEIVED_KEY) String key) {
@@ -44,7 +43,7 @@ public class UserTopicListener {
                             .isAdmin(userEvent.getIsAdmin())
                             .build();
                     UserDtoOut savedUser = userService.createUser(userDtoIn);
-                    log.info("User with id: {} created.", savedUser.getId());
+                    log.info("User with id: {} created.", savedUser.getUserId());
                 }
                 case "DELETE" -> {
 

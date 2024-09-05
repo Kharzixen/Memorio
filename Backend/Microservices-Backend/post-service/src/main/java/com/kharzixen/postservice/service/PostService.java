@@ -10,6 +10,7 @@ import com.kharzixen.postservice.mapper.PostMapper;
 import com.kharzixen.postservice.model.Post;
 import com.kharzixen.postservice.model.PostOutbox;
 import com.kharzixen.postservice.model.User;
+import com.kharzixen.postservice.repository.LikeRepository;
 import com.kharzixen.postservice.repository.PostOutboxRepository;
 import com.kharzixen.postservice.repository.PostRepository;
 import com.kharzixen.postservice.repository.UserRepository;
@@ -30,11 +31,13 @@ public class PostService {
     private final UserRepository userRepository;
     private final ImageServiceClient imageServiceClient;
     private final PostOutboxRepository postOutboxRepository;
+    private final LikeRepository likeRepository;
 
     public PostDtoOut getPostById(Long postId, Long requesterId) throws PostNotFoundException {
         Post post = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(postId));
         PostDtoOut postDtoOut = PostMapper.INSTANCE.modelToDto(post);
         postDtoOut.setIsLikedByRequester(postRepository.isPostLikedByUser(postId, requesterId));
+        postDtoOut.setLikeCount(likeRepository.countLikesByPostId(postId));
         return postDtoOut;
     }
 

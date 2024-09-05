@@ -19,10 +19,10 @@ public interface UserMapper {
     @Mapping(target = "userId", source = "id")
     UserDtoOut modelToDto(User user);
 
-
+    @Mapping(target = "userId", source = "id")
     SimpleUserDtoOut modelToSimplifiedDto(User user);
 
-
+    @Mapping(target = "userId", source = "id")
     SimpleUserDtoOut projectionToDto(SimpleUserProjection projection);
 
 

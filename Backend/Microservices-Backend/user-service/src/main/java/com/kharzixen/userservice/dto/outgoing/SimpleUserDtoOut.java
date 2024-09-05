@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class SimpleUserDtoOut {
-    private Long id;
+    private Long userId;
     private String username;
     private String pfpId;
 }

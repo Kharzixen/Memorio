@@ -6,7 +6,7 @@ class StorageService {
   String _userId = "";
   String _pfp = "";
 
-  static const String _connectionString = "http://192.168.0.179:8080";
+  static const String _connectionString = "http://192.168.239.136:8080";
 
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 

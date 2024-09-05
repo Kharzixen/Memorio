@@ -49,7 +49,7 @@ class SimpleUser {
 
   factory SimpleUser.fromMap(Map<String, dynamic> map) {
     return SimpleUser(
-      userId: (map["id"] as int).toString(),
+      userId: (map["userId"] as int).toString(),
       username: map["username"] as String,
       pfpLink:
           "${StorageService.connectionString}/profile-images/${map["username"]}?dateTime=${DateTime.now().toIso8601String()}",

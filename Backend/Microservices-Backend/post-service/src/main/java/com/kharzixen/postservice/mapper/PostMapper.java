@@ -12,6 +12,8 @@ public interface PostMapper {
     PostMapper INSTANCE = Mappers.getMapper(PostMapper.class);
 
     @Mapping(target = "isLikedByRequester", ignore = true)
+    @Mapping(target = "likeCount", ignore = true)
+    @Mapping(target="owner.userId", source = "owner.id")
     PostDtoOut modelToDto(Post post);
 
 }

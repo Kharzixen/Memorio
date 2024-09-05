@@ -24,5 +24,7 @@ public class PostDtoOut {
 
     private Date creationDate;
 
+    private Long likeCount;
+
     private Boolean isLikedByRequester;
 }
