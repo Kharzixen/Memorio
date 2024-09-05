@@ -31,6 +31,41 @@ Memorio is a social media-like application where users can create posts, follow 
 
 ### Demo video link (Google Drive): https://drive.google.com/file/d/1zj9dLYVvDHTiGa4Lkk7vVLXui7zm3-as/view?usp=sharing 
 
+## How to Deploy
+
+Follow these steps to deploy the application:
+
+### Prerequisites
+- Ensure you have the following tools installed:
+  - Java and Maven (`mvn`)
+  - Docker and Docker Compose
+  - (Windows users) **Git Bash** for executing shell scripts.
+
+### Deployment Steps
+
+1. **Build the Project**  
+   Navigate to the project directory and run the following Maven command to clean and package the project: <br>
+  `mvn clean package`
+
+3. **Start Docker Containers**  
+    Use Docker Compose to bring up all the necessary containers: <br>
+    `docker-compose up` <br>
+    
+    **Note**: Some service containers might fail to initially start, please restart those.
+   
+4. **(For Windows Users) Open Git Bash**  
+   If you're on Windows, ensure you're running the following command inside **Git Bash** to support shell scripts. <br>
+   
+   To open Git Bash open a command promt and type **bash** 
+
+6. **Run Deployment Script**  
+   Once all Docker containers are up and running successfully, execute the following script to deploy the Debezium connectors: <br>
+   `./deploy_connectors.sh`
+
+### Additional Notes
+- You can check the status of the Docker containers by running: `docker ps`
+- Ensure all containers are healthy before proceeding to run the `deploy_connectors.sh` script.
+
 
 ## Technical Details
 
